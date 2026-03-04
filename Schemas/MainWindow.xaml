@@ -694,26 +694,26 @@
                                    Margin="12,0,0,0"
                                    FontSize="12"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button x:Name="KofiBtn" Content="&#xEB52;" FontFamily="Segoe Fluent Icons" FontSize="15" Style="{StaticResource TitlebarButton}" ToolTip="Support the creator" AutomationProperties.Name="Support the creator"/>
-                            <Button x:Name="MenuBtn" Content="&#xE700;" FontFamily="Segoe Fluent Icons" FontSize="15" Style="{StaticResource TitlebarButton}" ToolTip="Options" AutomationProperties.Name="Options">
+                            <Button x:Name="KofiBtn" Content="&#xEB52;" FontFamily="Segoe Fluent Icons" FontSize="15" Style="{StaticResource TitlebarButton}" ToolTip="支持作者" AutomationProperties.Name="支持作者"/>
+                            <Button x:Name="MenuBtn" Content="&#xE700;" FontFamily="Segoe Fluent Icons" FontSize="15" Style="{StaticResource TitlebarButton}" ToolTip="选项" AutomationProperties.Name="选项">
                                 <Button.ContextMenu>
                                     <ContextMenu x:Name="MainMenu">
-                                        <MenuItem x:Name="MenuDocumentation" Header="Documentation" AutomationProperties.Name="Documentation">
+                                        <MenuItem x:Name="MenuDocumentation" Header="文档" AutomationProperties.Name="文档">
                                             <MenuItem.Icon>
                                                 <TextBlock Text="&#xe736;" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{DynamicResource FgColor}"/>
                                             </MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem x:Name="MenuReportBug" Header="Report a bug" AutomationProperties.Name="Report a bug">
+                                        <MenuItem x:Name="MenuReportBug" Header="报告问题" AutomationProperties.Name="报告问题">
                                             <MenuItem.Icon>
                                                 <TextBlock Text="&#xEBE8;" FontFamily="Segoe Fluent Icons" FontSize="16" Foreground="{DynamicResource FgColor}"/>
                                             </MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem x:Name="MenuLogs" Header="Logs" AutomationProperties.Name="Logs">
+                                        <MenuItem x:Name="MenuLogs" Header="日志" AutomationProperties.Name="日志">
                                             <MenuItem.Icon>
                                                 <TextBlock Text="&#xf000;" FontFamily="Segoe Fluent Icons" FontSize="16" Foreground="{DynamicResource FgColor}"/>
                                             </MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem x:Name="MenuAbout" Header="About" AutomationProperties.Name="About">
+                                        <MenuItem x:Name="MenuAbout" Header="关于" AutomationProperties.Name="关于">
                                             <MenuItem.Icon>
                                                 <TextBlock Text="&#xE946;" FontFamily="Segoe Fluent Icons" FontSize="16" Foreground="{DynamicResource FgColor}"/>
                                             </MenuItem.Icon>
@@ -721,7 +721,7 @@
                                     </ContextMenu>
                                 </Button.ContextMenu>
                             </Button>
-                            <Button x:Name="CloseBtn" Content="&#xE8BB;" Style="{StaticResource CloseButton}" ToolTip="Close" AutomationProperties.Name="Close"/>
+                            <Button x:Name="CloseBtn" Content="&#xE8BB;" Style="{StaticResource CloseButton}" ToolTip="关闭" AutomationProperties.Name="关闭"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -782,23 +782,23 @@
                             </Viewbox>
                             
                             <!-- Title -->
-                            <TextBlock Text="Welcome to Win11Debloat" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource FgColor}" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                            <TextBlock Text="欢迎使用 Win11Debloat" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource FgColor}" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                             <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource FgColor}" FontSize="16" LineHeight="22" HorizontalAlignment="Center" Margin="0,0,0,30">
-                                <Run Text="Your clean Windows experience is just a few clicks away!"/>
+                                <Run Text="只需几步，即可获得干净的 Windows 体验！"/>
                             </TextBlock>
                             
                             <!-- Action Buttons -->
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
-                                <Button x:Name="HomeDefaultModeBtn" Width="180" Height="50" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,12,0" AutomationProperties.Name="Default Mode">
+                                <Button x:Name="HomeDefaultModeBtn" Width="180" Height="50" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,12,0" AutomationProperties.Name="默认模式">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="&#xe735;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                        <TextBlock Text="Default Mode" ToolTip="Quickly select the recommended settings" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="17" Margin="0,0,0,2"/>
+                                        <TextBlock Text="默认模式" ToolTip="快速选择推荐设置" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="17" Margin="0,0,0,2"/>
                                     </StackPanel>
                                 </Button>
-                                <Button x:Name="HomeStartBtn" Width="180" Height="50" Style="{StaticResource SecondaryButtonStyle}" AutomationProperties.Name="Custom Setup">
+                                <Button x:Name="HomeStartBtn" Width="180" Height="50" Style="{StaticResource SecondaryButtonStyle}" AutomationProperties.Name="自定义设置">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="&#xe90f;" FontFamily="Segoe Fluent Icons" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                        <TextBlock Text="Custom Setup" ToolTip="Manually select your preferred settings" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="17" Margin="0,0,0,2"/>
+                                        <TextBlock Text="自定义设置" ToolTip="手动选择您偏好的设置" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="17" Margin="0,0,0,2"/>
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
@@ -811,8 +811,8 @@
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Padding="20,10,20,0">
                             <StackPanel>
-                                <TextBlock Text="App Removal" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
-                                <TextBlock Text="Select which apps you want to remove from your system" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
+                                <TextBlock Text="应用移除" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
+                                <TextBlock Text="选择要从系统中移除的应用" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
 
                                 <!-- Filter Options -->
                                 <Grid Margin="0,0,0,12">
@@ -825,12 +825,12 @@
                                     </Grid.ColumnDefinitions>
                                     
                                     <StackPanel Orientation="Horizontal" Grid.Column="0">
-                                        <Button x:Name="DefaultAppsBtn" Content="Select Default Apps" ToolTip="Select the default selection of apps" Style="{StaticResource SecondaryButtonStyle}" Height="32" Padding="10,0" Margin="0,0,10,0" AutomationProperties.Name="Select Default Apps"/>
-                                        <Button x:Name="LoadLastUsedAppsBtn" Content="Select Last Used Selection" ToolTip="Select the apps that were selected the last time Win11Debloat was run" Style="{StaticResource SecondaryButtonStyle}" Height="32" Padding="10,0" Margin="0,0,10,0" AutomationProperties.Name="Select Last Used Selection"/>
-                                        <Button x:Name="ClearAppSelectionBtn" Content="Clear Selection" ToolTip="Clear all selected apps" Style="{StaticResource SecondaryButtonStyle}" Height="32"  Padding="10,0" Margin="0,0,10,0" AutomationProperties.Name="Clear Selection"/>
+                                        <Button x:Name="DefaultAppsBtn" Content="选择默认应用" ToolTip="选择默认的应用列表" Style="{StaticResource SecondaryButtonStyle}" Height="32" Padding="10,0" Margin="0,0,10,0" AutomationProperties.Name="选择默认应用"/>
+                                        <Button x:Name="LoadLastUsedAppsBtn" Content="选择上次使用的设置" ToolTip="选择上次运行 Win11Debloat 时所选的应用" Style="{StaticResource SecondaryButtonStyle}" Height="32" Padding="10,0" Margin="0,0,10,0" AutomationProperties.Name="选择上次使用的设置"/>
+                                        <Button x:Name="ClearAppSelectionBtn" Content="清除选择" ToolTip="清除所有已选应用" Style="{StaticResource SecondaryButtonStyle}" Height="32"  Padding="10,0" Margin="0,0,10,0" AutomationProperties.Name="清除选择"/>
                                     </StackPanel>
                                     
-                                    <CheckBox x:Name="OnlyInstalledAppsBox" Grid.Column="2" Content="Only show installed apps" IsChecked="False" Foreground="{DynamicResource FgColor}" VerticalAlignment="Center" AutomationProperties.Name="Only show installed apps"/>
+                                    <CheckBox x:Name="OnlyInstalledAppsBox" Grid.Column="2" Content="仅显示已安装的应用" IsChecked="False" Foreground="{DynamicResource FgColor}" VerticalAlignment="Center" AutomationProperties.Name="仅显示已安装的应用"/>
 
                                     <Border x:Name="AppSearchBorder" Grid.Column="4">
                                         <Border.Style>
@@ -848,8 +848,8 @@
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Grid.Column="0" Text="&#xE721;" FontFamily="Segoe Fluent Icons" FontSize="14" VerticalAlignment="Center" Margin="4,0,8,0" Foreground="{DynamicResource FgColor}"/>
-                                            <TextBlock x:Name="AppSearchPlaceholder" Grid.Column="1" Text="Search app" Foreground="{DynamicResource FgColor}" Opacity="0.5" FontSize="13" Margin="3,0,0,1" VerticalAlignment="Center" IsHitTestVisible="False"/>
-                                            <TextBox x:Name="AppSearchBox" Grid.Column="1" Background="Transparent" Foreground="{DynamicResource FgColor}" BorderThickness="0" FontSize="13" Margin="1,0,0,1" VerticalAlignment="Center" Text="" AutomationProperties.Name="Search app"/>
+                                            <TextBlock x:Name="AppSearchPlaceholder" Grid.Column="1" Text="搜索应用" Foreground="{DynamicResource FgColor}" Opacity="0.5" FontSize="13" Margin="3,0,0,1" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                            <TextBox x:Name="AppSearchBox" Grid.Column="1" Background="Transparent" Foreground="{DynamicResource FgColor}" BorderThickness="0" FontSize="13" Margin="1,0,0,1" VerticalAlignment="Center" Text="" AutomationProperties.Name="搜索应用"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
@@ -875,9 +875,9 @@
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="300"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Name" FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource FgColor}" Margin="16,0,0,0"/>
-                                        <TextBlock Grid.Column="1" Text="Description" FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource FgColor}" Margin="24,0,0,0"/>
-                                        <TextBlock Grid.Column="2" Text="App ID" FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource FgColor}"/>
+                                        <TextBlock Grid.Column="0" Text="名称" FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource FgColor}" Margin="16,0,0,0"/>
+                                        <TextBlock Grid.Column="1" Text="描述" FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource FgColor}" Margin="24,0,0,0"/>
+                                        <TextBlock Grid.Column="2" Text="应用 ID" FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource FgColor}"/>
                                     </Grid>
                                 </Border>
                                 <!-- Apps content -->
@@ -887,7 +887,7 @@
                                             <StackPanel x:Name="AppSelectionPanel" Margin="10,4,0,4"/>
                                         </ScrollViewer>
                                         <Border x:Name="LoadingAppsIndicator" CornerRadius="0,0,4,4" Background="{DynamicResource CardBgColor}" Opacity="0.8" Visibility="Collapsed">
-                                            <TextBlock Text="Loading apps..." FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource FgColor}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="正在加载应用..." FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource FgColor}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                     </Grid>
                                 </Border>
@@ -906,8 +906,8 @@
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Padding="20,10,20,0" Background="{DynamicResource BgColor}">
                             <StackPanel>
-                                <TextBlock Text="System Tweaks" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
-                                <TextBlock Text="Select which tweaks you want to apply to your system, hover over settings for more information" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
+                                <TextBlock Text="系统调整" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
+                                <TextBlock Text="选择要应用到系统的调整项，将鼠标悬停在设置上可查看更多信息" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
                             
                                 <!-- Filter Options -->
                                 <Grid Margin="0,0,0,12">
@@ -918,9 +918,9 @@
                                     </Grid.ColumnDefinitions>
                                     
                                     <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                        <Button x:Name="LoadDefaultsBtn" Content="Select Default Settings" ToolTip="Select the settings that are recommended for most people" Style="{StaticResource SecondaryButtonStyle}" Padding="10,0" Height="32" Margin="0,0,10,0" AutomationProperties.Name="Select Default Settings"/>
-                                        <Button x:Name="LoadLastUsedBtn" Content="Select Last Used Settings" ToolTip="Select the settings that were used the last time Win11Debloat was run" Style="{StaticResource SecondaryButtonStyle}" Padding="10,0" Height="32" Margin="0,0,10,0" AutomationProperties.Name="Select Last Used Settings"/>
-                                        <Button x:Name="ClearAllTweaksBtn" Content="Clear Selection" ToolTip="Clear all selected tweaks" Style="{StaticResource SecondaryButtonStyle}" Padding="10,0" Height="32" Margin="0,0,10,0" AutomationProperties.Name="Clear Selection"/>
+                                        <Button x:Name="LoadDefaultsBtn" Content="选择默认设置" ToolTip="选择适合大多数人的推荐设置" Style="{StaticResource SecondaryButtonStyle}" Padding="10,0" Height="32" Margin="0,0,10,0" AutomationProperties.Name="选择默认设置"/>
+                                        <Button x:Name="LoadLastUsedBtn" Content="选择上次使用的设置" ToolTip="选择上次运行 Win11Debloat 时使用的设置" Style="{StaticResource SecondaryButtonStyle}" Padding="10,0" Height="32" Margin="0,0,10,0" AutomationProperties.Name="选择上次使用的设置"/>
+                                        <Button x:Name="ClearAllTweaksBtn" Content="清除选择" ToolTip="清除所有已选调整项" Style="{StaticResource SecondaryButtonStyle}" Padding="10,0" Height="32" Margin="0,0,10,0" AutomationProperties.Name="清除选择"/>
                                     </StackPanel>
 
                                     <Border x:Name="TweakSearchBorder" Grid.Column="2">
@@ -939,7 +939,7 @@
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Grid.Column="0" Text="&#xE721;" FontFamily="Segoe Fluent Icons" FontSize="14" VerticalAlignment="Center" Margin="4,0,8,0" Foreground="{DynamicResource FgColor}"/>
-                                            <TextBlock x:Name="TweakSearchPlaceholder" Grid.Column="1" Text="Search setting" Foreground="{DynamicResource FgColor}" Opacity="0.5" FontSize="13" Margin="3,0,0,1" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                            <TextBlock x:Name="TweakSearchPlaceholder" Grid.Column="1" Text="搜索设置" Foreground="{DynamicResource FgColor}" Opacity="0.5" FontSize="13" Margin="3,0,0,1" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                             <TextBox x:Name="TweakSearchBox" Grid.Column="1" Background="Transparent" Foreground="{DynamicResource FgColor}" BorderThickness="0" FontSize="13" Margin="1,0,0,1" VerticalAlignment="Center" Text=""/>
                                         </Grid>
                                     </Border>
@@ -993,8 +993,8 @@
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Padding="20,10,20,0">
                             <StackPanel>
-                                <TextBlock Text="Overview" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
-                                <TextBlock Text="Review and confirm your choices before proceeding" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
+                                <TextBlock Text="概览" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
+                                <TextBlock Text="在继续之前，请检查并确认您的选择" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
                         <Grid>
@@ -1003,7 +1003,7 @@
                                     <!-- Selected Changes -->
                                     <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Background="{DynamicResource CardBgColor}" Padding="16,12,16,4" Margin="0,0,0,16">
                                         <StackPanel>
-                                            <TextBlock Text="Selected Changes" Style="{StaticResource CategoryHeaderTextBlock}"/>
+                                            <TextBlock Text="已选更改" Style="{StaticResource CategoryHeaderTextBlock}"/>
                                             <StackPanel x:Name="OverviewChangesPanel"/>
                                             <StackPanel Margin="0,0,0,3"/>
                                         </StackPanel>
@@ -1012,11 +1012,11 @@
                                     <!-- Apply Changes To -->
                                     <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Background="{DynamicResource CardBgColor}" Padding="16,12" Margin="0,0,0,16">
                                         <StackPanel>
-                                            <TextBlock Text="Apply Changes To" Style="{StaticResource CategoryHeaderTextBlock}"/>
-                                            <ComboBox x:Name="UserSelectionCombo" Margin="0,0,0,6" AutomationProperties.Name="Apply Changes To">
-                                                <ComboBoxItem Content="Current User" IsSelected="True"/>
-                                                <ComboBoxItem Content="Other User"/>
-                                                <ComboBoxItem Content="Windows Default User (Sysprep)"/>
+                                            <TextBlock Text="应用更改至" Style="{StaticResource CategoryHeaderTextBlock}"/>
+                                            <ComboBox x:Name="UserSelectionCombo" Margin="0,0,0,6" AutomationProperties.Name="应用更改至">
+                                                <ComboBoxItem Content="当前用户" IsSelected="True"/>
+                                                <ComboBoxItem Content="其他用户"/>
+                                                <ComboBoxItem Content="Windows 默认用户 (Sysprep)"/>
                                             </ComboBox>
                                             <StackPanel x:Name="OtherUserPanel" Visibility="Collapsed" Margin="0,0,0,6">
                                                 <TextBlock x:Name="UsernameValidationMessage" Text="" FontStyle="Italic" Foreground="{DynamicResource CloseHover}" FontSize="11" Margin="3,0,0,4" TextWrapping="Wrap"/>
@@ -1036,50 +1036,50 @@
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Grid.Column="0" Text="&#xE77B;" FontFamily="Segoe Fluent Icons" FontSize="14" VerticalAlignment="Center" Margin="4,0,8,0" Foreground="{DynamicResource FgColor}"/>
-                                                        <TextBlock x:Name="UsernameTextBoxPlaceholder" Grid.Column="1" Text="Enter username" Foreground="{DynamicResource FgColor}" Opacity="0.5" FontSize="13" Margin="3,0,0,1" VerticalAlignment="Center" IsHitTestVisible="False"/>
-                                                        <TextBox x:Name="OtherUsernameTextBox" Grid.Column="1" Style="{StaticResource UserTextBoxStyle}" Text="" AutomationProperties.Name="Enter username"/>
+                                                        <TextBlock x:Name="UsernameTextBoxPlaceholder" Grid.Column="1" Text="输入用户名" Foreground="{DynamicResource FgColor}" Opacity="0.5" FontSize="13" Margin="3,0,0,1" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                                        <TextBox x:Name="OtherUsernameTextBox" Grid.Column="1" Style="{StaticResource UserTextBoxStyle}" Text="" AutomationProperties.Name="输入用户名"/>
                                                     </Grid>
                                                 </Border>
                                             </StackPanel>
-                                            <TextBlock x:Name="UserSelectionDescription" Text="Changes will be applied to the currently logged-in user profile." Foreground="{DynamicResource FgColor}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,3"/>
+                                            <TextBlock x:Name="UserSelectionDescription" Text="更改将应用到当前登录的用户配置。" Foreground="{DynamicResource FgColor}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,3"/>
                                         </StackPanel>
                                     </Border>
 
                                     <!-- App Removal Scope -->
                                     <Border x:Name="AppRemovalScopeSection" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Background="{DynamicResource CardBgColor}" Padding="16,12" Margin="0,0,0,16">
                                         <StackPanel>
-                                            <TextBlock Text="Remove Apps From" Style="{StaticResource CategoryHeaderTextBlock}"/>
-                                            <ComboBox x:Name="AppRemovalScopeCombo" Margin="0,0,0,6" AutomationProperties.Name="App Removal Scope">
-                                                <ComboBoxItem x:Name="AppRemovalScopeAllUsers" Content="All users" IsSelected="True"/>
-                                                <ComboBoxItem x:Name="AppRemovalScopeCurrentUser" Content="Current user only"/>
-                                                <ComboBoxItem x:Name="AppRemovalScopeTargetUser" Content="Target user only" Visibility="Collapsed"/>
+                                            <TextBlock Text="移除应用范围" Style="{StaticResource CategoryHeaderTextBlock}"/>
+                                            <ComboBox x:Name="AppRemovalScopeCombo" Margin="0,0,0,6" AutomationProperties.Name="应用移除范围">
+                                                <ComboBoxItem x:Name="AppRemovalScopeAllUsers" Content="所有用户" IsSelected="True"/>
+                                                <ComboBoxItem x:Name="AppRemovalScopeCurrentUser" Content="仅当前用户"/>
+                                                <ComboBoxItem x:Name="AppRemovalScopeTargetUser" Content="仅目标用户" Visibility="Collapsed"/>
                                             </ComboBox>
-                                            <TextBlock x:Name="AppRemovalScopeDescription" Text="Apps will be removed for all users and from the Windows image to prevent reinstallation for new users." Foreground="{DynamicResource FgColor}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,3"/>
+                                            <TextBlock x:Name="AppRemovalScopeDescription" Text="将为所有用户移除应用，并从 Windows 映像中删除以防止新用户重新安装。" Foreground="{DynamicResource FgColor}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,3"/>
                                         </StackPanel>
                                     </Border>
 
                                     <!-- Options -->
                                     <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Background="{DynamicResource CardBgColor}" Padding="16,12,16,3" Margin="0,0,0,16">
                                         <StackPanel>
-                                            <TextBlock Text="Options" Style="{StaticResource CategoryHeaderTextBlock}"/>
+                                            <TextBlock Text="选项" Style="{StaticResource CategoryHeaderTextBlock}"/>
 
                                             <!-- Restore Point Option -->
                                             <StackPanel>
-                                                <CheckBox x:Name="RestorePointCheckBox" Style="{StaticResource FeatureCheckboxStyle}" Content="Create a system restore point (Recommended)" AutomationProperties.Name="Create a system restore point (Recommended)"/>
+                                                <CheckBox x:Name="RestorePointCheckBox" Style="{StaticResource FeatureCheckboxStyle}" Content="创建系统还原点（推荐）" AutomationProperties.Name="创建系统还原点（推荐）"/>
                                             </StackPanel>
                                             
                                             <!-- Restart Explorer Option -->
                                             <StackPanel>
-                                                <CheckBox x:Name="RestartExplorerCheckBox" Style="{StaticResource FeatureCheckboxStyle}" Content="Restart the Windows Explorer process to apply all changes immediately" AutomationProperties.Name="Restart the Windows Explorer process to apply all changes immediately"/>
+                                                <CheckBox x:Name="RestartExplorerCheckBox" Style="{StaticResource FeatureCheckboxStyle}" Content="重启 Windows 资源管理器进程以立即应用所有更改" AutomationProperties.Name="重启 Windows 资源管理器进程以立即应用所有更改"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
                                     
                                     <!-- Apply Changes Button -->
-                                    <Button x:Name="OverviewApplyBtn" Style="{StaticResource PrimaryButtonStyle}" Width="190" Height="44" Margin="0,0,0,15" HorizontalAlignment="Center" AutomationProperties.Name="Apply Changes">
+                                    <Button x:Name="OverviewApplyBtn" Style="{StaticResource PrimaryButtonStyle}" Width="190" Height="44" Margin="0,0,0,15" HorizontalAlignment="Center" AutomationProperties.Name="应用更改">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <TextBlock Text="&#xE73E;" FontFamily="Segoe Fluent Icons" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Apply Changes" VerticalAlignment="Center" FontSize="18" FontWeight="SemiBold"  Margin="8,0,0,4"/>
+                                            <TextBlock Text="应用更改" VerticalAlignment="Center" FontSize="18" FontWeight="SemiBold"  Margin="8,0,0,4"/>
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>
@@ -1119,8 +1119,8 @@
                         <!-- Header -->
                         <Border DockPanel.Dock="Top" Padding="20,10,20,0">
                             <StackPanel Grid.Row="0">
-                                <TextBlock Text="Applying Changes" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
-                                <TextBlock Text="Sit back and relax while Win11Debloat applies your selected changes" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
+                                <TextBlock Text="正在应用更改" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
+                                <TextBlock Text="请稍候，Win11Debloat 正在应用您选择的更改" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
 
@@ -1141,8 +1141,8 @@
 
                                 <!-- Status and Finish Button -->
                                 <StackPanel Grid.Row="1" HorizontalAlignment="Center">
-                                    <Button x:Name="FinishBtn" Width="200" Height="48" Style="{StaticResource PrimaryButtonStyle}" Margin="0" IsEnabled="False" AutomationProperties.Name="Finish">
-                                        <TextBlock x:Name="FinishBtnText" Text="Applying changes..." VerticalAlignment="Center" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,1"/>
+                                    <Button x:Name="FinishBtn" Width="200" Height="48" Style="{StaticResource PrimaryButtonStyle}" Margin="0" IsEnabled="False" AutomationProperties.Name="完成">
+                                        <TextBlock x:Name="FinishBtnText" Text="正在应用更改..." VerticalAlignment="Center" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,1"/>
                                     </Button>
                                 </StackPanel>
                             </Grid>
@@ -1159,17 +1159,17 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="PreviousBtn" Grid.Column="0" Width="120" Height="36" Style="{StaticResource SecondaryButtonStyle}" Visibility="Collapsed" Margin="10,0,0,0" AutomationProperties.Name="Previous">
+                    <Button x:Name="PreviousBtn" Grid.Column="0" Width="120" Height="36" Style="{StaticResource SecondaryButtonStyle}" Visibility="Collapsed" Margin="10,0,0,0" AutomationProperties.Name="上一步">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="&#xE72B;" FontFamily="Segoe Fluent Icons" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Previous" VerticalAlignment="Center" FontSize="14" Margin="0,0,0,1"/>
+                            <TextBlock Text="上一步" VerticalAlignment="Center" FontSize="14" Margin="0,0,0,1"/>
                         </StackPanel>
                     </Button>
                     
                     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button x:Name="NextBtn" Width="120" Height="36" Margin="0,0,10,0" Style="{StaticResource PrimaryButtonStyle}" AutomationProperties.Name="Next">
+                        <Button x:Name="NextBtn" Width="120" Height="36" Margin="0,0,10,0" Style="{StaticResource PrimaryButtonStyle}" AutomationProperties.Name="下一步">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="Next" VerticalAlignment="Center" FontSize="14" Margin="0,0,0,1"/>
+                                <TextBlock Text="下一步" VerticalAlignment="Center" FontSize="14" Margin="0,0,0,1"/>
                                 <TextBlock Text="&#xE72A;" FontFamily="Segoe Fluent Icons" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
@@ -1178,9 +1178,9 @@
                 
                 <!-- Progress Indicators - Centered independently -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Ellipse x:Name="ProgressIndicator1" Width="10" Height="10" Margin="4,0" Fill="#808080" ToolTip="App Removal"/>
-                    <Ellipse x:Name="ProgressIndicator2" Width="10" Height="10" Margin="4,0" Fill="#808080" ToolTip="System Tweaks"/>
-                    <Ellipse x:Name="ProgressIndicator3" Width="10" Height="10" Margin="4,0" Fill="#808080" ToolTip="Overview"/>
+                    <Ellipse x:Name="ProgressIndicator1" Width="10" Height="10" Margin="4,0" Fill="#808080" ToolTip="应用移除"/>
+                    <Ellipse x:Name="ProgressIndicator2" Width="10" Height="10" Margin="4,0" Fill="#808080" ToolTip="系统调整"/>
+                    <Ellipse x:Name="ProgressIndicator3" Width="10" Height="10" Margin="4,0" Fill="#808080" ToolTip="概览"/>
                 </StackPanel>
             </Grid>
             

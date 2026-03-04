@@ -121,8 +121,8 @@ $script:CancelRequested = $false
 
 # Check if current powershell environment is limited by security policies
 if ($ExecutionContext.SessionState.LanguageMode -ne "FullLanguage") {
-    Write-Error "Win11Debloat is unable to run on your system, powershell execution is restricted by security policies"
-    Write-Output "Press any key to exit..."
+    Write-Error "Win11Debloat 无法在您的系统上运行，PowerShell 执行受到安全策略限制"
+    Write-Output "按任意键退出..."
     $null = [System.Console]::ReadKey()
     Exit
 }
@@ -146,8 +146,8 @@ Write-Host "                   " -NoNewline; Write-Host "  |  " -ForegroundColor
 Write-Host "                   " -NoNewline; Write-Host "   (" -ForegroundColor Yellow -NoNewline; Write-Host "'''" -ForegroundColor Red -NoNewline; Write-Host ") " -ForegroundColor Yellow -NoNewline; Write-Host "   *  *" -ForegroundColor DarkYellow
 Write-Host "                   " -NoNewline; Write-Host "   ( " -ForegroundColor DarkYellow -NoNewline; Write-Host "'" -ForegroundColor Red -NoNewline; Write-Host " )   " -ForegroundColor DarkYellow -NoNewline; Write-Host "*" -ForegroundColor Yellow
 Write-Host ""
-Write-Host "             Win11Debloat is launching..." -ForegroundColor White
-Write-Host "               Leave this window open" -ForegroundColor DarkGray
+Write-Host "             Win11Debloat 正在启动..." -ForegroundColor White
+Write-Host "               请勿关闭此窗口" -ForegroundColor DarkGray
 Write-Host ""
 
 # Log script output to 'Win11Debloat.log' at the specified path
@@ -160,9 +160,9 @@ else {
 
 # Check if script has all required files
 if (-not ((Test-Path $script:DefaultSettingsFilePath) -and (Test-Path $script:AppsListFilePath) -and (Test-Path $script:RegfilesPath) -and (Test-Path $script:AssetsPath) -and (Test-Path $script:AppSelectionSchema) -and (Test-Path $script:FeaturesFilePath))) {
-    Write-Error "Win11Debloat is unable to find required files, please ensure all script files are present"
+    Write-Error "Win11Debloat 无法找到所需文件，请确保所有脚本文件存在"
     Write-Output ""
-    Write-Output "Press any key to exit..."
+    Write-Output "按任意键退出..."
     $null = [System.Console]::ReadKey()
     Exit
 }
@@ -176,9 +176,9 @@ try {
     }
 }
 catch {
-    Write-Error "Failed to load feature info from Features.json file"
+    Write-Error "从 Features.json 文件加载功能信息失败"
     Write-Output ""
-    Write-Output "Press any key to exit..."
+    Write-Output "按任意键退出..."
     $null = [System.Console]::ReadKey()
     Exit
 }
@@ -193,15 +193,15 @@ try {
     }
 }
 catch {
-    Write-Error "Unable to determine if WinGet is installed, winget command failed: $_"
+    Write-Error "无法确定 WinGet 是否已安装，winget 命令失败：$_"
     $script:WingetInstalled = $false
 }
 
 # Show WinGet warning that requires user confirmation, Suppress confirmation if Silent parameter was passed
 if (-not $script:WingetInstalled -and -not $Silent) {
-    Write-Warning "WinGet is not installed or outdated, this may prevent Win11Debloat from removing certain apps"
+    Write-Warning "WinGet 未安装或版本过旧，这可能会导致 Win11Debloat 无法移除某些应用"
     Write-Output ""
-    Write-Output "Press any key to continue anyway..."
+    Write-Output "按任意键继续..."
     $null = [System.Console]::ReadKey()
 }
 
@@ -362,7 +362,7 @@ function GetUserDirectory {
 
     try {
         if (-not (CheckIfUserExists -userName $userName) -and $userName -ne "*") {
-            Write-Error "User $userName does not exist on this system"
+            Write-Error "用户 $userName 在此系统上不存在"
             AwaitKeyToExit
         }
 
@@ -381,11 +381,11 @@ function GetUserDirectory {
         }
     }
     catch {
-        Write-Error "Something went wrong when trying to find the user directory path for user $userName. Please ensure the user exists on this system"
+        Write-Error "查找用户 $userName 的目录路径时出错。请确保该用户存在于此系统上"
         AwaitKeyToExit
     }
 
-    Write-Error "Unable to find user directory path for user $userName"
+    Write-Error "无法找到用户 $userName 的用户目录路径"
     AwaitKeyToExit
 }
 
@@ -417,7 +417,7 @@ function CheckIfUserExists {
         }
     }
     catch {
-        Write-Error "Something went wrong when trying to find the user directory path for user $userName. Please ensure the user exists on this system"
+        Write-Error "查找用户 $userName 的目录路径时出错。请确保该用户存在于此系统上"
     }
 
     return $false
@@ -439,9 +439,9 @@ function GetFriendlyTargetUserName {
     $target = GetTargetUserForAppRemoval
 
     switch ($target) {
-        "AllUsers" { return "all users" }
-        "CurrentUser" { return "the current user" }
-        default { return "user $target" }
+        "AllUsers" { return "所有用户" }
+        "CurrentUser" { return "当前用户" }
+        default { return "用户 $target" }
     }
 }
 
@@ -464,9 +464,9 @@ function CheckModernStandbySupport {
         }
     }
     catch {
-        Write-Host "Error: Unable to check for S0 Modern Standby support, powercfg command failed" -ForegroundColor Red
+        Write-Host "错误：无法检查 S0 新式待机支持，powercfg 命令失败" -ForegroundColor Red
         Write-Host ""
-        Write-Host "Press any key to continue..."
+        Write-Host "按任意键继续..."
         $null = [System.Console]::ReadKey()
         return $true
     }
@@ -489,12 +489,12 @@ function RemoveApps {
             return
         }
 
-        Write-ToConsole "Attempting to remove $app..."
+        Write-ToConsole "正在尝试移除 $app..."
 
         # Use WinGet only to remove OneDrive and Edge
         if (($app -eq "Microsoft.OneDrive") -or ($app -eq "Microsoft.Edge")) {
             if ($script:WingetInstalled -eq $false) {
-                Write-ToConsole "WinGet is either not installed or is outdated, $app could not be removed" -ForegroundColor Red
+                Write-ToConsole "WinGet 未安装或版本过旧，无法移除 $app" -ForegroundColor Red
                 continue
             }
 
@@ -502,27 +502,27 @@ function RemoveApps {
 
             # Uninstall app via WinGet, or create a scheduled task to uninstall it later
             if ($script:Params.ContainsKey("User")) {
-                RegImport "Adding scheduled task to uninstall $app for user $(GetUserName)..." "Uninstall_$($appName).reg"
+                RegImport "添加计划任务以为用户 $(GetUserName) 卸载 $app..." "Uninstall_$($appName).reg"
             }
             elseif ($script:Params.ContainsKey("Sysprep")) {
-                RegImport "Adding scheduled task to uninstall $app after for new users..." "Uninstall_$($appName).reg"
+                RegImport "添加计划任务以为新用户卸载 $app..." "Uninstall_$($appName).reg"
             }
             else {
                 # Uninstall app via WinGet
                 $wingetOutput = winget uninstall --accept-source-agreements --disable-interactivity --id $app
 
                 If (($app -eq "Microsoft.Edge") -and (Select-String -InputObject $wingetOutput -Pattern "Uninstall failed with exit code")) {
-                    Write-ToConsole "Unable to uninstall Microsoft Edge via WinGet" -ForegroundColor Red
+                    Write-ToConsole "无法通过 WinGet 卸载 Microsoft Edge" -ForegroundColor Red
 
                     if ($script:GuiConsoleOutput) {
-                        $result = Show-MessageBox -Message 'Unable to uninstall Microsoft Edge via WinGet. Would you like to forcefully uninstall it? NOT RECOMMENDED!' -Title 'Force Uninstall Microsoft Edge?' -Button 'YesNo' -Icon 'Warning'
+                        $result = Show-MessageBox -Message '无法通过 WinGet 卸载 Microsoft Edge。是否要强制卸载？不推荐！' -Title '强制卸载 Microsoft Edge？' -Button 'YesNo' -Icon 'Warning'
 
                         if ($result -eq 'Yes') {
                             Write-ToConsole ""
                             ForceRemoveEdge
                         }
                     }
-                    elseif ($( Read-Host -Prompt "Would you like to forcefully uninstall Microsoft Edge? NOT RECOMMENDED! (y/n)" ) -eq 'y') {
+                    elseif ($( Read-Host -Prompt "是否要强制卸载 Microsoft Edge？不推荐！(y/n)" ) -eq 'y') {
                         Write-ToConsole ""
                         ForceRemoveEdge
                     }
@@ -561,7 +561,7 @@ function RemoveApps {
         }
         catch {
             if ($DebugPreference -ne "SilentlyContinue") {
-                Write-ToConsole "Something went wrong while trying to remove $app" -ForegroundColor Yellow
+                Write-ToConsole "尝试移除 $app 时出错" -ForegroundColor Yellow
                 Write-Host $psitem.Exception.StackTrace -ForegroundColor Gray
             }
         }
@@ -574,7 +574,7 @@ function RemoveApps {
 # Forcefully removes Microsoft Edge using its uninstaller
 # Credit: Based on work from loadstring1 & ave9858
 function ForceRemoveEdge {
-    Write-ToConsole "> Forcefully uninstalling Microsoft Edge..."
+    Write-ToConsole "> 正在强制卸载 Microsoft Edge..."
 
     $regView = [Microsoft.Win32.RegistryView]::Registry32
     $hklm = [Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine, $regView)
@@ -588,11 +588,11 @@ function ForceRemoveEdge {
     # Remove edge
     $uninstallRegKey = $hklm.OpenSubKey('SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Microsoft Edge')
     if ($null -ne $uninstallRegKey) {
-        Write-ToConsole "Running uninstaller..."
+        Write-ToConsole "正在运行卸载程序..."
         $uninstallString = $uninstallRegKey.GetValue('UninstallString') + ' --force-uninstall'
         Start-Process cmd.exe "/c $uninstallString" -WindowStyle Hidden -Wait
 
-        Write-ToConsole "Removing leftover files..."
+        Write-ToConsole "正在移除残留文件..."
 
         $edgePaths = @(
             "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\Microsoft Edge.lnk",
@@ -607,11 +607,11 @@ function ForceRemoveEdge {
         foreach ($path in $edgePaths) {
             if (Test-Path -Path $path) {
                 Remove-Item -Path $path -Force -Recurse -ErrorAction SilentlyContinue
-                Write-ToConsole "  Removed $path" -ForegroundColor DarkGray
+                Write-ToConsole "  已移除 $path" -ForegroundColor DarkGray
             }
         }
 
-        Write-ToConsole "Cleaning up registry..."
+        Write-ToConsole "正在清理注册表..."
 
         # Remove MS Edge from autostart
         reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v "MicrosoftEdgeAutoLaunch_A9F6DCE4ABADF4F51CF45CD7129E3C6C" /f *>$null
@@ -619,10 +619,10 @@ function ForceRemoveEdge {
         reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run" /v "MicrosoftEdgeAutoLaunch_A9F6DCE4ABADF4F51CF45CD7129E3C6C" /f *>$null
         reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run" /v "Microsoft Edge Update" /f *>$null
 
-        Write-ToConsole "Microsoft Edge was uninstalled"
+        Write-ToConsole "Microsoft Edge 已卸载"
     }
     else {
-        Write-ToConsole "Unable to forcefully uninstall Microsoft Edge, uninstaller could not be found" -ForegroundColor Red
+        Write-ToConsole "无法强制卸载 Microsoft Edge，找不到卸载程序" -ForegroundColor Red
     }
 }
 
@@ -638,7 +638,7 @@ function RegImport {
 
     # Validate that the regfile exists in both locations
     if (-not (Test-Path "$script:RegfilesPath\$path") -or -not (Test-Path "$script:RegfilesPath\Sysprep\$path")) {
-        Write-ToConsole "Error: Unable to find registry file: $path" -ForegroundColor Red
+        Write-ToConsole "错误：无法找到注册表文件：$path" -ForegroundColor Red
         Write-ToConsole ""
         return
     }
@@ -681,7 +681,7 @@ function RegImport {
     }
 
     if (-not $hasSuccess) {
-        Write-ToConsole "Failed importing registry file: $path" -ForegroundColor Red
+        Write-ToConsole "导入注册表文件失败：$path" -ForegroundColor Red
     }
 
     Write-ToConsole ""
@@ -695,11 +695,11 @@ function ReplaceStartMenuForAllUsers {
         $startMenuTemplate = "$script:AssetsPath/Start/start2.bin"
     )
 
-    Write-ToConsole "> Removing all pinned apps from the start menu for all users..."
+    Write-ToConsole "> 正在为所有用户移除开始菜单中的所有固定应用..."
 
     # Check if template bin file exists
     if (-not (Test-Path $startMenuTemplate)) {
-        Write-ToConsole "Error: Unable to clear start menu, start2.bin file missing from script folder" -ForegroundColor Red
+        Write-ToConsole "错误：无法清除开始菜单，脚本文件夹中缺少 start2.bin 文件" -ForegroundColor Red
         Write-ToConsole ""
         return
     }
@@ -719,12 +719,12 @@ function ReplaceStartMenuForAllUsers {
     # Create folder if it doesn't exist
     if (-not (Test-Path $defaultStartMenuPath)) {
         new-item $defaultStartMenuPath -ItemType Directory -Force | Out-Null
-        Write-ToConsole "Created LocalState folder for default user profile"
+        Write-ToConsole "已为默认用户配置文件创建 LocalState 文件夹"
     }
 
     # Copy template to default profile
     Copy-Item -Path $startMenuTemplate -Destination $defaultStartMenuPath -Force
-    Write-ToConsole "Replaced start menu for the default user profile"
+    Write-ToConsole "已替换默认用户配置文件的开始菜单"
     Write-ToConsole ""
 }
 
@@ -744,12 +744,12 @@ function ReplaceStartMenu {
 
     # Check if template bin file exists
     if (-not (Test-Path $startMenuTemplate)) {
-        Write-ToConsole "Error: Unable to replace start menu, template file not found" -ForegroundColor Red
+        Write-ToConsole "错误：无法替换开始菜单，找不到模板文件" -ForegroundColor Red
         return
     }
 
     if ([IO.Path]::GetExtension($startMenuTemplate) -ne ".bin" ) {
-        Write-ToConsole "Error: Unable to replace start menu, template file is not a valid .bin file" -ForegroundColor Red
+        Write-ToConsole "错误：无法替换开始菜单，模板文件不是有效的 .bin 文件" -ForegroundColor Red
         return
     }
 
@@ -762,14 +762,14 @@ function ReplaceStartMenu {
         Move-Item -Path $startMenuBinFile -Destination $backupBinFile -Force
     }
     else {
-        Write-ToConsole "Unable to find original start2.bin file for user $userName, no backup was created for this user" -ForegroundColor Yellow
+        Write-ToConsole "无法找到用户 $userName 的原始 start2.bin 文件，未为该用户创建备份" -ForegroundColor Yellow
         New-Item -ItemType File -Path $startMenuBinFile -Force
     }
 
     # Copy template file
     Copy-Item -Path $startMenuTemplate -Destination $startMenuBinFile -Force
 
-    Write-ToConsole "Replaced start menu for user $userName"
+    Write-ToConsole "已替换用户 $userName 的开始菜单"
 }
 
 
@@ -833,76 +833,76 @@ function ExecuteParameter {
     # Handle features without RegistryKey or with special logic
     switch ($paramKey) {
         'RemoveApps' {
-            Write-ToConsole "> Removing selected apps for $(GetFriendlyTargetUserName)..."
+            Write-ToConsole "> 正在为$(GetFriendlyTargetUserName)移除选定的应用..."
             $appsList = GenerateAppsList
 
             if ($appsList.Count -eq 0) {
-                Write-ToConsole "No valid apps were selected for removal" -ForegroundColor Yellow
+                Write-ToConsole "未选择任何有效的应用进行移除" -ForegroundColor Yellow
                 Write-ToConsole ""
                 return
             }
 
-            Write-ToConsole "$($appsList.Count) apps selected for removal"
+            Write-ToConsole "已选择 $($appsList.Count) 个应用进行移除"
             RemoveApps $appsList
         }
         'RemoveAppsCustom' {
-            Write-ToConsole "> Removing selected apps..."
+            Write-ToConsole "> 正在移除选定的应用..."
             $appsList = LoadAppsFromFile $script:CustomAppsListFilePath
 
             if ($appsList.Count -eq 0) {
-                Write-ToConsole "No valid apps were selected for removal" -ForegroundColor Yellow
+                Write-ToConsole "未选择任何有效的应用进行移除" -ForegroundColor Yellow
                 Write-ToConsole ""
                 return
             }
 
-            Write-ToConsole "$($appsList.Count) apps selected for removal"
+            Write-ToConsole "已选择 $($appsList.Count) 个应用进行移除"
             RemoveApps $appsList
         }
         'RemoveCommApps' {
             $appsList = 'Microsoft.windowscommunicationsapps', 'Microsoft.People'
-            Write-ToConsole "> Removing Mail, Calendar and People apps..."
+            Write-ToConsole "> 正在移除邮件、日历和人脉应用..."
             RemoveApps $appsList
             return
         }
         'RemoveW11Outlook' {
             $appsList = 'Microsoft.OutlookForWindows'
-            Write-ToConsole "> Removing new Outlook for Windows app..."
+            Write-ToConsole "> 正在移除新版 Outlook for Windows 应用..."
             RemoveApps $appsList
             return
         }
         'RemoveGamingApps' {
             $appsList = 'Microsoft.GamingApp', 'Microsoft.XboxGameOverlay', 'Microsoft.XboxGamingOverlay'
-            Write-ToConsole "> Removing gaming related apps..."
+            Write-ToConsole "> 正在移除游戏相关应用..."
             RemoveApps $appsList
             return
         }
         'RemoveHPApps' {
             $appsList = 'AD2F1837.HPAIExperienceCenter', 'AD2F1837.HPJumpStarts', 'AD2F1837.HPPCHardwareDiagnosticsWindows', 'AD2F1837.HPPowerManager', 'AD2F1837.HPPrivacySettings', 'AD2F1837.HPSupportAssistant', 'AD2F1837.HPSureShieldAI', 'AD2F1837.HPSystemInformation', 'AD2F1837.HPQuickDrop', 'AD2F1837.HPWorkWell', 'AD2F1837.myHP', 'AD2F1837.HPDesktopSupportUtilities', 'AD2F1837.HPQuickTouch', 'AD2F1837.HPEasyClean', 'AD2F1837.HPConnectedMusic', 'AD2F1837.HPFileViewer', 'AD2F1837.HPRegistration', 'AD2F1837.HPWelcome', 'AD2F1837.HPConnectedPhotopoweredbySnapfish', 'AD2F1837.HPPrinterControl'
-            Write-ToConsole "> Removing HP apps..."
+            Write-ToConsole "> 正在移除 HP 应用..."
             RemoveApps $appsList
             return
         }
         "EnableWindowsSandbox" {
-            Write-ToConsole "> Enabling Windows Sandbox..."
+            Write-ToConsole "> 正在启用 Windows 沙盒..."
             EnableWindowsFeature "Containers-DisposableClientVM"
             Write-ToConsole ""
             return
         }
         "EnableWindowsSubsystemForLinux" {
-            Write-ToConsole "> Enabling Windows Subsystem for Linux..."
+            Write-ToConsole "> 正在启用适用于 Linux 的 Windows 子系统..."
             EnableWindowsFeature "VirtualMachinePlatform"
             EnableWindowsFeature "Microsoft-Windows-Subsystem-Linux"
             Write-ToConsole ""
             return
         }
         'ClearStart' {
-            Write-ToConsole "> Removing all pinned apps from the start menu for user $(GetUserName)..."
+            Write-ToConsole "> 正在为用户 $(GetUserName) 移除开始菜单中的所有固定应用..."
             ReplaceStartMenu
             Write-ToConsole ""
             return
         }
         'ReplaceStart' {
-            Write-ToConsole "> Replacing the start menu for user $(GetUserName)..."
+            Write-ToConsole "> 正在为用户 $(GetUserName) 替换开始菜单..."
             ReplaceStartMenu $script:Params.Item("ReplaceStart")
             Write-ToConsole ""
             return
@@ -924,7 +924,7 @@ function ExecuteParameter {
 function ExecuteAllChanges {    
     # Create restore point if requested (CLI only - GUI handles this separately)
     if ($script:Params.ContainsKey("CreateRestorePoint")) {
-        Write-ToConsole "> Attempting to create a system restore point..."
+        Write-ToConsole "> 正在尝试创建系统还原点..."
         CreateSystemRestorePoint
         Write-ToConsole ""
     }
@@ -950,13 +950,13 @@ function CreateSystemRestorePoint {
 
     if ($SysRestore.RPSessionInterval -eq 0) {
         # In GUI mode, skip the prompt and just try to enable it
-        if ($script:GuiConsoleOutput -or $Silent -or $( Read-Host -Prompt "System restore is disabled, would you like to enable it and create a restore point? (y/n)") -eq 'y') {
+        if ($script:GuiConsoleOutput -or $Silent -or $( Read-Host -Prompt "系统还原已禁用，是否要启用它并创建还原点？(y/n)") -eq 'y') {
             $enableSystemRestoreJob = Start-Job {
                 try {
                     Enable-ComputerRestore -Drive "$env:SystemDrive"
                 }
                 catch {
-                    return "Error: Failed to enable System Restore: $_"
+                    return "错误：启用系统还原失败：$_"
                 }
                 return $null
             }
@@ -965,7 +965,7 @@ function CreateSystemRestorePoint {
 
             if (-not $enableSystemRestoreJobDone) {
                 Remove-Job -Job $enableSystemRestoreJob -Force -ErrorAction SilentlyContinue
-                Write-ToConsole "Error: Failed to enable system restore and create restore point, operation timed out" -ForegroundColor Red
+                Write-ToConsole "错误：启用系统还原和创建还原点失败，操作超时" -ForegroundColor Red
                 $failed = $true
             }
             else {
@@ -990,20 +990,20 @@ function CreateSystemRestorePoint {
                 $recentRestorePoints = Get-ComputerRestorePoint | Where-Object { (Get-Date) - [System.Management.ManagementDateTimeConverter]::ToDateTime($_.CreationTime) -le (New-TimeSpan -Hours 24) }
             }
             catch {
-                return @{ Success = $false; Message = "Error: Unable to retrieve existing restore points: $_" }
+                return @{ Success = $false; Message = "错误：无法获取现有还原点：$_" }
             }
 
             if ($recentRestorePoints.Count -eq 0) {
                 try {
-                    Checkpoint-Computer -Description "Restore point created by Win11Debloat" -RestorePointType "MODIFY_SETTINGS"
-                    return @{ Success = $true; Message = "System restore point created successfully" }
+                    Checkpoint-Computer -Description "Win11Debloat 创建的还原点" -RestorePointType "MODIFY_SETTINGS"
+                    return @{ Success = $true; Message = "系统还原点创建成功" }
                 }
                 catch {
-                    return @{ Success = $false; Message = "Error: Unable to create restore point: $_" }
+                    return @{ Success = $false; Message = "错误：无法创建还原点：$_" }
                 }
             }
             else {
-                return @{ Success = $true; Message = "A recent restore point already exists, no new restore point was created" }
+                return @{ Success = $true; Message = "近期已存在还原点，未创建新的还原点" }
             }
         }
 
@@ -1011,7 +1011,7 @@ function CreateSystemRestorePoint {
 
         if (-not $createRestorePointJobDone) {
             Remove-Job -Job $createRestorePointJob -Force -ErrorAction SilentlyContinue
-            Write-ToConsole "Error: Failed to create system restore point, operation timed out" -ForegroundColor Red
+            Write-ToConsole "错误：创建系统还原点失败，操作超时" -ForegroundColor Red
             $failed = $true
         }
         else {
@@ -1030,7 +1030,7 @@ function CreateSystemRestorePoint {
     # Ensure that the user is aware if creating a restore point failed, and give them the option to continue without a restore point or cancel the script
     if ($failed) {
         if ($script:GuiConsoleOutput) {
-            $result = Show-MessageBox "Failed to create a system restore point. Do you want to continue without a restore point?" "Restore Point Creation Failed" "YesNo" "Warning"
+            $result = Show-MessageBox "创建系统还原点失败。是否要在没有还原点的情况下继续？" "创建还原点失败" "YesNo" "Warning"
 
             if ($result -ne "Yes") {
                 $script:CancelRequested = $true
@@ -1038,14 +1038,14 @@ function CreateSystemRestorePoint {
             }
         }
         elseif (-not $Silent) {
-            Write-ToConsole "Failed to create a system restore point. Do you want to continue without a restore point? (y/n)" -ForegroundColor Yellow
+            Write-ToConsole "创建系统还原点失败。是否要在没有还原点的情况下继续？(y/n)" -ForegroundColor Yellow
             if ($( Read-Host ) -ne 'y') {
                 $script:CancelRequested = $true
                 return
             }
         }
 
-        Write-ToConsole "Warning: Continuing without restore point" -ForegroundColor Yellow
+        Write-ToConsole "警告：在没有还原点的情况下继续" -ForegroundColor Yellow
     }
 }
 
@@ -1064,41 +1064,41 @@ function EnableWindowsFeature {
 
 # Restart the Windows Explorer process
 function RestartExplorer {
-    Write-ToConsole "> Attempting to restart the Windows Explorer process to apply all changes..."
+    Write-ToConsole "> 正在尝试重启 Windows 资源管理器进程以应用所有更改..."
     
     if ($script:Params.ContainsKey("Sysprep") -or $script:Params.ContainsKey("User") -or $script:Params.ContainsKey("NoRestartExplorer")) {
-        Write-ToConsole "Explorer process restart was skipped, please manually reboot your PC to apply all changes" -ForegroundColor Yellow
+        Write-ToConsole "已跳过重启资源管理器进程，请手动重启电脑以应用所有更改" -ForegroundColor Yellow
         return
     }
 
     if ($script:Params.ContainsKey("EnableWindowsSandbox")) {
-        Write-ToConsole "Warning: The Windows Sandbox feature will only be available after a reboot" -ForegroundColor Yellow
+        Write-ToConsole "警告：Windows 沙盒功能将在重启后才可用" -ForegroundColor Yellow
     }
 
     if ($script:Params.ContainsKey("EnableWindowsSubsystemForLinux")) {
-        Write-ToConsole "Warning: The Windows Subsystem for Linux feature will only be available after a reboot" -ForegroundColor Yellow
+        Write-ToConsole "警告：适用于 Linux 的 Windows 子系统功能将在重启后才可用" -ForegroundColor Yellow
     }
 
     if ($script:Params.ContainsKey("DisableMouseAcceleration")) {
-        Write-ToConsole "Warning: Changes to the Enhance Pointer Precision setting will only take effect after a reboot" -ForegroundColor Yellow
+        Write-ToConsole "警告：提高指针精确度设置的更改将在重启后生效" -ForegroundColor Yellow
     }
 
     if ($script:Params.ContainsKey("DisableStickyKeys")) {
-        Write-ToConsole "Warning: Changes to the Sticky Keys setting will only take effect after a reboot" -ForegroundColor Yellow
+        Write-ToConsole "警告：粘滞键设置的更改将在重启后生效" -ForegroundColor Yellow
     }
 
     if ($script:Params.ContainsKey("DisableAnimations")) {
-        Write-ToConsole "Warning: Animations will only be disabled after a reboot" -ForegroundColor Yellow
+        Write-ToConsole "警告：动画效果将在重启后才会被禁用" -ForegroundColor Yellow
     }
 
     # Only restart if the powershell process matches the OS architecture.
     # Restarting explorer from a 32bit PowerShell window will fail on a 64bit OS
     if ([Environment]::Is64BitProcess -eq [Environment]::Is64BitOperatingSystem) {
-        Write-ToConsole "Restarting the Windows Explorer process... (This may cause your screen to flicker)"
+        Write-ToConsole "正在重启 Windows 资源管理器进程...（屏幕可能会闪烁）"
         Stop-Process -processName: Explorer -Force
     }
     else {
-        Write-ToConsole "Unable to restart Windows Explorer process, please manually reboot your PC to apply all changes" -ForegroundColor Yellow
+        Write-ToConsole "无法重启 Windows 资源管理器进程，请手动重启电脑以应用所有更改" -ForegroundColor Yellow
     }
 }
 
@@ -1107,7 +1107,7 @@ function AwaitKeyToExit {
     # Suppress prompt if Silent parameter was passed
     if (-not $Silent) {
         Write-Output ""
-        Write-Output "Press any key to exit..."
+        Write-Output "按任意键退出..."
         $null = [System.Console]::ReadKey()
     }
 
@@ -1152,9 +1152,9 @@ if (-not ($script:Params.ContainsKey("Verbose"))) {
     $ProgressPreference = 'SilentlyContinue'
 }
 else {
-    Write-Host "Verbose mode is enabled"
+    Write-Host "已启用详细模式"
     Write-Output ""
-    Write-Output "Press any key to continue..."
+    Write-Output "按任意键继续..."
     $null = [System.Console]::ReadKey()
 
     $ProgressPreference = 'Continue'
@@ -1165,7 +1165,7 @@ if ($script:Params.ContainsKey("Sysprep")) {
 
     # Exit script if run in Sysprep mode on Windows 10
     if ($WinVersion -lt 22000) {
-        Write-Error "Win11Debloat Sysprep mode is not supported on Windows 10"
+        Write-Error "Win11Debloat Sysprep 模式不支持 Windows 10"
         AwaitKeyToExit
     }
 }
@@ -1185,16 +1185,16 @@ if ((Test-Path $script:SavedSettingsFilePath) -and ([String]::IsNullOrWhiteSpace
 
 # Only run the app selection form if the 'RunAppsListGenerator' parameter was passed to the script
 if ($RunAppsListGenerator) {
-    PrintHeader "Custom Apps List Generator"
+    PrintHeader "自定义应用列表生成器"
 
     $result = Show-AppSelectionWindow
 
     # Show different message based on whether the app selection was saved or cancelled
     if ($result -ne $true) {
-        Write-Host "Application selection window was closed without saving." -ForegroundColor Red
+        Write-Host "应用选择窗口已关闭但未保存。" -ForegroundColor Red
     }
     else {
-        Write-Output "Your app selection was saved to the 'CustomAppsList' file, found at:"
+        Write-Output "您的应用选择已保存到 'CustomAppsList' 文件，位于："
         Write-Host "$PSScriptRoot" -ForegroundColor Yellow
     }
 
@@ -1208,8 +1208,8 @@ if ((-not $script:Params.Count) -or $RunDefaults -or $RunDefaultsLite -or $RunSa
     }
     elseif ($RunSavedSettings) {
         if (-not (Test-Path $script:SavedSettingsFilePath)) {
-            PrintHeader 'Custom Mode'
-            Write-Error "Unable to find LastUsedSettings.json file, no changes were made"
+            PrintHeader '自定义模式'
+            Write-Error "找不到 LastUsedSettings.json 文件，未进行任何更改"
             AwaitKeyToExit
         }
 
@@ -1227,10 +1227,10 @@ if ((-not $script:Params.Count) -or $RunDefaults -or $RunDefaultsLite -or $RunSa
                 Exit
             }
             catch {
-                Write-Warning "Unable to load WPF GUI (not supported in this environment), falling back to CLI mode"
+                Write-Warning "无法加载 WPF 图形界面（此环境不支持），回退到命令行模式"
                 if (-not $Silent) {
                     Write-Host ""
-                    Write-Host "Press any key to continue..."
+                    Write-Host "按任意键继续..."
                     $null = [System.Console]::ReadKey()
                 }
 
@@ -1258,13 +1258,13 @@ if ((-not $script:Params.Count) -or $RunDefaults -or $RunDefaultsLite -or $RunSa
     }
 }
 else {
-    PrintHeader 'Configuration'
+    PrintHeader '配置'
 }
 
 # If the number of keys in ControlParams equals the number of keys in Params then no modifications/changes were selected
 #  or added by the user, and the script can exit without making any changes.
 if (($controlParamsCount -eq $script:Params.Keys.Count) -or ($script:Params.Keys.Count -eq 1 -and ($script:Params.Keys -contains 'CreateRestorePoint' -or $script:Params.Keys -contains 'Apps'))) {
-    Write-Output "The script completed without making any changes."
+    Write-Output "脚本已完成，未进行任何更改。"
     AwaitKeyToExit
 }
 
@@ -1277,6 +1277,6 @@ RestartExplorer
 Write-Output ""
 Write-Output ""
 Write-Output ""
-Write-Output "Script completed! Please check above for any errors."
+Write-Output "脚本已完成！请检查上方是否有任何错误。"
 
 AwaitKeyToExit

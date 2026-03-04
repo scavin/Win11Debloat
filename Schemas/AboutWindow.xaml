@@ -1,6 +1,6 @@
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="About Win11Debloat" 
+        Title="关于 Win11Debloat" 
         Width="500"
         SizeToContent="Height"
         ResizeMode="NoResize"
@@ -117,7 +117,7 @@
 
             <!-- Title Bar -->
             <Grid Grid.Row="0" x:Name="TitleBar" Height="48" Background="Transparent">
-                <TextBlock Text="About Win11Debloat" 
+                <TextBlock Text="关于 Win11Debloat" 
                            Foreground="{DynamicResource FgColor}"
                            FontSize="18"
                            FontWeight="SemiBold"
@@ -147,7 +147,7 @@
                     
                     <!-- Version -->
                     <TextBlock Grid.Row="0" Grid.Column="0"
-                            Text="Version:" 
+                            Text="版本：" 
                             FontSize="14"
                             Foreground="{DynamicResource FgColor}"
                             FontWeight="SemiBold"
@@ -161,7 +161,7 @@
                     
                     <!-- Author -->
                     <TextBlock Grid.Row="1" Grid.Column="0"
-                            Text="Author:" 
+                            Text="作者：" 
                             FontSize="14"
                             Foreground="{DynamicResource FgColor}"
                             FontWeight="SemiBold"
@@ -174,7 +174,7 @@
                     
                     <!-- Project Link -->
                     <TextBlock Grid.Row="2" Grid.Column="0"
-                            Text="Project:" 
+                            Text="项目：" 
                             FontSize="14"
                             Foreground="{DynamicResource FgColor}"
                             FontWeight="SemiBold"
@@ -196,7 +196,7 @@
                 <!-- Content -->
                 <StackPanel Grid.Row="2" Margin="24,20">
                     <!-- Donation Message -->
-                    <TextBlock Text="Win11Debloat is a passion project that I maintain in my free time. If you've found this tool useful, please consider making a small donation to support its development. I really appreciate it!"
+                    <TextBlock Text="Win11Debloat 是我在业余时间维护的个人项目。如果您觉得这个工具有用，请考虑捐赠以支持项目开发，非常感谢！"
                             FontSize="14"
                             Foreground="{DynamicResource FgColor}"
                             TextWrapping="Wrap"
@@ -228,7 +228,7 @@
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 FontWeight="SemiBold"
-                                Text="Support me on Ko-fi"/>
+                                Text="在 Ko-fi 上支持我"/>
                     </Grid>
                 </StackPanel>
             </Grid>
@@ -244,7 +244,7 @@
                             Orientation="Horizontal"
                             HorizontalAlignment="Right">
                     <Button x:Name="CloseButton" 
-                            Content="Close" 
+                            Content="关闭" 
                             Style="{StaticResource MessageBoxButton}"/>
                 </StackPanel>
             </Border>

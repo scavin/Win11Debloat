@@ -108,7 +108,7 @@
             <!-- Title Bar -->
             <Grid Grid.Row="0" x:Name="TitleBar" Height="40" Background="Transparent">
                 <TextBlock x:Name="TitleText" 
-                           Text="Message" 
+                           Text="消息" 
                            Foreground="{DynamicResource FgColor}"
                            FontSize="16"
                            FontWeight="SemiBold"
@@ -136,7 +136,7 @@
                 <!-- Message Text -->
                 <TextBlock x:Name="MessageText"
                            Grid.Column="1"
-                           Text="Message content goes here"
+                           Text="消息内容"
                            TextWrapping="Wrap"
                            FontSize="14"
                            LineHeight="20"
@@ -155,10 +155,10 @@
                             Orientation="Horizontal"
                             HorizontalAlignment="Right">
                     <Button x:Name="Button1" 
-                            Content="OK" 
+                            Content="确定" 
                             Style="{StaticResource PrimaryMessageBoxButton}"/>
                     <Button x:Name="Button2" 
-                            Content="Cancel" 
+                            Content="取消" 
                             Style="{StaticResource MessageBoxButton}"
                             Visibility="Collapsed"/>
                 </StackPanel>

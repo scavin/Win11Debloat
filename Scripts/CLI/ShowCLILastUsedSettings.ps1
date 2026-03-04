@@ -7,7 +7,7 @@ function ShowCLILastUsedSettings {
         LoadSettings -filePath $script:SavedSettingsFilePath -expectedVersion "1.0"
     }
     catch {
-        Write-Error "Failed to load settings from LastUsedSettings.json file: $_"
+        Write-Error "从 LastUsedSettings.json 文件加载设置失败：$_"
         AwaitKeyToExit
     }
 

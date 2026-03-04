@@ -10,7 +10,7 @@ function ShowCLIDefaultModeOptions {
         $RemoveAppsInput = ShowCLIDefaultModeAppRemovalOptions
 
         if ($RemoveAppsInput -eq '2' -and ($script:SelectedApps.contains('Microsoft.XboxGameOverlay') -or $script:SelectedApps.contains('Microsoft.XboxGamingOverlay')) -and 
-          $( Read-Host -Prompt "Disable Game Bar integration and game/screen recording? This also stops ms-gamingoverlay and ms-gamebar popups (y/n)" ) -eq 'y') {
+          $( Read-Host -Prompt "是否禁用 Game Bar 集成和游戏/屏幕录制？这也会阻止 ms-gamingoverlay 和 ms-gamebar 弹窗 (y/n)" ) -eq 'y') {
             $DisableGameBarIntegrationInput = $true;
         }
     }
@@ -39,7 +39,7 @@ function ShowCLIDefaultModeOptions {
         LoadSettings -filePath $script:DefaultSettingsFilePath -expectedVersion "1.0"
     }
     catch {
-        Write-Error "Failed to load settings from DefaultSettings.json file: $_"
+        Write-Error "从 DefaultSettings.json 文件加载设置失败：$_"
         AwaitKeyToExit
     }
 

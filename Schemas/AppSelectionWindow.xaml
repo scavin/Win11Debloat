@@ -1,6 +1,6 @@
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Win11Debloat Application Selection" 
+        Title="Win11Debloat 应用选择" 
         Width="450" Height="580" 
         ResizeMode="NoResize" 
         WindowStartupLocation="CenterScreen"
@@ -229,13 +229,13 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" 
-                                   Text="Win11Debloat Application Selection" 
+                                   Text="Win11Debloat 应用选择" 
                                    Foreground="{DynamicResource FgColor}"
                                    VerticalAlignment="Center" 
                                    Margin="12,0,0,0"
                                    FontSize="12"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button x:Name="CloseBtn" Content="&#xE8BB;" Style="{StaticResource CloseButton}" ToolTip="Close" IsCancel="True" AutomationProperties.Name="Close"/>
+                            <Button x:Name="CloseBtn" Content="&#xE8BB;" Style="{StaticResource CloseButton}" ToolTip="关闭" IsCancel="True" AutomationProperties.Name="关闭"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -252,13 +252,13 @@
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" 
-                            Text="Check apps that you wish to remove, uncheck apps that you wish to keep" 
+                            Text="勾选要移除的应用，取消勾选要保留的应用" 
                             TextWrapping="Wrap"
                             Foreground="{DynamicResource FgColor}"
                             Margin="0,0,0,10"/>
 
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-                        <CheckBox x:Name="CheckAllBox" Content="Check/Uncheck all" Margin="8,0,15,0" Foreground="{DynamicResource FgColor}" AutomationProperties.Name="Check or Uncheck all"/>
+                        <CheckBox x:Name="CheckAllBox" Content="全选/取消全选" Margin="8,0,15,0" Foreground="{DynamicResource FgColor}" AutomationProperties.Name="全选或取消全选"/>
                     </StackPanel>
 
                     <Border Grid.Row="2" BorderBrush="{DynamicResource BorderColor}" CornerRadius="4" BorderThickness="1" Margin="0,0,0,10" Background="{DynamicResource CardBgColor}">
@@ -267,17 +267,17 @@
                                 <StackPanel x:Name="AppsPanel" Margin="5"/>
                             </ScrollViewer>
                             <Border x:Name="LoadingAppsIndicator" CornerRadius="4" Background="{DynamicResource ScrollBarThumbColor}" Opacity="0.8" Visibility="Collapsed">
-                                <TextBlock Text="Loading apps..." FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource FgColor}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="正在加载应用..." FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource FgColor}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                         </Grid>
                     </Border>
 
                     <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
                         <Grid Margin="0,8,10,10">
-                            <CheckBox x:Name="OnlyInstalledBox" Content="Only show installed apps" Foreground="{DynamicResource FgColor}" AutomationProperties.Name="Only show installed apps"/>
+                            <CheckBox x:Name="OnlyInstalledBox" Content="仅显示已安装的应用" Foreground="{DynamicResource FgColor}" AutomationProperties.Name="仅显示已安装的应用"/>
                         </Grid>
-                        <Button x:Name="ConfirmBtn" Width="80" Height="32" Margin="0,0,10,0" Content="Confirm" Style="{StaticResource Win11Button}" AutomationProperties.Name="Confirm"/>
-                        <Button x:Name="CancelBtn" Width="80" Height="32" Content="Cancel" Style="{StaticResource Win11ButtonSecondary}" IsCancel="True" AutomationProperties.Name="Cancel"/>
+                        <Button x:Name="ConfirmBtn" Width="80" Height="32" Margin="0,0,10,0" Content="确认" Style="{StaticResource Win11Button}" AutomationProperties.Name="确认"/>
+                        <Button x:Name="CancelBtn" Width="80" Height="32" Content="取消" Style="{StaticResource Win11ButtonSecondary}" IsCancel="True" AutomationProperties.Name="取消"/>
                     </StackPanel>
                 </Grid>
             </Grid>
