@@ -361,7 +361,7 @@
     {
       "FeatureId": "DisableSuggestions",
       "Label": "Windows 中的提示、技巧和推荐内容",
-      "ToolTip": "此设置将移除 Windows 中许多令人烦扰的干扰内容。",
+      "ToolTip": "此设置将移除 Windows 中许多令人烦扰的干扰内容。包括通知、提醒和同步提供商广告，还会阻止自动安装推荐的应用。",
       "Category": "隐私与推荐内容",
       "Action": "禁用",
       "RegistryKey": "Disable_Windows_Suggestions.reg",
@@ -452,7 +452,7 @@
     {
       "FeatureId": "DisableRecall",
       "Label": "Windows Recall",
-      "ToolTip": "这将禁用 Windows Recall，一项由 AI 驱动的功能，可快速访问最近使用的文件、应用和活动。",
+      "ToolTip": "这将禁用 Windows Recall，一项由 AI 驱动的功能，可快速访问最近使用的文件、应用和活动。此功能使用策略，部分设置将被锁定。",
       "Category": "AI",
       "Action": "禁用",
       "RegistryKey": "Disable_AI_Recall.reg",
@@ -465,7 +465,7 @@
     {
       "FeatureId": "DisableClickToDo",
       "Label": "Click To Do（AI 文本和图像分析）",
-      "ToolTip": "这将禁用 Click To Do，它提供 Windows 中由 AI 驱动的文本和图像分析功能。",
+      "ToolTip": "这将禁用 Click To Do，它提供 Windows 中由 AI 驱动的文本和图像分析功能。此功能使用策略，部分设置将被锁定。",
       "Category": "AI",
       "Action": "禁用",
       "RegistryKey": "Disable_Click_to_Do.reg",
@@ -478,7 +478,7 @@
     {
       "FeatureId": "DisableDVR",
       "Label": "Xbox 游戏/屏幕录制",
-      "ToolTip": "这将禁用 Game Bar 应用中包含的 Xbox 游戏/屏幕录制功能。",
+      "ToolTip": "这将禁用 Game Bar 应用中包含的 Xbox 游戏/屏幕录制功能。此功能使用策略，部分设置将被锁定。",
       "Category": "游戏",
       "Action": "禁用",
       "RegistryKey": "Disable_DVR.reg",
@@ -552,7 +552,7 @@
     {
       "FeatureId": "DisableStartRecommended",
       "Label": "开始菜单中的推荐部分",
-      "ToolTip": "这将隐藏开始菜单中的推荐部分，该部分显示最近添加的应用、最近打开的文件和应用推荐。",
+      "ToolTip": "这将隐藏开始菜单中的推荐部分，该部分显示最近添加的应用、最近打开的文件和应用推荐。此功能使用策略，部分设置将被锁定。",
       "Category": "开始菜单",
       "Action": "隐藏",
       "RegistryKey": "Disable_Start_Recommended.reg",
@@ -565,7 +565,7 @@
     {
       "FeatureId": "DisableBing",
       "Label": "Bing 网页搜索和 Copilot 集成",
-      "ToolTip": "这将关闭 Windows 搜索体验中的 Bing 网页搜索结果和 Copilot 集成。",
+      "ToolTip": "这将关闭 Windows 搜索体验中的 Bing 网页搜索结果和 Copilot 集成。此功能使用策略，部分设置将被锁定。",
       "Category": "开始菜单",
       "Action": "禁用",
       "RegistryKey": "Disable_Bing_Cortana_In_Search.reg",
@@ -630,7 +630,7 @@
     {
       "FeatureId": "DisablePaintAI",
       "Label": "画图中的 AI 功能",
-      "ToolTip": "这将关闭画图中的 AI 功能，如 AI 驱动的图像生成和编辑工具。",
+      "ToolTip": "这将关闭画图中的 AI 功能，如 AI 驱动的图像生成和编辑工具。此功能使用策略，部分设置将被锁定。",
       "Category": "AI",
       "Action": "禁用",
       "RegistryKey": "Disable_Paint_AI_Features.reg",
@@ -643,7 +643,7 @@
     {
       "FeatureId": "DisableNotepadAI",
       "Label": "记事本中的 AI 功能",
-      "ToolTip": "这将关闭记事本中的 AI 功能，如 AI 驱动的写作建议。",
+      "ToolTip": "这将关闭记事本中的 AI 功能，如 AI 驱动的写作建议。此功能使用策略，部分设置将被锁定。",
       "Category": "AI",
       "Action": "禁用",
       "RegistryKey": "Disable_Notepad_AI_Features.reg",
@@ -682,7 +682,7 @@
     {
       "FeatureId": "RevertContextMenu",
       "Label": "右键菜单样式",
-      "ToolTip": "这将恢复经典的 Windows 10 风格右键菜单，替代现代的 Windows 11 风格菜单。",
+      "ToolTip": "这将恢复经典的 Windows 10 风格右键菜单，它通常隐藏在 Windows 11 新右键菜单中的「显示更多选项」条目后面。",
       "Category": "系统",
       "Action": "使用经典 Windows 10",
       "RegistryKey": "Disable_Show_More_Options_Context_Menu.reg",
@@ -839,7 +839,7 @@
       "Label": "在任务栏上显示搜索图标",
       "Category": "任务栏",
       "Action": "显示搜索图标",
-      "RegistryKey": "Show_Search_Box.reg",
+      "RegistryKey": "Show_Search_Icon.reg",
       "ApplyText": "> 正在将任务栏搜索更改为仅图标...",
       "UndoAction": "显示搜索框",
       "RegistryUndoKey": "Show_Search_Box.reg",
@@ -851,7 +851,7 @@
       "Label": "在任务栏上显示搜索图标和标签",
       "Category": "任务栏",
       "Action": "显示搜索标签",
-      "RegistryKey": "Show_Search_Box.reg",
+      "RegistryKey": "Show_Search_Icon_And_Label.reg",
       "ApplyText": "> 正在将任务栏搜索更改为图标加标签...",
       "UndoAction": "显示搜索框",
       "RegistryUndoKey": "Show_Search_Box.reg",
@@ -1371,7 +1371,7 @@
     {
       "FeatureId": "DisableBraveBloat",
       "Label": "Brave 浏览器中的臃肿功能（AI、加密货币等）",
-      "ToolTip": "这将禁用 Brave 内置的 AI 功能、加密货币钱包、新闻、奖励、Talk 和 VPN。",
+      "ToolTip": "这将禁用 Brave 内置的 AI 功能、加密货币钱包、新闻、奖励、Talk 和 VPN。此功能使用策略，部分设置将被锁定。",
       "Category": "其他",
       "Action": "禁用",
       "RegistryKey": "Disable_Brave_Bloat.reg",
