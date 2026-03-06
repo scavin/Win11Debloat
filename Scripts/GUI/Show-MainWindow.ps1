@@ -1,4 +1,4 @@
-function Show-MainWindow {    
+﻿function Show-MainWindow {    
     Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System.Windows.Forms | Out-Null
 
     # Get current Windows build version

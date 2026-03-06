@@ -1,4 +1,4 @@
-# Shows application selection window that allows the user to select what apps they want to remove or keep
+﻿# Shows application selection window that allows the user to select what apps they want to remove or keep
 function Show-AppSelectionWindow {
     Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase | Out-Null
 

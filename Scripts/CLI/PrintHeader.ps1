@@ -1,4 +1,4 @@
-# Prints the header for the script
+﻿# Prints the header for the script
 function PrintHeader {
     param (
         $title

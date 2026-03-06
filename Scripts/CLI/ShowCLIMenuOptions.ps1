@@ -1,4 +1,4 @@
-# Shows the CLI menu options and prompts the user to select one. Loops until a valid option is selected.
+﻿# Shows the CLI menu options and prompts the user to select one. Loops until a valid option is selected.
 function ShowCLIMenuOptions {
     Do { 
         $ModeSelectionMessage = "请选择一个选项 (1/2)"

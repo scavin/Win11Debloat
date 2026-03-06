@@ -1,4 +1,4 @@
-# Show CLI default mode options for removing apps, or set selection if RunDefaults or RunDefaultsLite parameter was passed
+﻿# Show CLI default mode options for removing apps, or set selection if RunDefaults or RunDefaultsLite parameter was passed
 function ShowCLIDefaultModeOptions {
     if ($RunDefaults) {
         $RemoveAppsInput = '1'

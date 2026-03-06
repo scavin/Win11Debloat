@@ -1,4 +1,4 @@
-# Shows the CLI last used settings from LastUsedSettings.json file, displays pending changes and prompts the user to apply them.
+﻿# Shows the CLI last used settings from LastUsedSettings.json file, displays pending changes and prompts the user to apply them.
 function ShowCLILastUsedSettings {
     PrintHeader 'Custom Mode'
 

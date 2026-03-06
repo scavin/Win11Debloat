@@ -1,4 +1,4 @@
-# Shows the CLI app removal menu and prompts the user to select which apps to remove.
+﻿# Shows the CLI app removal menu and prompts the user to select which apps to remove.
 function ShowCLIAppRemoval {
     PrintHeader "App Removal"
 

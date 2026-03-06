@@ -1,4 +1,4 @@
-# Shows the CLI default mode app removal options. Loops until a valid option is selected.
+﻿# Shows the CLI default mode app removal options. Loops until a valid option is selected.
 function ShowCLIDefaultModeAppRemovalOptions {
     PrintHeader 'Default Mode'
 

@@ -1,4 +1,4 @@
-# Prints all pending changes that will be made by the script
+﻿# Prints all pending changes that will be made by the script
 function PrintPendingChanges {
     Write-Output "Win11Debloat 将进行以下更改："
 
