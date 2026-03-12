@@ -26,6 +26,14 @@
             "Value": true
         },
         {
+            "Name": "DisableStoreSearchSuggestions",
+            "Value": true
+        },
+        {
+            "Name": "DisableSearchHighlights",
+            "Value": true
+        },
+        {
             "Name": "DisableCopilot",
             "Value": true
         },
@@ -35,6 +43,10 @@
         },
         {
             "Name": "DisableClickToDo",
+            "Value": true
+        },
+        {
+            "Name": "DisableAISvcAutoStart",
             "Value": true
         },
         {

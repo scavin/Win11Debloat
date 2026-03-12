@@ -29,14 +29,17 @@ param (
     [switch]$DisableFastStartup,
     [switch]$DisableBitlockerAutoEncryption,
     [switch]$DisableModernStandbyNetworking,
+    [switch]$DisableStorageSense,
     [switch]$DisableUpdateASAP,
     [switch]$PreventUpdateAutoReboot,
     [switch]$DisableDeliveryOptimization,
     [switch]$DisableBing,
+    [switch]$DisableStoreSearchSuggestions,
     [switch]$DisableDesktopSpotlight,
     [switch]$DisableLockscreenTips,
     [switch]$DisableSuggestions,
     [switch]$DisableLocationServices,
+    [switch]$DisableFindMyDevice,
     [switch]$DisableEdgeAds,
     [switch]$DisableBraveBloat,
     [switch]$DisableSettings365Ads,
@@ -54,13 +57,16 @@ param (
     [switch]$HideSearchTb, [switch]$ShowSearchIconTb, [switch]$ShowSearchLabelTb, [switch]$ShowSearchBoxTb,
     [switch]$HideTaskview,
     [switch]$DisableStartRecommended,
+    [switch]$DisableStartAllApps,
     [switch]$DisableStartPhoneLink,
     [switch]$DisableCopilot,
     [switch]$DisableRecall,
     [switch]$DisableClickToDo,
+    [switch]$DisableAISvcAutoStart,
     [switch]$DisablePaintAI,
     [switch]$DisableNotepadAI,
     [switch]$DisableEdgeAI,
+    [switch]$DisableSearchHighlights,
     [switch]$DisableWidgets,
     [switch]$HideChat,
     [switch]$EnableEndTask,
@@ -121,11 +127,29 @@ catch {
     Exit
 }
 
-# Remove old script folder if it exists, except for CustomAppsList and LastUsedSettings.json files
+Write-Output ""
+Write-Output "> Cleaning up old Win11Debloat folder..."
+
+# Remove old script folder if it exists, but keep config and log files
 if (Test-Path "$env:TEMP/Win11Debloat") {
-    Write-Output ""
-    Write-Output "> Cleaning up old Win11Debloat folder..."
-    Get-ChildItem -Path "$env:TEMP/Win11Debloat" -Exclude CustomAppsList,LastUsedSettings.json,Win11Debloat.log,Logs | Remove-Item -Recurse -Force
+    Get-ChildItem -Path "$env:TEMP/Win11Debloat" -Exclude CustomAppsList,LastUsedSettings.json,Win11Debloat.log,Config,Logs | Remove-Item -Recurse -Force
+}
+
+$configDir = "$env:TEMP/Win11Debloat/Config"
+$backupDir = "$env:TEMP/Win11Debloat/ConfigOld"
+
+# Temporarily move existing config files if they exist to prevent them from being overwritten by the new script files, will be moved back after the new script is unpacked
+if (Test-Path "$configDir") {
+    New-Item -ItemType Directory -Path "$backupDir" -Force | Out-Null
+
+    $filesToKeep = @(
+        'CustomAppsList',
+        'LastUsedSettings.json'
+    )
+
+    Get-ChildItem -Path "$configDir" -Recurse | Where-Object { $_.Name -in $filesToKeep } | Move-Item -Destination "$backupDir"
+
+    Remove-Item "$configDir" -Recurse -Force
 }
 
 Write-Output ""
@@ -139,6 +163,16 @@ Remove-Item "$env:TEMP/win11debloat.zip"
 
 # Move files
 Get-ChildItem -Path "$env:TEMP/Win11Debloat/Raphire-Win11Debloat-*" -Recurse | Move-Item -Destination "$env:TEMP/Win11Debloat"
+
+# Add existing config files back to Config folder
+if (Test-Path "$backupDir") {
+    if (-not (Test-Path "$configDir")) {
+        New-Item -ItemType Directory -Path "$configDir" -Force | Out-Null
+    }
+
+    Get-ChildItem -Path "$backupDir" -Recurse | Move-Item -Destination "$configDir"
+    Remove-Item "$backupDir" -Recurse -Force
+}
 
 # Make list of arguments to pass on to the script
 $arguments = $($PSBoundParameters.GetEnumerator() | ForEach-Object {
@@ -161,6 +195,12 @@ else {
     $windowStyle = "Normal"
 }
 
+# Remove Powershell 7 modules from path to prevent module loading issues in the script
+if ($PSVersionTable.PSVersion.Major -ge 7) {
+    $NewPSModulePath = $env:PSModulePath -split ';' | Where-Object -FilterScript { $_ -like '*WindowsPowerShell*' }
+    $env:PSModulePath = $NewPSModulePath -join ';'
+}
+
 # Run Win11Debloat script with the provided arguments
 $debloatProcess = Start-Process powershell.exe -WindowStyle $windowStyle -PassThru -ArgumentList "-executionpolicy bypass -File $env:TEMP\Win11Debloat\Win11Debloat.ps1 $arguments" -Verb RunAs
 
@@ -175,7 +215,7 @@ if (Test-Path "$env:TEMP/Win11Debloat") {
     Write-Output "> Cleaning up..."
 
     # Cleanup, remove Win11Debloat directory
-    Get-ChildItem -Path "$env:TEMP/Win11Debloat" -Exclude CustomAppsList,LastUsedSettings.json,Win11Debloat.log,Logs | Remove-Item -Recurse -Force
+    Get-ChildItem -Path "$env:TEMP/Win11Debloat" -Exclude CustomAppsList,LastUsedSettings.json,Win11Debloat.log,Config,Logs | Remove-Item -Recurse -Force
 }
 
 Write-Output ""

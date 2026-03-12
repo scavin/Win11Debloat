@@ -59,7 +59,7 @@
             Start-Process "explorer.exe" -ArgumentList $logsFolder
         }
         else {
-            Show-MessageBox -Message "未找到日志文件夹：$logsFolder" -Title "日志" -Button 'OK' -Icon 'Information'
+            Show-MessageBox -Message "No logs folder found at: $logsFolder" -Title "Logs" -Button 'OK' -Icon 'Information'
         }
     })
 
@@ -221,15 +221,7 @@
     $script:CurrentAppLoadJob = $null
     $script:CurrentAppLoadJobStartTime = $null
     
-    # Apply Tab UI Elements
-    $consoleOutput = $window.FindName('ConsoleOutput')
-    $consoleScrollViewer = $window.FindName('ConsoleScrollViewer')
-    $finishBtn = $window.FindName('FinishBtn')
-    $finishBtnText = $window.FindName('FinishBtnText')
-    
-    # Set script-level variables for Write-ToConsole function
-    $script:GuiConsoleOutput = $consoleOutput
-    $script:GuiConsoleScrollViewer = $consoleScrollViewer
+    # Set script-level variable for GUI window reference
     $script:GuiWindow = $window
 
     # Updates app selection status text in the App Selection tab
@@ -240,7 +232,7 @@
                 $selectedCount++
             }
         }
-        $appSelectionStatus.Text = "已选择 $selectedCount 个应用进行移除"
+        $appSelectionStatus.Text = "$selectedCount app(s) selected for removal"
     }
 
     # Dynamically builds Tweaks UI from Features.json
@@ -248,7 +240,7 @@
         $featuresJson = LoadJsonFile -filePath $script:FeaturesFilePath -expectedVersion "1.0"
 
         if (-not $featuresJson) {
-            Show-MessageBox -Message "无法加载 Features.json 文件！" -Title "错误" -Button 'OK' -Icon 'Error' | Out-Null
+            Show-MessageBox -Message "Unable to load Features.json file!" -Title "Error" -Button 'OK' -Icon 'Error' | Out-Null
             Exit
         }
 
@@ -385,7 +377,7 @@
 
             $helpBtn = New-Object System.Windows.Controls.Button
             $helpBtn.Content = $helpIcon
-            $helpBtn.ToolTip = "打开 Wiki 了解更多关于「$categoryName」调整的信息"
+            $helpBtn.ToolTip = "Open wiki for more info on '$categoryName' tweaks"
             $helpBtn.Tag = (GetWikiUrlForCategory -category $categoryName)
             $helpBtn.Style = $window.Resources['CategoryHelpLinkButtonStyle']
             $helpBtn.Add_Click({
@@ -657,7 +649,7 @@
                         $script:CurrentAppLoadJobStartTime = $null
                         
                         # Show error that the script was unable to get list of apps from WinGet
-                        Show-MessageBox -Message '无法通过 WinGet 加载已安装的应用列表。' -Title '错误' -Button 'OK' -Icon 'Error' | Out-Null
+                        Show-MessageBox -Message 'Unable to load list of installed apps via WinGet.' -Title 'Error' -Button 'OK' -Icon 'Error' | Out-Null
                         $onlyInstalledAppsBox.IsChecked = $false
                         
                         # Continue with loading all apps (unchecked now)
@@ -972,8 +964,7 @@
         $totalTabs = $tabControl.Items.Count
         
         $homeIndex = 0
-        $overviewIndex = $totalTabs - 2
-        $applyIndex = $totalTabs - 1
+        $overviewIndex = $totalTabs - 1
 
         # Navigation button visibility
         if ($currentIndex -eq $homeIndex) {
@@ -982,26 +973,23 @@
         } elseif ($currentIndex -eq $overviewIndex) {
             $nextBtn.Visibility = 'Collapsed'
             $previousBtn.Visibility = 'Visible'
-        } elseif ($currentIndex -eq $applyIndex) {
-            $nextBtn.Visibility = 'Collapsed'
-            $previousBtn.Visibility = 'Collapsed'
         } else {
             $nextBtn.Visibility = 'Visible'
             $previousBtn.Visibility = 'Visible'
         }
         
         # Update progress indicators
-        # Tab indices: 0=Home, 1=App Removal, 2=Tweaks, 3=Overview, 4=Apply
+        # Tab indices: 0=Home, 1=App Removal, 2=Tweaks, 3=Deployment Settings
         $blueColor = "#0067c0"
         $greyColor = "#808080"
         
         $progressIndicator1 = $window.FindName('ProgressIndicator1') # App Removal
         $progressIndicator2 = $window.FindName('ProgressIndicator2') # Tweaks
-        $progressIndicator3 = $window.FindName('ProgressIndicator3') # Overview
+        $progressIndicator3 = $window.FindName('ProgressIndicator3') # Deployment Settings
         $bottomNavGrid = $window.FindName('BottomNavGrid')
         
-        # Hide bottom navigation on home page and apply tab
-        if ($currentIndex -eq 0 -or $currentIndex -eq $applyIndex) {
+        # Hide bottom navigation on home page
+        if ($currentIndex -eq 0) {
             $bottomNavGrid.Visibility = 'Collapsed'
         } else {
             $bottomNavGrid.Visibility = 'Visible'
@@ -1022,7 +1010,7 @@
             $progressIndicator2.Fill = $greyColor
         }
         
-        # Indicator 3 (Overview) - tab index 3
+        # Indicator 3 (Deployment Settings) - tab index 3
         if ($currentIndex -ge 3) {
             $progressIndicator3.Fill = $blueColor
         } else {
@@ -1033,36 +1021,36 @@
     # Update user selection description and show/hide other user panel
     $userSelectionCombo.Add_SelectionChanged({
         switch ($userSelectionCombo.SelectedIndex) {
-            0 { 
-                $userSelectionDescription.Text = "更改将应用到当前登录的用户配置。"
+            0 {
+                $userSelectionDescription.Text = "更改将应用到当前登录的用户配置文件。"
                 $otherUserPanel.Visibility = 'Collapsed'
                 $usernameValidationMessage.Text = ""
-                # Show "Current user only" option, hide "Target user only" option
+                # Show "仅当前用户" option, hide "仅目标用户" option
                 $appRemovalScopeCurrentUser.Visibility = 'Visible'
                 $appRemovalScopeTargetUser.Visibility = 'Collapsed'
                 # Enable app removal scope selection for current user
                 $appRemovalScopeCombo.IsEnabled = $true
                 $appRemovalScopeCombo.SelectedIndex = 0
             }
-            1 { 
-                $userSelectionDescription.Text = "更改将应用到此系统上的其他用户配置。"
+            1 {
+                $userSelectionDescription.Text = "更改将应用到此系统上的其他用户配置文件。"
                 $otherUserPanel.Visibility = 'Visible'
                 $usernameValidationMessage.Text = ""
-                # Hide "Current user only" option, show "Target user only" option
+                # Hide "仅当前用户" option, show "仅目标用户" option
                 $appRemovalScopeCurrentUser.Visibility = 'Collapsed'
                 $appRemovalScopeTargetUser.Visibility = 'Visible'
                 # Enable app removal scope selection for other user
                 $appRemovalScopeCombo.IsEnabled = $true
                 $appRemovalScopeCombo.SelectedIndex = 0
             }
-            2 { 
-                $userSelectionDescription.Text = "更改将应用到默认用户模板，影响之后创建的所有新用户。适用于 Sysprep 部署。"
+            2 {
+                $userSelectionDescription.Text = "更改将应用到默认用户模板，影响此后创建的所有新用户。适用于 Sysprep 部署。"
                 $otherUserPanel.Visibility = 'Collapsed'
                 $usernameValidationMessage.Text = ""
                 # Hide other user options since they don't apply to default user template
                 $appRemovalScopeCurrentUser.Visibility = 'Collapsed'
                 $appRemovalScopeTargetUser.Visibility = 'Collapsed'
-                # Lock app removal scope to "All users" when applying to sysprep
+                # Lock app removal scope to "所有用户" when applying to sysprep
                 $appRemovalScopeCombo.IsEnabled = $false
                 $appRemovalScopeCombo.SelectedIndex = 0
             }
@@ -1075,13 +1063,13 @@
         if ($selectedItem) {
             switch ($selectedItem.Content) {
                 "所有用户" {
-                    $appRemovalScopeDescription.Text = "将为所有用户移除应用，并从 Windows 映像中移除以防止新用户重新安装。"
+                    $appRemovalScopeDescription.Text = "将为所有用户卸载应用并从 Windows 映像中移除，防止新用户重新安装。"
                 }
                 "仅当前用户" {
-                    $appRemovalScopeDescription.Text = "仅为当前用户移除应用。其他用户和新用户不受影响。"
+                    $appRemovalScopeDescription.Text = "仅为当前用户卸载应用。其他用户和新用户不受影响。"
                 }
                 "仅目标用户" {
-                    $appRemovalScopeDescription.Text = "仅为指定的目标用户移除应用。其他用户和新用户不受影响。"
+                    $appRemovalScopeDescription.Text = "仅为指定的目标用户卸载应用。其他用户和新用户不受影响。"
                 }
             }
         }
@@ -1104,7 +1092,7 @@
     })
 
     function ValidateOtherUsername {
-        # Only validate if "Other User" is selected
+        # Only validate if "其他用户" is selected
         if ($userSelectionCombo.SelectedIndex -ne 1) {
             return $true
         }
@@ -1115,13 +1103,13 @@
         $successBrush = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.ColorConverter]::ConvertFromString("#28a745"))
 
         if ($username.Length -eq 0) {
-            $usernameValidationMessage.Text = "[X] 请输入用户名"
+            $usernameValidationMessage.Text = "[X] Please enter a username"
             $usernameValidationMessage.Foreground = $errorBrush
             return $false
         }
         
         if ($username -eq $env:USERNAME) {
-            $usernameValidationMessage.Text = "[X] 不能输入自己的用户名，请使用「当前用户」选项"
+            $usernameValidationMessage.Text = "[X] Cannot enter your own username, use 'Current User' option instead"
             $usernameValidationMessage.Foreground = $errorBrush
             return $false
         }
@@ -1129,12 +1117,12 @@
         $userExists = CheckIfUserExists -Username $username
 
         if ($userExists) {
-            $usernameValidationMessage.Text = "[OK] 找到用户：$username"
+            $usernameValidationMessage.Text = "[OK] User found: $username"
             $usernameValidationMessage.Foreground = $successBrush
             return $true
         }
 
-        $usernameValidationMessage.Text = "[X] 未找到用户，请输入有效的用户名"
+        $usernameValidationMessage.Text = "[X] User not found, please enter a valid username"
         $usernameValidationMessage.Foreground = $errorBrush
         return $false
     }
@@ -1142,8 +1130,6 @@
     function GenerateOverview {
         # Load Features.json
         $featuresJson = LoadJsonFile -filePath $script:FeaturesFilePath -expectedVersion "1.0"
-        $overviewChangesPanel = $window.FindName('OverviewChangesPanel')
-        $overviewChangesPanel.Children.Clear()
         
         $changesList = @()
         
@@ -1155,7 +1141,7 @@
             }
         }
         if ($selectedAppsCount -gt 0) {
-            $changesList += "移除 $selectedAppsCount 个已选应用"
+            $changesList += "Remove $selectedAppsCount application(s)"
         }
         
         # Update app removal scope section based on whether apps are selected
@@ -1171,7 +1157,7 @@
             # Disable app removal scope selection when no apps selected
             $appRemovalScopeCombo.IsEnabled = $false
             $appRemovalScopeSection.Opacity = 0.5
-            $appRemovalScopeDescription.Text = "未选择任何应用进行移除。"
+            $appRemovalScopeDescription.Text = "No apps selected for removal."
         }
         
         # Collect all ComboBox/CheckBox selections from dynamically created controls
@@ -1206,20 +1192,19 @@
             }
         }
         
+        return $changesList
+    }
+
+    function ShowChangesOverview {
+        $changesList = GenerateOverview
+
         if ($changesList.Count -eq 0) {
-            $textBlock = New-Object System.Windows.Controls.TextBlock
-            $textBlock.Text = "未选择任何更改"
-            $textBlock.Style = $window.Resources["OverviewNoChangesTextStyle"]
-            $overviewChangesPanel.Children.Add($textBlock) | Out-Null
+            Show-MessageBox -Message 'No changes have been selected.' -Title 'Selected Changes' -Button 'OK' -Icon 'Information'
+            return
         }
-        else {
-            foreach ($change in $changesList) {
-                $bullet = New-Object System.Windows.Controls.TextBlock
-                $bullet.Text = "- $change"
-                $bullet.Style = $window.Resources["OverviewChangeBulletStyle"]
-                $overviewChangesPanel.Children.Add($bullet) | Out-Null
-            }
-        }
+
+        $message = ($changesList | ForEach-Object { "$([char]0x2022) $_" }) -join "`n"
+        Show-MessageBox -Message $message -Title 'Selected Changes' -Button 'OK' -Icon 'None' -Width 600
     }
 
     $previousBtn.Add_Click({        
@@ -1261,16 +1246,22 @@
             }
         }
 
-        # Navigate directly to the Overview tab
+        # Navigate directly to the Deployment Settings tab
         $tabControl.SelectedIndex = 3
         UpdateNavigationButtons
     })
 
-    # Handle Overview Apply Changes button - validates and immediately starts applying changes
-    $overviewApplyBtn = $window.FindName('OverviewApplyBtn')
-    $overviewApplyBtn.Add_Click({
+    # Handle Review Changes link button
+    $reviewChangesBtn = $window.FindName('ReviewChangesBtn')
+    $reviewChangesBtn.Add_Click({
+        ShowChangesOverview
+    })
+
+    # Handle Apply Changes button - validates and immediately starts applying changes
+    $deploymentApplyBtn = $window.FindName('DeploymentApplyBtn')
+    $deploymentApplyBtn.Add_Click({
         if (-not (ValidateOtherUsername)) {
-            Show-MessageBox -Message "请输入有效的用户名。" -Title "无效的用户名" -Button 'OK' -Icon 'Warning' | Out-Null
+            Show-MessageBox -Message "Please enter a valid username." -Title "Invalid Username" -Button 'OK' -Icon 'Warning' | Out-Null
             return
         }
 
@@ -1285,7 +1276,7 @@
         if ($selectedApps.Count -gt 0) {
             # Check if Microsoft Store is selected
             if ($selectedApps -contains "Microsoft.WindowsStore") {
-                $result = Show-MessageBox -Message '确定要卸载 Microsoft Store 吗？此应用无法轻松重新安装。' -Title '确定吗？' -Button 'YesNo' -Icon 'Warning'
+                $result = Show-MessageBox -Message 'Are you sure you wish to uninstall the Microsoft Store? This app cannot easily be reinstalled.' -Title 'Are you sure?' -Button 'YesNo' -Icon 'Warning'
 
                 if ($result -eq 'No') {
                     return
@@ -1363,7 +1354,7 @@
         }
 
         if ($totalChanges -eq 0) {
-            Show-MessageBox -Message '未选择任何更改，请至少选择一个选项以继续。' -Title '未选择更改' -Button 'OK' -Icon 'Information'
+            Show-MessageBox -Message 'No changes have been selected, please select at least one option to proceed.' -Title 'No Changes Selected' -Button 'OK' -Icon 'Information'
             return
         }
 
@@ -1381,47 +1372,15 @@
 
         SaveSettings
 
-        # Navigate to Apply tab (last tab) and start applying changes
-        $tabControl.SelectedIndex = $tabControl.Items.Count - 1
-        
-        # Clear console and set initial status
-        $consoleOutput.Text = ""
+        # Check if user wants to restart explorer
+        $restartExplorerCheckBox = $window.FindName('RestartExplorerCheckBox')
+        $shouldRestartExplorer = $restartExplorerCheckBox -and $restartExplorerCheckBox.IsChecked
 
-        Write-ToConsole "正在将更改应用到$(if ($script:Params.ContainsKey("Sysprep")) { "默认用户模板" } else { "用户 $(GetUserName)" })"
-        Write-ToConsole "待应用的更改总数：$totalChanges"
-        Write-ToConsole ""
-        
-        # Run changes in background to keep UI responsive
-        $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [action]{
-            try {
-                ExecuteAllChanges
-                
-                # Check if user wants to restart explorer (from checkbox)
-                $restartExplorerCheckBox = $window.FindName('RestartExplorerCheckBox')
-                if ($restartExplorerCheckBox -and $restartExplorerCheckBox.IsChecked -and -not $script:CancelRequested) {
-                    RestartExplorer
-                }
-                
-                Write-ToConsole ""
-                if ($script:CancelRequested) {
-                    Write-ToConsole "脚本执行已被用户取消。部分更改可能未被应用。"
-                } else {
-                    Write-ToConsole "所有更改已应用。请检查上方输出是否有错误。"
-                }
-                
-                $finishBtn.Dispatcher.Invoke([action]{
-                    $finishBtn.IsEnabled = $true
-                    $finishBtnText.Text = "关闭 Win11Debloat"
-                })
-            }
-            catch {
-                Write-ToConsole "错误：$($_.Exception.Message)"
-                $finishBtn.Dispatcher.Invoke([action]{
-                    $finishBtn.IsEnabled = $true
-                    $finishBtnText.Text = "关闭 Win11Debloat"
-                })
-            }
-        })
+        # Show the apply changes window
+        Show-ApplyModal -Owner $window -RestartExplorer $shouldRestartExplorer
+
+        # Close the main window after the apply dialog closes
+        $window.Close()
     })
 
     # Initialize UI elements on window load
@@ -1434,7 +1393,7 @@
         if ($userSelectionCombo -and $userSelectionCombo.Items.Count -gt 0) {
             $currentUserItem = $userSelectionCombo.Items[0]
             if ($currentUserItem -is [System.Windows.Controls.ComboBoxItem]) {
-                $currentUserItem.Content = "当前用户 ($(GetUserName))"
+                $currentUserItem.Content = "Current User ($(GetUserName))"
             }
         }
 
@@ -1475,7 +1434,7 @@
         $defaultsJson = LoadJsonFile -filePath $script:DefaultSettingsFilePath -expectedVersion "1.0"
 
         if (-not $defaultsJson) {
-            Show-MessageBox -Message "加载默认设置文件失败" -Title "错误" -Button 'OK' -Icon 'Error'
+            Show-MessageBox -Message "Failed to load default settings file" -Title "Error" -Button 'OK' -Icon 'Error'
             return
         }
         
@@ -1505,7 +1464,7 @@
                 ApplySettingsToUiControls -window $window -settingsJson $lastUsedSettingsJson -uiControlMappings $script:UiControlMappings
             }
             catch {
-                Show-MessageBox -Message "加载上次使用的设置失败：$_" -Title "错误" -Button 'OK' -Icon 'Error'
+                Show-MessageBox -Message "Failed to load last used settings: $_" -Title "Error" -Button 'OK' -Icon 'Error'
             }
         })
     }
@@ -1529,7 +1488,7 @@
                 }
             }
             catch {
-                Show-MessageBox -Message "加载上次使用的应用选择失败：$_" -Title "错误" -Button 'OK' -Icon 'Error'
+                Show-MessageBox -Message "Failed to load last used app selection: $_" -Title "Error" -Button 'OK' -Icon 'Error'
             }
         })
     }
@@ -1552,17 +1511,6 @@
                 }
             }
         } 
-
-        # Also uncheck RestorePointCheckBox
-        $restorePointCheckBox = $window.FindName('RestorePointCheckBox')
-        if ($restorePointCheckBox) {
-            $restorePointCheckBox.IsChecked = $false
-        }
-    })
-    
-    # Finish (Close Win11Debloat) button handler
-    $finishBtn.Add_Click({
-        $window.Close()
     })
 
     # Show the window

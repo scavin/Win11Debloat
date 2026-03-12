@@ -1,7 +1,7 @@
 ﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Win11Debloat" 
-        MinWidth="1080" MinHeight="600"
+        MinWidth="1130" MinHeight="600"
         MaxWidth="1400"
         ResizeMode="CanResize" 
         SnapsToDevicePixels="True"
@@ -11,43 +11,6 @@
         Background="Transparent"
         Foreground="{DynamicResource FgColor}">
     <Window.Resources>
-        <!-- ScrollBar Style -->
-        <Style TargetType="{x:Type ScrollBar}">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Width" Value="8"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ScrollBar}">
-                        <Grid>
-                            <Track Name="PART_Track" IsDirectionReversed="true">
-                                <Track.Thumb>
-                                    <Thumb>
-                                        <Thumb.Style>
-                                            <Style TargetType="Thumb">
-                                                <Setter Property="Background" Value="{DynamicResource ScrollBarThumbColor}"/>
-                                                <Setter Property="Template">
-                                                    <Setter.Value>
-                                                        <ControlTemplate TargetType="Thumb">
-                                                            <Border Background="{TemplateBinding Background}" CornerRadius="4"/>
-                                                        </ControlTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                                <Style.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="Background" Value="{DynamicResource ScrollBarThumbHoverColor}"/>
-                                                    </Trigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Thumb.Style>
-                                    </Thumb>
-                                </Track.Thumb>
-                            </Track>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <!-- ComboBox Style -->
         <Style TargetType="ComboBox">
             <Setter Property="Background" Value="{DynamicResource ComboBgColor}"/>
@@ -449,84 +412,6 @@
         <GridLength x:Key="AppTableCol1Width">1*</GridLength>
         <GridLength x:Key="AppTableCol2Width">286</GridLength>
 
-        <!-- Button Style -->
-        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource ButtonBg}"/>
-            <Setter Property="Foreground" Value="white"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource ButtonBg}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource ButtonDisabled}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource ButtonDisabled}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource ButtonTextDisabled}"/>
-                </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource ButtonHover}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource ButtonHover}"/>
-                </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource ButtonPressed}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource ButtonPressed}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <!-- Secondary Button Style -->
-        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource SecondaryButtonBg}"/>
-            <Setter Property="Foreground" Value="{DynamicResource FgColor}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderColor}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="{DynamicResource SecondaryButtonDisabled}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource SecondaryButtonTextDisabled}"/>
-                </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SecondaryButtonHover}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderColor}"/>
-                </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SecondaryButtonPressed}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderColor}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
         <!-- Title Bar Button Style -->
         <Style x:Key="TitleBarButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -784,21 +669,21 @@
                             <!-- Title -->
                             <TextBlock Text="欢迎使用 Win11Debloat" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource FgColor}" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                             <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource FgColor}" FontSize="16" LineHeight="22" HorizontalAlignment="Center" Margin="0,0,0,30">
-                                <Run Text="只需几步，即可获得干净的 Windows 体验！"/>
+                                <Run Text="只需几次点击，即可获得清爽的 Windows 体验！"/>
                             </TextBlock>
                             
                             <!-- Action Buttons -->
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
-                                <Button x:Name="HomeDefaultModeBtn" Width="180" Height="50" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,12,0" AutomationProperties.Name="默认模式">
+                                <Button x:Name="HomeDefaultModeBtn" Width="180" Height="50" Style="{DynamicResource PrimaryButtonStyle}" Margin="0,0,12,0" AutomationProperties.Name="默认模式">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="&#xe735;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                        <TextBlock Text="默认模式" ToolTip="快速选择推荐设置" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="17" Margin="0,0,0,2"/>
+                                        <TextBlock Text="默认模式" ToolTip="推荐大多数用户使用。" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="17" Margin="0,0,0,2"/>
                                     </StackPanel>
                                 </Button>
-                                <Button x:Name="HomeStartBtn" Width="180" Height="50" Style="{StaticResource SecondaryButtonStyle}" AutomationProperties.Name="自定义设置">
+                                <Button x:Name="HomeStartBtn" Width="180" Height="50" Style="{DynamicResource SecondaryButtonStyle}" AutomationProperties.Name="自定义设置">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="&#xe90f;" FontFamily="Segoe Fluent Icons" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                        <TextBlock Text="自定义设置" ToolTip="手动选择您偏好的设置" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="17" Margin="0,0,0,2"/>
+                                        <TextBlock Text="自定义设置" ToolTip="精确选择要更改的内容。" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="17" Margin="0,0,0,2"/>
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
@@ -811,8 +696,8 @@
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Padding="20,10,20,0">
                             <StackPanel>
-                                <TextBlock Text="应用移除" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
-                                <TextBlock Text="选择要从系统中移除的应用" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
+                                <TextBlock Text="应用卸载" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
+                                <TextBlock Text="选择您想要从系统中卸载的应用" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
 
                                 <!-- Filter Options -->
                                 <Grid Margin="0,0,0,12">
@@ -825,9 +710,9 @@
                                     </Grid.ColumnDefinitions>
                                     
                                     <StackPanel Orientation="Horizontal" Grid.Column="0">
-                                        <Button x:Name="DefaultAppsBtn" Content="选择默认应用" ToolTip="选择默认的应用列表" Style="{StaticResource SecondaryButtonStyle}" Height="32" Padding="10,0" Margin="0,0,10,0" AutomationProperties.Name="选择默认应用"/>
-                                        <Button x:Name="LoadLastUsedAppsBtn" Content="选择上次使用的设置" ToolTip="选择上次运行 Win11Debloat 时所选的应用" Style="{StaticResource SecondaryButtonStyle}" Height="32" Padding="10,0" Margin="0,0,10,0" AutomationProperties.Name="选择上次使用的设置"/>
-                                        <Button x:Name="ClearAppSelectionBtn" Content="清除选择" ToolTip="清除所有已选应用" Style="{StaticResource SecondaryButtonStyle}" Height="32"  Padding="10,0" Margin="0,0,10,0" AutomationProperties.Name="清除选择"/>
+                                        <Button x:Name="DefaultAppsBtn" Content="选择默认应用" ToolTip="选择默认的应用选择" Style="{DynamicResource SecondaryButtonStyle}" Height="32" Padding="10,0" Margin="0,0,10,0" AutomationProperties.Name="选择默认应用"/>
+                                        <Button x:Name="LoadLastUsedAppsBtn" Content="选择上次的选择" ToolTip="选择上次运行 Win11Debloat 时选中的应用" Style="{DynamicResource SecondaryButtonStyle}" Height="32" Padding="10,0" Margin="0,0,10,0" AutomationProperties.Name="选择上次的选择"/>
+                                        <Button x:Name="ClearAppSelectionBtn" Content="清除选择" ToolTip="清除所有已选应用" Style="{DynamicResource SecondaryButtonStyle}" Height="32"  Padding="10,0" Margin="0,0,10,0" AutomationProperties.Name="清除选择"/>
                                     </StackPanel>
                                     
                                     <CheckBox x:Name="OnlyInstalledAppsBox" Grid.Column="2" Content="仅显示已安装的应用" IsChecked="False" Foreground="{DynamicResource FgColor}" VerticalAlignment="Center" AutomationProperties.Name="仅显示已安装的应用"/>
@@ -881,7 +766,7 @@
                                     </Grid>
                                 </Border>
                                 <!-- Apps content -->
-                                <Border Grid.Row="1" BorderBrush="{DynamicResource BorderColor}" CornerRadius="0,0,4,4" BorderThickness="1" Background="{DynamicResource CardBgColor}">
+                                <Border Grid.Row="1" BorderBrush="{DynamicResource BorderColor}" CornerRadius="0,0,4,4" BorderThickness="1" Background="{DynamicResource CardBgColor}" Padding="0,1,1,1">
                                     <Grid>
                                         <ScrollViewer VerticalScrollBarVisibility="Visible">
                                             <StackPanel x:Name="AppSelectionPanel" Margin="10,4,0,4"/>
@@ -907,7 +792,7 @@
                         <Border DockPanel.Dock="Top" Padding="20,10,20,0" Background="{DynamicResource BgColor}">
                             <StackPanel>
                                 <TextBlock Text="系统调整" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
-                                <TextBlock Text="选择要应用到系统的调整项，将鼠标悬停在设置上可查看更多信息" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
+                                <TextBlock Text="选择您想要应用到系统的调整项，将鼠标悬停在设置上可查看更多信息" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
                             
                                 <!-- Filter Options -->
                                 <Grid Margin="0,0,0,12">
@@ -918,9 +803,9 @@
                                     </Grid.ColumnDefinitions>
                                     
                                     <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                        <Button x:Name="LoadDefaultsBtn" Content="选择默认设置" ToolTip="选择适合大多数人的推荐设置" Style="{StaticResource SecondaryButtonStyle}" Padding="10,0" Height="32" Margin="0,0,10,0" AutomationProperties.Name="选择默认设置"/>
-                                        <Button x:Name="LoadLastUsedBtn" Content="选择上次使用的设置" ToolTip="选择上次运行 Win11Debloat 时使用的设置" Style="{StaticResource SecondaryButtonStyle}" Padding="10,0" Height="32" Margin="0,0,10,0" AutomationProperties.Name="选择上次使用的设置"/>
-                                        <Button x:Name="ClearAllTweaksBtn" Content="清除选择" ToolTip="清除所有已选调整项" Style="{StaticResource SecondaryButtonStyle}" Padding="10,0" Height="32" Margin="0,0,10,0" AutomationProperties.Name="清除选择"/>
+                                        <Button x:Name="LoadDefaultsBtn" Content="选择默认设置" ToolTip="选择推荐大多数用户使用的设置" Style="{DynamicResource SecondaryButtonStyle}" Padding="10,0" Height="32" Margin="0,0,10,0" AutomationProperties.Name="选择默认设置"/>
+                                        <Button x:Name="LoadLastUsedBtn" Content="选择上次的设置" ToolTip="选择上次运行 Win11Debloat 时使用的设置" Style="{DynamicResource SecondaryButtonStyle}" Padding="10,0" Height="32" Margin="0,0,10,0" AutomationProperties.Name="选择上次的设置"/>
+                                        <Button x:Name="ClearAllTweaksBtn" Content="清除选择" ToolTip="清除所有已选调整项" Style="{DynamicResource SecondaryButtonStyle}" Padding="10,0" Height="32" Margin="0,0,10,0" AutomationProperties.Name="清除选择"/>
                                     </StackPanel>
 
                                     <Border x:Name="TweakSearchBorder" Grid.Column="2">
@@ -988,166 +873,145 @@
                     </DockPanel>
                 </TabItem>
 
-                <!-- Overview Tab -->
-                <TabItem Header="Overview" x:Name="OverviewTab">
+                <!-- Deployment Settings Tab -->
+                <TabItem Header="Deployment Settings" x:Name="DeploymentSettingsTab">
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Padding="20,10,20,0">
                             <StackPanel>
-                                <TextBlock Text="概览" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
-                                <TextBlock Text="在继续之前，请检查并确认您的选择" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
+                                <TextBlock Text="部署设置" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
+                                <TextBlock Text="配置更改的应用方式及更多选项" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
+
                         <Grid>
-                            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,-20,0,0" Padding="20,10,20,0">
-                                <StackPanel Margin="0,10,0,5">
-                                    <!-- Selected Changes -->
-                                    <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Background="{DynamicResource CardBgColor}" Padding="16,12,16,4" Margin="0,0,0,16">
-                                        <StackPanel>
-                                            <TextBlock Text="已选更改" Style="{StaticResource CategoryHeaderTextBlock}"/>
-                                            <StackPanel x:Name="OverviewChangesPanel"/>
-                                            <StackPanel Margin="0,0,0,3"/>
-                                        </StackPanel>
-                                    </Border>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                                    <!-- Apply Changes To -->
-                                    <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Background="{DynamicResource CardBgColor}" Padding="16,12" Margin="0,0,0,16">
-                                        <StackPanel>
-                                            <TextBlock Text="应用更改至" Style="{StaticResource CategoryHeaderTextBlock}"/>
-                                            <ComboBox x:Name="UserSelectionCombo" Margin="0,0,0,6" AutomationProperties.Name="应用更改至">
-                                                <ComboBoxItem Content="当前用户" IsSelected="True"/>
-                                                <ComboBoxItem Content="其他用户"/>
-                                                <ComboBoxItem Content="Windows 默认用户 (Sysprep)"/>
-                                            </ComboBox>
-                                            <StackPanel x:Name="OtherUserPanel" Visibility="Collapsed" Margin="0,0,0,6">
-                                                <TextBlock x:Name="UsernameValidationMessage" Text="" FontStyle="Italic" Foreground="{DynamicResource CloseHover}" FontSize="11" Margin="3,0,0,4" TextWrapping="Wrap"/>
-                                                <Border IsEnabled="{Binding ElementName=OtherUsernameTextBox, Path=IsEnabled}">
-                                                    <Border.Style>
-                                                        <Style TargetType="Border" BasedOn="{StaticResource UserTextBoxBorderStyle}">
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding ElementName=OtherUsernameTextBox, Path=IsFocused}" Value="True">
-                                                                    <Setter Property="Background" Value="{DynamicResource InputFocusColor}"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Border.Style>
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" Text="&#xE77B;" FontFamily="Segoe Fluent Icons" FontSize="14" VerticalAlignment="Center" Margin="4,0,8,0" Foreground="{DynamicResource FgColor}"/>
-                                                        <TextBlock x:Name="UsernameTextBoxPlaceholder" Grid.Column="1" Text="输入用户名" Foreground="{DynamicResource FgColor}" Opacity="0.5" FontSize="13" Margin="3,0,0,1" VerticalAlignment="Center" IsHitTestVisible="False"/>
-                                                        <TextBox x:Name="OtherUsernameTextBox" Grid.Column="1" Style="{StaticResource UserTextBoxStyle}" Text="" AutomationProperties.Name="输入用户名"/>
-                                                    </Grid>
-                                                </Border>
-                                            </StackPanel>
-                                            <TextBlock x:Name="UserSelectionDescription" Text="更改将应用到当前登录的用户配置。" Foreground="{DynamicResource FgColor}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,3"/>
-                                        </StackPanel>
-                                    </Border>
+                            <Grid Grid.Row="0">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,-20,0,0" Padding="20,10,20,0">
+                                    <Grid Margin="0,10,0,5">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
 
-                                    <!-- App Removal Scope -->
-                                    <Border x:Name="AppRemovalScopeSection" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Background="{DynamicResource CardBgColor}" Padding="16,12" Margin="0,0,0,16">
-                                        <StackPanel>
-                                            <TextBlock Text="移除应用范围" Style="{StaticResource CategoryHeaderTextBlock}"/>
-                                            <ComboBox x:Name="AppRemovalScopeCombo" Margin="0,0,0,6" AutomationProperties.Name="应用移除范围">
-                                                <ComboBoxItem x:Name="AppRemovalScopeAllUsers" Content="所有用户" IsSelected="True"/>
-                                                <ComboBoxItem x:Name="AppRemovalScopeCurrentUser" Content="仅当前用户"/>
-                                                <ComboBoxItem x:Name="AppRemovalScopeTargetUser" Content="仅目标用户" Visibility="Collapsed"/>
-                                            </ComboBox>
-                                            <TextBlock x:Name="AppRemovalScopeDescription" Text="将为所有用户移除应用，并从 Windows 映像中删除以防止新用户重新安装。" Foreground="{DynamicResource FgColor}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,3"/>
-                                        </StackPanel>
-                                    </Border>
-
-                                    <!-- Options -->
-                                    <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Background="{DynamicResource CardBgColor}" Padding="16,12,16,3" Margin="0,0,0,16">
-                                        <StackPanel>
-                                            <TextBlock Text="选项" Style="{StaticResource CategoryHeaderTextBlock}"/>
-
-                                            <!-- Restore Point Option -->
+                                        <!-- Apply Changes To -->
+                                        <Border Grid.Row="0" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Background="{DynamicResource CardBgColor}" Padding="16,12" Margin="0,0,0,16">
                                             <StackPanel>
-                                                <CheckBox x:Name="RestorePointCheckBox" Style="{StaticResource FeatureCheckboxStyle}" Content="创建系统还原点（推荐）" AutomationProperties.Name="创建系统还原点（推荐）"/>
+                                                <TextBlock Text="应用更改到" Style="{StaticResource CategoryHeaderTextBlock}"/>
+                                                <ComboBox x:Name="UserSelectionCombo" Margin="0,0,0,6" AutomationProperties.Name="应用更改到">
+                                                    <ComboBoxItem Content="当前用户" IsSelected="True"/>
+                                                    <ComboBoxItem Content="其他用户"/>
+                                                    <ComboBoxItem Content="Windows 默认用户 (Sysprep)"/>
+                                                </ComboBox>
+                                                <StackPanel x:Name="OtherUserPanel" Visibility="Collapsed" Margin="0,0,0,6">
+                                                    <TextBlock x:Name="UsernameValidationMessage" Text="" FontStyle="Italic" Foreground="{DynamicResource CloseHover}" FontSize="11" Margin="3,0,0,4" TextWrapping="Wrap"/>
+                                                    <Border IsEnabled="{Binding ElementName=OtherUsernameTextBox, Path=IsEnabled}">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border" BasedOn="{StaticResource UserTextBoxBorderStyle}">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding ElementName=OtherUsernameTextBox, Path=IsFocused}" Value="True">
+                                                                        <Setter Property="Background" Value="{DynamicResource InputFocusColor}"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="&#xE77B;" FontFamily="Segoe Fluent Icons" FontSize="14" VerticalAlignment="Center" Margin="4,0,8,0" Foreground="{DynamicResource FgColor}"/>
+                                                            <TextBlock x:Name="UsernameTextBoxPlaceholder" Grid.Column="1" Text="输入用户名" Foreground="{DynamicResource FgColor}" Opacity="0.5" FontSize="13" Margin="3,0,0,1" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                                            <TextBox x:Name="OtherUsernameTextBox" Grid.Column="1" Style="{StaticResource UserTextBoxStyle}" Text="" AutomationProperties.Name="输入用户名"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock x:Name="UserSelectionDescription" Text="更改将应用到当前登录的用户配置文件。" Foreground="{DynamicResource FgColor}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,3"/>
                                             </StackPanel>
-                                            
-                                            <!-- Restart Explorer Option -->
+                                        </Border>
+
+                                        <!-- App Removal Scope -->
+                                        <Border Grid.Row="1" x:Name="AppRemovalScopeSection" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Background="{DynamicResource CardBgColor}" Padding="16,12" Margin="0,0,0,16">
                                             <StackPanel>
-                                                <CheckBox x:Name="RestartExplorerCheckBox" Style="{StaticResource FeatureCheckboxStyle}" Content="重启 Windows 资源管理器进程以立即应用所有更改" AutomationProperties.Name="重启 Windows 资源管理器进程以立即应用所有更改"/>
+                                                <TextBlock Text="卸载应用范围" Style="{StaticResource CategoryHeaderTextBlock}"/>
+                                                <ComboBox x:Name="AppRemovalScopeCombo" Margin="0,0,0,6" AutomationProperties.Name="卸载应用范围">
+                                                    <ComboBoxItem x:Name="AppRemovalScopeAllUsers" Content="所有用户" IsSelected="True"/>
+                                                    <ComboBoxItem x:Name="AppRemovalScopeCurrentUser" Content="仅当前用户"/>
+                                                    <ComboBoxItem x:Name="AppRemovalScopeTargetUser" Content="仅目标用户" Visibility="Collapsed"/>
+                                                </ComboBox>
+                                                <TextBlock x:Name="AppRemovalScopeDescription" Text="将为所有用户卸载应用并从 Windows 映像中移除，防止新用户重新安装。" Foreground="{DynamicResource FgColor}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,3"/>
                                             </StackPanel>
-                                        </StackPanel>
-                                    </Border>
-                                    
-                                    <!-- Apply Changes Button -->
-                                    <Button x:Name="OverviewApplyBtn" Style="{StaticResource PrimaryButtonStyle}" Width="190" Height="44" Margin="0,0,0,15" HorizontalAlignment="Center" AutomationProperties.Name="应用更改">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="&#xE73E;" FontFamily="Segoe Fluent Icons" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                            <TextBlock Text="应用更改" VerticalAlignment="Center" FontSize="18" FontWeight="SemiBold"  Margin="8,0,0,4"/>
-                                        </StackPanel>
-                                    </Button>
-                                </StackPanel>
-                            </ScrollViewer>
-                            <!-- Top fade gradient -->
-                            <Border IsHitTestVisible="False" VerticalAlignment="Top" Height="15" Margin="0,-15,20,0" Background="{DynamicResource BgColor}">
-                                <Border.OpacityMask>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                        <GradientStop Color="Black" Offset="0"/>
-                                        <GradientStop Color="Black" Offset="0.5"/>
-                                        <GradientStop Color="Transparent" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Border.OpacityMask>
-                            </Border>
-                            <!-- Bottom fade gradient -->
-                            <Border IsHitTestVisible="False" VerticalAlignment="Bottom" Height="20" Margin="0,0,20,0" Background="{DynamicResource BgColor}">
-                                <Border.OpacityMask>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                        <GradientStop Color="Transparent" Offset="0"/>
-                                        <GradientStop Color="Black" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Border.OpacityMask>
-                            </Border>
+                                        </Border>
+
+                                        <!-- Options -->
+                                        <Border Grid.Row="2" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Background="{DynamicResource CardBgColor}" Padding="16,12,16,3" Margin="0,0,0,16">
+                                            <StackPanel>
+                                                <TextBlock Text="选项" Style="{StaticResource CategoryHeaderTextBlock}"/>
+
+                                                <!-- Restore Point Option -->
+                                                <StackPanel>
+                                                    <CheckBox x:Name="RestorePointCheckBox" Style="{StaticResource FeatureCheckboxStyle}" IsChecked="True" Content="在应用更改前创建系统还原点（推荐）" AutomationProperties.Name="在应用更改前创建系统还原点（推荐）"/>
+                                                </StackPanel>
+                                                
+                                                <!-- Restart Explorer Option -->
+                                                <StackPanel>
+                                                    <CheckBox x:Name="RestartExplorerCheckBox" Style="{StaticResource FeatureCheckboxStyle}" Content="应用更改后重启 Windows 资源管理器进程" AutomationProperties.Name="应用更改后重启 Windows 资源管理器进程"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </ScrollViewer>
+                                <!-- Top fade gradient -->
+                                <Border IsHitTestVisible="False" VerticalAlignment="Top" Height="10" Margin="0,-12,20,0" Background="{DynamicResource BgColor}">
+                                    <Border.OpacityMask>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="Black" Offset="0"/>
+                                            <GradientStop Color="Black" Offset="0.5"/>
+                                            <GradientStop Color="Transparent" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.OpacityMask>
+                                </Border>
+                                <!-- Bottom fade gradient -->
+                                <Border IsHitTestVisible="False" VerticalAlignment="Bottom" Height="20" Margin="0,0,20,0" Background="{DynamicResource BgColor}">
+                                    <Border.OpacityMask>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="Transparent" Offset="0"/>
+                                            <GradientStop Color="Black" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.OpacityMask>
+                                </Border>
+                            </Grid>
+
+                            <!-- Review & Apply Section -->
+                            <StackPanel Grid.Row="1" HorizontalAlignment="Stretch" Background="{DynamicResource BgColor}">
+                                <Button x:Name="ReviewChangesBtn" Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Center" Margin="0,4,0,8" AutomationProperties.Name="查看已选更改">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <TextBlock x:Name="LinkText" Text="查看已选更改" FontSize="14" Foreground="{DynamicResource ButtonBg}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="LinkText" Property="Foreground" Value="{DynamicResource ButtonHover}"/>
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="LinkText" Property="Foreground" Value="{DynamicResource ButtonPressed}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <Button x:Name="DeploymentApplyBtn" Style="{DynamicResource PrimaryButtonStyle}" Width="190" Height="44" HorizontalAlignment="Center" AutomationProperties.Name="应用更改">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE73E;" FontFamily="Segoe Fluent Icons" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        <TextBlock Text="应用更改" VerticalAlignment="Center" FontSize="18" FontWeight="SemiBold" Margin="8,0,0,4"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
                         </Grid>
                     </DockPanel>
-                </TabItem>
-
-                <!-- Apply Tab -->
-                <TabItem Header="Apply" x:Name="ApplyTab">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- Header -->
-                        <Border DockPanel.Dock="Top" Padding="20,10,20,0">
-                            <StackPanel Grid.Row="0">
-                                <TextBlock Text="正在应用更改" FontWeight="Bold" FontSize="20" Margin="0,0,0,5" Foreground="{DynamicResource FgColor}"/>
-                                <TextBlock Text="请稍候，Win11Debloat 正在应用您选择的更改" FontSize="13" Margin="0,0,0,20" Foreground="{DynamicResource FgColor}" TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Console Output -->
-                        <Border Grid.Row="1" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Background="#0C0C0C" Margin="20,0">
-                            <ScrollViewer x:Name="ConsoleScrollViewer" VerticalScrollBarVisibility="Auto" Padding="10">
-                                <TextBlock x:Name="ConsoleOutput" FontFamily="Consolas" FontSize="12" Foreground="#CCCCCC" TextWrapping="Wrap" Text="" AutomationProperties.LiveSetting="Polite"/>
-                            </ScrollViewer>
-                        </Border>
-
-                        <!-- Progress and Finish Button -->
-                        <Border Grid.Row="2" Background="{DynamicResource BgColor}" Padding="10,0" CornerRadius="0,0,8,8" Margin="20,16,20,8">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-
-                                <!-- Status and Finish Button -->
-                                <StackPanel Grid.Row="1" HorizontalAlignment="Center">
-                                    <Button x:Name="FinishBtn" Width="200" Height="48" Style="{StaticResource PrimaryButtonStyle}" Margin="0" IsEnabled="False" AutomationProperties.Name="完成">
-                                        <TextBlock x:Name="FinishBtnText" Text="正在应用更改..." VerticalAlignment="Center" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,1"/>
-                                    </Button>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-                    </Grid>
                 </TabItem>
             </TabControl>
 
@@ -1159,15 +1023,15 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="PreviousBtn" Grid.Column="0" Width="120" Height="36" Style="{StaticResource SecondaryButtonStyle}" Visibility="Collapsed" Margin="10,0,0,0" AutomationProperties.Name="上一步">
+                    <Button x:Name="PreviousBtn" Grid.Column="0" Width="120" Height="36" Style="{DynamicResource SecondaryButtonStyle}" Visibility="Collapsed" Margin="10,0,0,0" AutomationProperties.Name="返回">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="&#xE72B;" FontFamily="Segoe Fluent Icons" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="上一步" VerticalAlignment="Center" FontSize="14" Margin="0,0,0,1"/>
+                            <TextBlock Text="返回" VerticalAlignment="Center" FontSize="14" Margin="0,0,0,1"/>
                         </StackPanel>
                     </Button>
                     
                     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button x:Name="NextBtn" Width="120" Height="36" Margin="0,0,10,0" Style="{StaticResource PrimaryButtonStyle}" AutomationProperties.Name="下一步">
+                        <Button x:Name="NextBtn" Width="120" Height="36" Margin="0,0,10,0" Style="{DynamicResource PrimaryButtonStyle}" AutomationProperties.Name="下一步">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="下一步" VerticalAlignment="Center" FontSize="14" Margin="0,0,0,1"/>
                                 <TextBlock Text="&#xE72A;" FontFamily="Segoe Fluent Icons" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center"/>
@@ -1178,9 +1042,9 @@
                 
                 <!-- Progress Indicators - Centered independently -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Ellipse x:Name="ProgressIndicator1" Width="10" Height="10" Margin="4,0" Fill="#808080" ToolTip="应用移除"/>
+                    <Ellipse x:Name="ProgressIndicator1" Width="10" Height="10" Margin="4,0" Fill="#808080" ToolTip="应用卸载"/>
                     <Ellipse x:Name="ProgressIndicator2" Width="10" Height="10" Margin="4,0" Fill="#808080" ToolTip="系统调整"/>
-                    <Ellipse x:Name="ProgressIndicator3" Width="10" Height="10" Margin="4,0" Fill="#808080" ToolTip="概览"/>
+                    <Ellipse x:Name="ProgressIndicator3" Width="10" Height="10" Margin="4,0" Fill="#808080" ToolTip="部署设置"/>
                 </StackPanel>
             </Grid>
             

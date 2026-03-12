@@ -16,25 +16,25 @@
     {
       "FriendlyName": "Cortana",
       "AppId": "Microsoft.549981C3F5F10",
-      "Description": "微软 Cortana 语音助手（已停用）",
+      "Description": "Microsoft Cortana 语音助手（已停用）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Bing Finance",
       "AppId": "Microsoft.BingFinance",
-      "Description": "必应财经新闻与跟踪（已停用）",
+      "Description": "必应财经新闻和跟踪（已停用）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Bing Food And Drink",
       "AppId": "Microsoft.BingFoodAndDrink",
-      "Description": "必应美食与饮品资讯（已停用）",
+      "Description": "必应食谱和美食新闻（已停用）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Bing Health And Fitness",
       "AppId": "Microsoft.BingHealthAndFitness",
-      "Description": "必应健康与健身跟踪/资讯（已停用）",
+      "Description": "必应健康和健身跟踪/新闻（已停用）",
       "SelectedByDefault": true
     },
     {
@@ -46,7 +46,7 @@
     {
       "FriendlyName": "Bing Sports",
       "AppId": "Microsoft.BingSports",
-      "Description": "必应体育新闻与比分（已停用）",
+      "Description": "必应体育新闻和比分（已停用）",
       "SelectedByDefault": true
     },
     {
@@ -58,7 +58,7 @@
     {
       "FriendlyName": "Bing Travel",
       "AppId": "Microsoft.BingTravel",
-      "Description": "必应旅行规划与资讯（已停用）",
+      "Description": "必应旅行规划和新闻（已停用）",
       "SelectedByDefault": true
     },
     {
@@ -70,19 +70,31 @@
     {
       "FriendlyName": "Copilot",
       "AppId": "Microsoft.Copilot",
-      "Description": "集成于 Windows 的 AI 助手",
+      "Description": "集成到 Windows 的 AI 助手",
+      "SelectedByDefault": true
+    },
+    {
+      "FriendlyName": "Copilot+ AI Hub",
+      "AppId": "Microsoft.Windows.AIHub",
+      "Description": "Copilot+ AI Hub 应用（Windows 11 24H2+）",
+      "SelectedByDefault": true
+    },
+    {
+      "FriendlyName": "Microsoft PC Manager",
+      "AppId": "Microsoft.PCManager",
+      "Description": "Microsoft 电脑管家系统清理和优化工具（通常预装）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Get Started",
       "AppId": "Microsoft.Getstarted",
-      "Description": "Windows 使用提示与入门指南（在 Windows 11 中无法卸载）",
+      "Description": "Windows 提示和入门指南（在 Windows 11 中无法卸载）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Messaging",
       "AppId": "Microsoft.Messaging",
-      "Description": "消息应用，通常与 Skype 集成（已基本弃用）",
+      "Description": "消息应用，通常集成 Skype（大部分已弃用）",
       "SelectedByDefault": true
     },
     {
@@ -100,7 +112,7 @@
     {
       "FriendlyName": "Office Hub",
       "AppId": "Microsoft.MicrosoftOfficeHub",
-      "Description": "访问 Microsoft Office 应用和文档的中心（Microsoft 365 应用的前身）",
+      "Description": "Microsoft Office 应用和文档访问中心（Microsoft 365 应用前身）",
       "SelectedByDefault": true
     },
     {
@@ -118,7 +130,7 @@
     {
       "FriendlyName": "Sticky Notes",
       "AppId": "Microsoft.MicrosoftStickyNotes",
-      "Description": "数字便签应用（已弃用，被 OneNote 取代）",
+      "Description": "数字便笺应用（已弃用，被 OneNote 取代）",
       "SelectedByDefault": true
     },
     {
@@ -136,25 +148,25 @@
     {
       "FriendlyName": "Microsoft News",
       "AppId": "Microsoft.News",
-      "Description": "新闻聚合器（取代了必应新闻，现为 Microsoft Start 的一部分）",
+      "Description": "新闻聚合器（取代必应新闻，现为 Microsoft Start 的一部分）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "OneNote",
       "AppId": "Microsoft.Office.OneNote",
-      "Description": "数字笔记应用（通用 Windows 平台版本）",
+      "Description": "数字笔记应用（UWP 版本）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Sway",
       "AppId": "Microsoft.Office.Sway",
-      "Description": "演示文稿与故事讲述应用",
+      "Description": "演示和故事讲述应用",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "One Connect",
       "AppId": "Microsoft.OneConnect",
-      "Description": "移动运营商管理应用（已被「移动套餐」取代）",
+      "Description": "移动运营商管理应用（已被移动套餐取代）",
       "SelectedByDefault": true
     },
     {
@@ -172,37 +184,37 @@
     {
       "FriendlyName": "Skype (UWP)",
       "AppId": "Microsoft.SkypeApp",
-      "Description": "Skype 通讯应用，通用 Windows 平台版本（已停用）",
+      "Description": "Skype 通讯应用 UWP 版本（已停用）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Microsoft To Do",
       "AppId": "Microsoft.Todos",
-      "Description": "待办事项与任务管理应用",
+      "Description": "待办事项列表和任务管理应用",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Dev Home",
       "AppId": "Microsoft.Windows.DevHome",
-      "Description": "开发者仪表板与工具配置实用程序（已停用）",
+      "Description": "开发者仪表板和工具配置实用程序（已停用）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Alarms & Clock",
       "AppId": "Microsoft.WindowsAlarms",
-      "Description": "闹钟与时钟应用",
+      "Description": "闹钟和时钟应用",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Feedback Hub",
       "AppId": "Microsoft.WindowsFeedbackHub",
-      "Description": "向微软提交 Windows 反馈的应用",
+      "Description": "向 Microsoft 提供 Windows 反馈的应用",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Windows Maps",
       "AppId": "Microsoft.WindowsMaps",
-      "Description": "地图与导航应用",
+      "Description": "地图和导航应用",
       "SelectedByDefault": true
     },
     {
@@ -214,19 +226,19 @@
     {
       "FriendlyName": "Xbox Console Companion",
       "AppId": "Microsoft.XboxApp",
-      "Description": "旧版 Xbox 主机小助手应用（已停用）",
+      "Description": "旧版 Xbox 主机伴侣应用（已停用）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Movies & TV",
       "AppId": "Microsoft.ZuneVideo",
-      "Description": "影视应用，用于租借/购买/播放视频内容（已更名为「电影和电视」）",
+      "Description": "电影和电视应用，用于租借/购买/播放视频内容",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Family Safety",
       "AppId": "MicrosoftCorporationII.MicrosoftFamily",
-      "Description": "家庭安全应用，用于管理家庭账户和设置",
+      "Description": "用于管理家庭账户和设置的家庭安全应用",
       "SelectedByDefault": true
     },
     {
@@ -238,13 +250,13 @@
     {
       "FriendlyName": "Microsoft Teams (Old)",
       "AppId": "MicrosoftTeams",
-      "Description": "旧版 Microsoft Teams 个人版（Microsoft Store 版本）",
+      "Description": "旧版 Microsoft Teams 个人版（MS Store 版本）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Microsoft Teams (New)",
       "AppId": "MSTeams",
-      "Description": "新版 Microsoft Teams 应用（工作/学校或个人版）",
+      "Description": "新版 Microsoft Teams 应用（工作/学校或个人）",
       "SelectedByDefault": true
     },
     {
@@ -256,7 +268,7 @@
     {
       "FriendlyName": "Actipro Software",
       "AppId": "ActiproSoftwareLLC",
-      "Description": "UI 控件或软件组件，通常由 OEM 厂商预装",
+      "Description": "可能是 UI 控件或软件组件，通常由 OEM 捆绑",
       "SelectedByDefault": true
     },
     {
@@ -274,7 +286,7 @@
     {
       "FriendlyName": "Prime Video",
       "AppId": "AmazonVideo.PrimeVideo",
-      "Description": "亚马逊 Prime Video 流媒体服务应用",
+      "Description": "亚马逊 Prime Video 流媒体应用",
       "SelectedByDefault": true
     },
     {
@@ -286,7 +298,7 @@
     {
       "FriendlyName": "Autodesk SketchBook",
       "AppId": "AutodeskSketchBook",
-      "Description": "数字绘画与素描应用",
+      "Description": "数字绘画和素描应用",
       "SelectedByDefault": true
     },
     {
@@ -304,13 +316,13 @@
     {
       "FriendlyName": "CyberLink Media Suite",
       "AppId": "CyberLinkMediaSuiteEssentials",
-      "Description": "多媒体软件套件（通常由 OEM 厂商预装）",
+      "Description": "多媒体软件套件（通常由 OEM 预装）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Disney Magic Kingdoms",
       "AppId": "DisneyMagicKingdoms",
-      "Description": "迪士尼主题乐园建造游戏",
+      "Description": "迪士尼主题公园建造游戏",
       "SelectedByDefault": true
     },
     {
@@ -322,7 +334,7 @@
     {
       "FriendlyName": "Drawboard PDF",
       "AppId": "DrawboardPDF",
-      "Description": "PDF 查看与批注应用，侧重手写笔输入",
+      "Description": "PDF 查看和注释应用，通常针对手写笔输入",
       "SelectedByDefault": true
     },
     {
@@ -334,7 +346,7 @@
     {
       "FriendlyName": "Eclipse Manager",
       "AppId": "EclipseManager",
-      "Description": "通常与特定 OEM 软件或实用工具相关（如屏幕设置管理）",
+      "Description": "通常与特定 OEM 软件或实用程序相关（如屏幕设置管理）",
       "SelectedByDefault": true
     },
     {
@@ -352,25 +364,25 @@
     {
       "FriendlyName": "Fitbit",
       "AppId": "fitbit",
-      "Description": "Fitbit 运动追踪器配套应用",
+      "Description": "Fitbit 活动追踪器伴侣应用",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Flipboard",
       "AppId": "Flipboard",
-      "Description": "杂志风格的新闻与社交网络聚合器",
+      "Description": "杂志风格的新闻和社交网络聚合器",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Hidden City",
       "AppId": "HiddenCity",
-      "Description": "隐藏物品解谜冒险游戏",
+      "Description": "隐藏对象解谜冒险游戏",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Hulu",
       "AppId": "HULULLC.HULUPLUS",
-      "Description": "Hulu 流媒体服务应用",
+      "Description": "Hulu 流媒体应用",
       "SelectedByDefault": true
     },
     {
@@ -406,7 +418,7 @@
     {
       "FriendlyName": "LinkedIn",
       "AppId": "LinkedInforWindows",
-      "Description": "LinkedIn 职业社交网络应用",
+      "Description": "LinkedIn 职业社交应用",
       "SelectedByDefault": true
     },
     {
@@ -418,7 +430,7 @@
     {
       "FriendlyName": "Netflix",
       "AppId": "Netflix",
-      "Description": "Netflix 流媒体服务应用",
+      "Description": "Netflix 流媒体应用",
       "SelectedByDefault": true
     },
     {
@@ -442,19 +454,19 @@
     {
       "FriendlyName": "Phototastic Collage",
       "AppId": "PhototasticCollage",
-      "Description": "照片拼贴制作应用",
+      "Description": "照片拼贴创建应用",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "PicsArt",
       "AppId": "PicsArt-PhotoStudio",
-      "Description": "照片编辑与创意应用",
+      "Description": "照片编辑和创意应用",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Plex",
       "AppId": "Plex",
-      "Description": "媒体服务器与播放器应用",
+      "Description": "媒体服务器和播放器应用",
       "SelectedByDefault": true
     },
     {
@@ -484,7 +496,7 @@
     {
       "FriendlyName": "Sling TV",
       "AppId": "SlingTV",
-      "Description": "直播电视流媒体服务应用",
+      "Description": "直播电视流媒体应用",
       "SelectedByDefault": true
     },
     {
@@ -514,61 +526,61 @@
     {
       "FriendlyName": "Viber",
       "AppId": "Viber",
-      "Description": "即时通讯与通话应用",
+      "Description": "消息和通话应用",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "WinZip",
       "AppId": "WinZipUniversal",
-      "Description": "文件压缩与解压工具（通用 Windows 平台版本）",
+      "Description": "文件压缩和解压工具（UWP 版本）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Wunderlist",
       "AppId": "Wunderlist",
-      "Description": "待办事项应用（已被微软收购，功能迁移至 Microsoft To Do）",
+      "Description": "待办事项应用（已被微软收购，功能转移到 Microsoft To Do）",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "XING",
       "AppId": "XING",
-      "Description": "在德语国家流行的职业社交网络平台",
+      "Description": "在德语国家流行的职业社交平台",
       "SelectedByDefault": true
     },
     {
       "FriendlyName": "Bing Search",
       "AppId": "Microsoft.BingSearch",
-      "Description": "微软必应网页搜索（集成于 Windows 搜索）",
+      "Description": "Microsoft 必应网页搜索（集成到 Windows 搜索）",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "Microsoft Edge",
       "AppId": "Microsoft.Edge",
-      "Description": "Edge 浏览器（仅在欧洲经济区可卸载）",
+      "Description": "Windows 默认浏览器。警告：卸载此应用也会从 Windows 沙盒中移除唯一的浏览器，并可能影响其他应用。",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "Xbox Gaming App",
       "AppId": "Microsoft.GamingApp",
-      "Description": "新版 Xbox 游戏应用，安装部分 PC 游戏时需要",
+      "Description": "现代 Xbox 游戏应用，安装某些 PC 游戏时需要",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "Get Help",
       "AppId": "Microsoft.GetHelp",
-      "Description": "部分 Windows 11 疑难解答和支持功能需要此应用",
+      "Description": "某些 Windows 11 疑难解答程序和支持交互所需",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "Microsoft 365 Companions",
       "AppId": "Microsoft.M365Companions",
-      "Description": "Microsoft 365（商业版）日历、文件和联系人迷你应用，如果 Microsoft 365 管理员启用，这些应用可能会被重新安装",
+      "Description": "Microsoft 365（商业版）日历、文件和人脉迷你应用，如果 Microsoft 365 管理员启用，这些应用可能会被重新安装",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "Paint 3D",
       "AppId": "Microsoft.MSPaint",
-      "Description": "画图 3D（具备 3D 功能的新版画图应用）",
+      "Description": "画图 3D（具有 3D 功能的现代绘画应用）",
       "SelectedByDefault": false
     },
     {
@@ -580,19 +592,19 @@
     {
       "FriendlyName": "Outlook for Windows",
       "AppId": "Microsoft.OutlookForWindows",
-      "Description": "新版 Windows 版 Outlook 邮件客户端",
+      "Description": "新版 Outlook for Windows 邮件客户端",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "Paint",
       "AppId": "Microsoft.Paint",
-      "Description": "经典画图（传统 2D 画图应用）",
+      "Description": "经典画图（传统 2D 绘画应用）",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "People",
       "AppId": "Microsoft.People",
-      "Description": "邮件和日历应用所需的组件（联系人管理）",
+      "Description": "邮件和日历所需并包含的（联系人管理）",
       "SelectedByDefault": false
     },
     {
@@ -604,13 +616,13 @@
     {
       "FriendlyName": "Snipping Tool",
       "AppId": "Microsoft.ScreenSketch",
-      "Description": "截图工具（屏幕截图与批注工具）",
+      "Description": "截图工具（截屏和注释工具）",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "Widgets Experience",
       "AppId": "Microsoft.StartExperiencesApp",
-      "Description": "此应用为 Windows 小组件的「我的动态」提供支持",
+      "Description": "此应用为 Windows 小组件「我的信息流」提供支持",
       "SelectedByDefault": false
     },
     {
@@ -622,7 +634,7 @@
     {
       "FriendlyName": "Photos",
       "AppId": "Microsoft.Windows.Photos",
-      "Description": "默认照片查看与基础编辑应用",
+      "Description": "默认照片查看和基础编辑应用",
       "SelectedByDefault": false
     },
     {
@@ -634,7 +646,7 @@
     {
       "FriendlyName": "Camera",
       "AppId": "Microsoft.WindowsCamera",
-      "Description": "相机应用，用于使用内置或外接摄像头",
+      "Description": "用于内置或外接摄像头的相机应用",
       "SelectedByDefault": false
     },
     {
@@ -646,13 +658,13 @@
     {
       "FriendlyName": "Notepad",
       "AppId": "Microsoft.WindowsNotepad",
-      "Description": "记事本文本编辑器应用",
+      "Description": "记事本文本编辑器",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "Microsoft Store",
       "AppId": "Microsoft.WindowsStore",
-      "Description": "微软应用商店，警告：删除后很难重新安装！",
+      "Description": "Microsoft Store，警告：卸载后无法轻松重新安装！",
       "SelectedByDefault": false
     },
     {
@@ -664,31 +676,31 @@
     {
       "FriendlyName": "Xbox TCUI Framework",
       "AppId": "Microsoft.Xbox.TCUI",
-      "Description": "UI 框架，Microsoft Store、照片和部分游戏似乎需要此组件",
+      "Description": "UI 框架，Microsoft Store、照片和某些游戏似乎需要",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "Xbox Game Overlay",
       "AppId": "Microsoft.XboxGameOverlay",
-      "Description": "游戏叠加层，部分游戏需要/可使用（Xbox Game Bar 的一部分）",
+      "Description": "游戏覆盖层，某些游戏需要（Xbox Game Bar 的一部分）",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "Xbox Gaming Overlay",
       "AppId": "Microsoft.XboxGamingOverlay",
-      "Description": "游戏叠加层，部分游戏需要/可使用（Xbox Game Bar 的一部分）",
+      "Description": "游戏覆盖层，某些游戏需要（Xbox Game Bar 的一部分）",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "Xbox Identity Provider",
       "AppId": "Microsoft.XboxIdentityProvider",
-      "Description": "Xbox 登录框架，部分游戏和 Xbox 服务需要此组件",
+      "Description": "Xbox 登录框架，某些游戏和 Xbox 服务所需",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "Xbox Speech To Text",
       "AppId": "Microsoft.XboxSpeechToTextOverlay",
-      "Description": "辅助功能，部分游戏需要此组件，警告：删除后很难重新安装！",
+      "Description": "某些游戏所需的辅助功能，警告：此应用无法轻松重新安装！",
       "SelectedByDefault": false
     },
     {
@@ -700,133 +712,163 @@
     {
       "FriendlyName": "Media Player",
       "AppId": "Microsoft.ZuneMusic",
-      "Description": "新版媒体播放器（取代 Groove 音乐，播放本地音频/视频）",
+      "Description": "现代媒体播放器（取代 Groove Music，播放本地音视频）",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "Cross Device Experience",
       "AppId": "MicrosoftWindows.CrossDevice",
-      "Description": "文件资源管理器、相机等中的手机集成功能（手机连接功能的一部分）",
+      "Description": "文件资源管理器、相机等中的手机集成（Phone Link 功能的一部分）",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP AI Experience Center",
       "AppId": "AD2F1837.HPAIExperienceCenter",
-      "Description": "HP OEM 软件，AI 增强功能与支持",
+      "Description": "HP AI 增强功能和支持软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP Connected Music",
       "AppId": "AD2F1837.HPConnectedMusic",
-      "Description": "HP OEM 音乐软件（可能已停用）",
+      "Description": "HP 音乐软件（可能已停用）",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP Connected Photo",
       "AppId": "AD2F1837.HPConnectedPhotopoweredbySnapfish",
-      "Description": "HP OEM 照片软件，集成 Snapfish（可能已停用）",
+      "Description": "HP 照片软件，集成 Snapfish（可能已停用）",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP Desktop Support Utilities",
       "AppId": "AD2F1837.HPDesktopSupportUtilities",
-      "Description": "HP OEM 桌面支持工具",
+      "Description": "HP 桌面支持工具软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP Easy Clean",
       "AppId": "AD2F1837.HPEasyClean",
-      "Description": "HP OEM 系统清理或优化软件",
+      "Description": "HP 系统清理或优化软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP File Viewer",
       "AppId": "AD2F1837.HPFileViewer",
-      "Description": "HP OEM 特定文件类型查看软件",
+      "Description": "HP 特定文件类型查看软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP JumpStarts",
       "AppId": "AD2F1837.HPJumpStarts",
-      "Description": "HP OEM 教程、应用发现或快速访问 HP 功能的软件",
+      "Description": "HP 教程、应用发现或快速访问 HP 功能的软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP PC Hardware Diagnostics",
       "AppId": "AD2F1837.HPPCHardwareDiagnosticsWindows",
-      "Description": "HP OEM 电脑硬件诊断软件",
+      "Description": "HP 电脑硬件诊断软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP Power Manager",
       "AppId": "AD2F1837.HPPowerManager",
-      "Description": "HP OEM 电源设置与电池管理软件",
+      "Description": "HP 电源设置和电池管理软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP Printer Control",
       "AppId": "AD2F1837.HPPrinterControl",
-      "Description": "HP OEM 打印机管理软件",
+      "Description": "HP 打印机管理软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP Privacy Settings",
       "AppId": "AD2F1837.HPPrivacySettings",
-      "Description": "HP OEM 隐私设置管理软件",
+      "Description": "HP 隐私设置管理软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP QuickDrop",
       "AppId": "AD2F1837.HPQuickDrop",
-      "Description": "HP OEM 跨设备快速文件传输软件",
+      "Description": "HP 设备间快速文件传输软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP QuickTouch",
       "AppId": "AD2F1837.HPQuickTouch",
-      "Description": "HP OEM 软件，可能用于触控快捷方式或控制",
+      "Description": "HP 触控快捷方式或控件软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP Registration",
       "AppId": "AD2F1837.HPRegistration",
-      "Description": "HP OEM 产品注册软件",
+      "Description": "HP 产品注册软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP Support Assistant",
       "AppId": "AD2F1837.HPSupportAssistant",
-      "Description": "HP OEM 支持、更新与故障排除软件",
+      "Description": "HP 支持、更新和故障排除软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP Sure Shield AI",
       "AppId": "AD2F1837.HPSureShieldAI",
-      "Description": "HP OEM 安全软件，可能基于 AI 的威胁防护",
+      "Description": "HP 安全软件，可能是 AI 威胁防护",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP System Information",
       "AppId": "AD2F1837.HPSystemInformation",
-      "Description": "HP OEM 系统信息显示软件",
+      "Description": "HP 系统信息显示软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP Welcome",
       "AppId": "AD2F1837.HPWelcome",
-      "Description": "HP OEM 欢迎体验或初始设置帮助软件",
+      "Description": "HP 欢迎体验或初始设置帮助软件",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "HP WorkWell",
       "AppId": "AD2F1837.HPWorkWell",
-      "Description": "HP OEM 健康关怀软件，可能包含休息提醒或人体工学建议",
+      "Description": "HP 健康关怀软件，可能包含休息提醒或人体工学提示",
       "SelectedByDefault": false
     },
     {
       "FriendlyName": "myHP",
       "AppId": "AD2F1837.myHP",
-      "Description": "HP OEM 中心应用，提供设备信息、支持和服务",
+      "Description": "HP 设备信息、支持和服务中心应用",
+      "SelectedByDefault": false
+    },
+    {
+      "FriendlyName": "Lenovo Vantage",
+      "AppId": "E046963F.LenovoCompanion",
+      "Description": "Lenovo 设备设置、更新和支持中心应用",
+      "SelectedByDefault": false
+    },
+    {
+      "FriendlyName": "Lenovo Vantage Service",
+      "AppId": "LenovoCompanyLimited.LenovoVantageService",
+      "Description": "Lenovo Vantage 的后台服务组件",
+      "SelectedByDefault": false
+    },
+    {
+      "FriendlyName": "Dell SupportAssist",
+      "AppId": "DellInc.DellSupportAssistforPCs",
+      "Description": "Dell 支持、诊断和更新工具",
+      "SelectedByDefault": false
+    },
+    {
+      "FriendlyName": "Dell Digital Delivery Services",
+      "AppId": "DellInc.DellDigitalDelivery",
+      "Description": "Dell 预购软件交付工具",
+      "SelectedByDefault": false
+    },
+    {
+      "FriendlyName": "Dell Mobile Connect",
+      "AppId": "DellInc.DellMobileConnect",
+      "Description": "Dell 手机连接应用（已被 Phone Link 取代）",
       "SelectedByDefault": false
     }
   ]
