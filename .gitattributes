@@ -1,0 +1,6 @@
+# Keep batch files byte-for-byte so GitHub source archives retain CRLF endings.
+*.bat -text whitespace=cr-at-eol
+*.cmd -text whitespace=cr-at-eol
+
+# PowerShell supports LF; keep text normalization without removing UTF-8 BOMs.
+*.ps1 text
