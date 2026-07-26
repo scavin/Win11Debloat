@@ -63,8 +63,10 @@ Describe 'Get-StartMenuUserNameFromPath' {
 
     It 'preserves a recoverable copy of the current layout when restoring fails' {
         $script:Params = @{}
-        $startMenuFile = Join-Path $TestDrive 'start2.bin'
-        $backupFile = Join-Path $TestDrive 'Win11Debloat-StartBackup-20260101_120000.bak'
+        $caseDirectory = Join-Path $TestDrive 'restore-copy-failure'
+        New-Item -ItemType Directory -Path $caseDirectory | Out-Null
+        $startMenuFile = Join-Path $caseDirectory 'start2.bin'
+        $backupFile = Join-Path $caseDirectory 'Win11Debloat-StartBackup-20260101_120000.bak'
         Set-Content -LiteralPath $startMenuFile -Value 'current'
         Set-Content -LiteralPath $backupFile -Value 'backup'
         Mock Copy-Item { throw 'disk full' }
@@ -73,7 +75,7 @@ Describe 'Get-StartMenuUserNameFromPath' {
 
         $result.Result | Should -BeFalse
         $result.Message | Should -Match 'disk full'
-        $restoreCopies = @(Get-ChildItem -LiteralPath $TestDrive -Filter 'Win11Debloat-StartRestore-*.bak')
+        $restoreCopies = @(Get-ChildItem -LiteralPath $caseDirectory -Filter 'Win11Debloat-StartRestore-*.bak')
         $restoreCopies.Count | Should -Be 1
         Get-Content -LiteralPath $restoreCopies[0].FullName -Raw | Should -Match 'current'
     }
