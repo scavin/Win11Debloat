@@ -42,11 +42,11 @@ Describe 'Import-RegistryBackup' {
     }
 
     It 'rejects <Case>' -ForEach @(
-        @{ Case = 'a missing backup file'; FileName = 'missing.json'; ExpectedError = 'Backup file was not found:*' }
+        @{ Case = 'a missing backup file'; FileName = 'missing.json'; ExpectedError = '未找到备份文件：*' }
         @{ Case = 'an invalid JSON backup file'; FileName = 'RegistryBackup.Invalid.json'; ExpectedError = $null }
     ) {
         $path = Join-Path $script:JsonFixturePath $FileName
-        $errorPattern = if ($null -ne $ExpectedError) { $ExpectedError } else { "Failed to read backup file '$path'. The file is not valid JSON." }
+        $errorPattern = if ($null -ne $ExpectedError) { $ExpectedError } else { "无法读取备份文件 '$path'。该文件不是有效的 JSON。" }
 
         { Import-RegistryBackup -FilePath $path } | Should -Throw $errorPattern
     }
@@ -78,7 +78,7 @@ Describe 'ConvertTo-NormalizedRegistryBackup' {
     It 'aggregates invalid metadata and does not attempt allow-list validation without feature IDs' {
         $backup = [PSCustomObject]@{ Version = '2.0'; BackupType = 'Other'; Target = 'Unknown'; RegistryKeys = @() }
 
-        { ConvertTo-NormalizedRegistryBackup -Backup $backup } | Should -Throw 'Validation failed with * errors. See console output for details.'
+        { ConvertTo-NormalizedRegistryBackup -Backup $backup } | Should -Throw '验证失败，共 * 个错误。详情请参见控制台输出。'
 
         Should -Invoke Write-Error -Times 1 -Exactly
         Should -Invoke Test-RegistryBackupMatchesSelectedFeatures -Times 0 -Exactly
@@ -91,7 +91,7 @@ Describe 'ConvertTo-NormalizedRegistryBackup' {
             SelectedFeatures = @('Example'); RegistryKeys = @()
         }
 
-        { ConvertTo-NormalizedRegistryBackup -Backup $backup } | Should -Throw "Validation failed: Invalid user 'User:bad/user'"
+        { ConvertTo-NormalizedRegistryBackup -Backup $backup } | Should -Throw "验证失败：无效的用户 'User:bad/user'"
     }
 
     It 'does not allow current-user backup restore when running as SYSTEM' {

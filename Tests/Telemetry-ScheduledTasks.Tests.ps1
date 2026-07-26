@@ -1,4 +1,4 @@
-BeforeAll {
+﻿BeforeAll {
     function Invoke-NonBlocking { param($ScriptBlock, $ArgumentList) }
 
     . (Join-Path $PSScriptRoot '..\Scripts\Features\Telemetry-ScheduledTasks.ps1')
@@ -96,10 +96,10 @@ Describe 'Disable-TelemetryScheduledTasks' {
     }
 
     It 'reports <Status> task results' -ForEach @(
-        @{ Status = 'Disabled'; Expected = 'Disabled Scheduled Task' }
-        @{ Status = 'AlreadyDisabled'; Expected = 'already disabled' }
-        @{ Status = 'NotFound'; Expected = 'not found' }
-        @{ Status = 'Error'; Expected = 'Failed to disable Scheduled Task' }
+        @{ Status = 'Disabled'; Expected = '已禁用计划任务' }
+        @{ Status = 'AlreadyDisabled'; Expected = '已被禁用' }
+        @{ Status = 'NotFound'; Expected = '未找到计划任务' }
+        @{ Status = 'Error'; Expected = '禁用计划任务失败' }
     ) {
         Mock Get-TelemetryScheduledTasks { @(@{ Path = '\Microsoft\Windows\Test\'; Name = 'Telemetry' }) }
         Mock Invoke-NonBlocking { @{ Success = $Status -ne 'Error'; Status = $Status; Error = 'denied' } }
@@ -167,10 +167,10 @@ Describe 'Enable-TelemetryScheduledTasks' {
     }
 
     It 'reports <Status> task results' -ForEach @(
-        @{ Status = 'Enabled'; Expected = 'Enabled Scheduled Task' }
-        @{ Status = 'AlreadyEnabled'; Expected = 'already enabled' }
-        @{ Status = 'NotFound'; Expected = 'not found' }
-        @{ Status = 'Error'; Expected = 'Failed to enable Scheduled Task' }
+        @{ Status = 'Enabled'; Expected = '已启用计划任务' }
+        @{ Status = 'AlreadyEnabled'; Expected = '已被启用' }
+        @{ Status = 'NotFound'; Expected = '未找到计划任务' }
+        @{ Status = 'Error'; Expected = '启用计划任务失败' }
     ) {
         Mock Get-TelemetryScheduledTasks { @(@{ Path = '\Microsoft\Windows\Test\'; Name = 'Telemetry' }) }
         Mock Invoke-NonBlocking { @{ Success = $Status -ne 'Error'; Status = $Status; Error = 'denied' } }

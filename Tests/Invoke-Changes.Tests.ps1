@@ -1,4 +1,4 @@
-BeforeAll {
+﻿BeforeAll {
     function Import-RegistryFile { param($Message, $path) }
     function Remove-SelectedApps { param($Apps) }
     function Disable-TelemetryScheduledTasks {}
@@ -343,7 +343,7 @@ Describe 'Invoke-AllChanges' {
 
     It 'prevents every mutation when registry backup creation fails' {
         Mock New-RegistrySettingsBackup { throw 'disk full' }
-        { Invoke-AllChanges } | Should -Throw 'Registry backup failed before applying changes.*disk full'
+        { Invoke-AllChanges } | Should -Throw '应用更改前注册表备份失败：*disk full'
         Should -Invoke Invoke-ApplyFeatures -Times 0 -Exactly
         Should -Invoke Invoke-UndoFeatures -Times 0 -Exactly
         Should -Invoke Invoke-SystemRestorePoint -Times 0 -Exactly
@@ -376,7 +376,7 @@ Describe 'Invoke-AllChanges' {
 
     It 'rejects SYSTEM execution without an explicit user target' {
         Mock Test-RunningAsSystem { $true }
-        { Invoke-AllChanges } | Should -Throw "Win11Debloat is running as the SYSTEM account*"
+        { Invoke-AllChanges } | Should -Throw "Win11Debloat 正在以 SYSTEM 账户运行*"
         Should -Invoke New-RegistrySettingsBackup -Times 0 -Exactly
     }
 
@@ -407,6 +407,6 @@ Describe 'Invoke-AllChanges' {
 
         Invoke-AllChanges
 
-        Should -Invoke Write-Host -Times 1 -Exactly -ParameterFilter { $Object -match '2 registry import change' }
+        Should -Invoke Write-Host -Times 1 -Exactly -ParameterFilter { $Object -match '2 个注册表导入更改' }
     }
 }

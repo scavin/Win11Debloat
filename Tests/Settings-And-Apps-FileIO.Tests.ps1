@@ -87,7 +87,7 @@ Describe 'Save-Settings' {
         Mock Save-ToFile { $false }
 
         { Save-Settings } | Should -Not -Throw
-        Should -Invoke Write-Host -Times 1 -Exactly -ParameterFilter { $Object -like 'Error:*' }
+        Should -Invoke Write-Host -Times 1 -Exactly -ParameterFilter { $Object -like '错误：*' }
     }
 }
 

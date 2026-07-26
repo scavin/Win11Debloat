@@ -23,7 +23,7 @@ Describe 'Convert-RegOperationToValueKind' {
 
     It 'throws for unsupported value types' {
         { Convert-RegOperationToValueKind -Operation ([PSCustomObject]@{ KeyPath = 'HKCU\X'; ValueType = 'Hex9'; ValueData = 1 }) } |
-            Should -Throw "Unsupported value type 'Hex9' while applying reg operation for 'HKCU\X'"
+            Should -Throw "对 'HKCU\X' 应用 reg 操作时遇到不支持的值类型 'Hex9'"
     }
 }
 
@@ -73,7 +73,7 @@ Describe 'Invoke-RegistryOperation' {
     It 'rejects unknown operation types with file context' {
         $operation = [PSCustomObject]@{ OperationType = 'Unknown'; KeyPath = 'HKEY_CURRENT_USER\Software\Example' }
         { Invoke-RegistryOperation -Operation $operation -RegFilePath 'feature.reg' } |
-            Should -Throw "Unsupported reg operation type 'Unknown' in 'feature.reg'"
+            Should -Throw "'feature.reg' 中存在不支持的 reg 操作类型 'Unknown'"
     }
 }
 
@@ -111,7 +111,7 @@ Describe 'Invoke-RegistryOperationsFromRegFile' {
         Mock Invoke-RegistryOperation { throw [System.Security.SecurityException]::new('blocked') }
 
         { Invoke-RegistryOperationsFromRegFile -RegFilePath 'feature.reg' } |
-            Should -Throw "Registry fallback import could not apply any operations in 'feature.reg' because all 2 operation(s) were blocked*"
+            Should -Throw "注册表回退导入未能对 'feature.reg' 应用任何操作，因为全部 2 个操作均被访问限制阻止*"
     }
 }
 
@@ -161,7 +161,7 @@ Describe 'Invoke-RegistrySetValueOperation' {
         Mock Convert-RegOperationToValueKind { throw 'conversion should not run' }
 
         { Invoke-RegistrySetValueOperation -Operation ([PSCustomObject]@{ KeyPath = 'HKCU\Software\Test' }) -KeyInfo ([PSCustomObject]@{ Key = $null }) } |
-            Should -Throw "Unable to open or create registry key*"
+            Should -Throw "无法打开或创建注册表键*"
         Should -Invoke Convert-RegOperationToValueKind -Times 0 -Exactly
     }
 }
@@ -172,6 +172,6 @@ Describe 'Write-RegistryOperationAccessDeniedWarning' {
 
         Write-RegistryOperationAccessDeniedWarning -Operation ([PSCustomObject]@{ OperationType = 'DeleteValue'; KeyPath = 'HKCU\Software\Test'; ValueName = $null }) -ExceptionMessage 'denied'
 
-        Should -Invoke Write-Warning -Times 1 -Exactly -ParameterFilter { $Message -match "value '\(Default\)'" -and $Message -match 'denied' }
+        Should -Invoke Write-Warning -Times 1 -Exactly -ParameterFilter { $Message -match "值 '\(默认\)'" -and $Message -match 'denied' }
     }
 }

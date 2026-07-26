@@ -1,4 +1,4 @@
-BeforeAll {
+﻿BeforeAll {
     function Get-RegistryFilePathForFeature { param($RegistryKey) $RegistryKey }
     function Invoke-RegistryOperationsFromRegFile { param($RegFilePath) }
     function Invoke-WithTargetUserHive { param($TargetUserName, $ScriptBlock, $ArgumentObject, [switch]$PassHiveContext) }
@@ -22,7 +22,7 @@ Describe 'Import-RegistryFile' {
 
     It 'throws and increments the failure count when the registry file is missing' {
         Mock Get-RegistryFilePathForFeature { Join-Path $TestDrive 'missing.reg' }
-        { Import-RegistryFile -message 'Apply' -path 'missing.reg' } | Should -Throw 'Unable to find registry file:*'
+        { Import-RegistryFile -message 'Apply' -path 'missing.reg' } | Should -Throw '无法找到注册表文件：*'
         $script:RegistryImportFailures | Should -Be 1
         Should -Invoke Invoke-NonBlocking -Times 0 -Exactly
     }
@@ -54,7 +54,7 @@ Describe 'Import-RegistryFile' {
         Import-RegistryFile -message 'Apply' -path 'feature.reg'
 
         Should -Invoke Invoke-RegistryOperationsFromRegFile -Times 1 -Exactly
-        Should -Invoke Write-Warning -Times 1 -Exactly -ParameterFilter { $Message -like "reg import failed*" }
+        Should -Invoke Write-Warning -Times 1 -Exactly -ParameterFilter { $Message -like "注册表文件*导入失败*" }
         $script:RegistryImportFailures | Should -Be 0
     }
 

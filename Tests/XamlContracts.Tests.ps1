@@ -1,4 +1,4 @@
-Describe 'XAML UI contracts' {
+﻿Describe 'XAML UI contracts' {
     BeforeAll {
         $script:SchemaPath = Join-Path $PSScriptRoot '..\Schemas'
         $script:GuiPath = Join-Path $PSScriptRoot '..\Scripts\GUI'
@@ -54,9 +54,9 @@ Describe 'XAML UI contracts' {
         $applyWindow = Get-Content -LiteralPath (Join-Path $script:SchemaPath 'ApplyChangesWindow.xaml') -Raw
         $appWindow = Get-Content -LiteralPath (Join-Path $script:SchemaPath 'AppSelectionWindow.xaml') -Raw
 
-        $applyWindow | Should -Match 'AutomationProperties.Name="Cancel"'
-        $applyWindow | Should -Match 'AutomationProperties.Name="Close"'
-        $appWindow | Should -Match 'AutomationProperties.Name="Confirm"'
-        $appWindow | Should -Match 'AutomationProperties.Name="Cancel"'
+        $applyWindow | Should -Match 'AutomationProperties.Name="取消"'
+        $applyWindow | Should -Match 'AutomationProperties.Name="关闭"'
+        $appWindow | Should -Match 'AutomationProperties.Name="确认"'
+        $appWindow | Should -Match 'AutomationProperties.Name="取消"'
     }
 }

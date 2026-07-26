@@ -1,4 +1,4 @@
-BeforeAll {
+﻿BeforeAll {
     function Get-UserDirectory { param($userName, $fileName) }
     function Invoke-NonBlocking { param($ScriptBlock, $ArgumentList) }
     function takeown { param([Parameter(ValueFromRemainingArguments)]$Arguments) }
@@ -214,6 +214,6 @@ Describe 'Set-StoreSearchSuggestionsEnabled' {
 
         {
             Set-StoreSearchSuggestionsEnabled -StoreAppsDatabase 'C:\Users\Alice\AppData\Local\Packages\store.db'
-        } | Should -Throw '*Failed to remove*database is locked*'
+        } | Should -Throw '*无法删除*database is locked*'
     }
 }

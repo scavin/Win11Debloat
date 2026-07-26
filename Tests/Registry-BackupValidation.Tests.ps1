@@ -81,7 +81,7 @@ Describe 'Get-SelectedRegistryFeaturesForBackupValidation' {
         $result = @(Get-SelectedRegistryFeaturesForBackupValidation -SelectedFeatureIds @('ApplyFeature', 'CustomFeature', 'MissingFeature') -IsUndoFeature:$false -Errors $errors)
 
         $result.Id | Should -Be 'ApplyFeature'
-        $errors | Should -Contain "Selected feature 'MissingFeature' was not found in the current feature catalog."
+        $errors | Should -Contain "在当前功能目录中未找到所选功能 'MissingFeature'。"
     }
 
     It 'uses undo registry keys and falls back to apply keys when needed' {
@@ -140,7 +140,7 @@ Describe 'Get-NormalizedRegistryValueName' {
     It 'normalizes a null value name to the default registry value' {
         Get-NormalizedRegistryValueName -ValueName $null | Should -Be ''
         Get-RegistryValueReferenceForError -SnapshotPath 'HKEY_CURRENT_USER\Software\Example' -ValueName '' |
-            Should -Be 'HKEY_CURRENT_USER\Software\Example\\(默认)'
+            Should -Be 'HKEY_CURRENT_USER\Software\Example\\(Default)'
     }
 
     It 'keeps a named registry value in the error reference' {
@@ -295,7 +295,7 @@ Describe 'Test-RegistrySnapshotAgainstAllowList' {
         Test-RegistrySnapshotAgainstAllowList -Snapshot $unexpectedPathSnapshot -PlanMap $planMap -Errors $errors
         Test-RegistrySnapshotAgainstAllowList -Snapshot $unexpectedValueSnapshot -PlanMap $planMap -Errors $errors
 
-        $errors | Should -Contain "Backup contains unexpected registry path 'HKEY_CURRENT_USER\Software\Unexpected' that is not allowed by SelectedFeatures."
-        $errors | Should -Contain "Backup contains unexpected value 'Unexpected' under 'HKEY_CURRENT_USER\Software\Example'."
+        $errors | Should -Contain "备份中包含意外的注册表路径 'HKEY_CURRENT_USER\Software\Unexpected'，该路径未被 SelectedFeatures 允许。"
+        $errors | Should -Contain "备份中 'HKEY_CURRENT_USER\Software\Example' 下包含意外的值 'Unexpected'。"
     }
 }

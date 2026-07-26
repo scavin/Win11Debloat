@@ -46,7 +46,7 @@ Describe 'Test-RegistryBackupMatchesSelectedFeatures' {
     It 'reports unknown selected features without deriving capture plans' {
         $errors = @(Test-RegistryBackupMatchesSelectedFeatures -SelectedFeatureIds @('UnknownFeature') -SelectedUndoFeatureIds @() -Target 'CurrentUser' -RegistryKeys @())
 
-        $errors | Should -Contain "Selected feature 'UnknownFeature' was not found in the current feature catalog."
+        $errors | Should -Contain "在当前功能目录中未找到所选功能 'UnknownFeature'。"
         $script:CapturePlanCalls | Should -BeNullOrEmpty
     }
 

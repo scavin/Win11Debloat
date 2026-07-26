@@ -1,4 +1,4 @@
-BeforeAll {
+﻿BeforeAll {
     function Get-TargetUserForAppRemoval { 'AllUsers' }
     function Get-WingetInstalledApps { param($TimeOut, [switch]$NonBlocking) @() }
     function Test-AppInWingetList { param($appId, $InstalledList) $false }
@@ -33,7 +33,7 @@ Describe 'Remove-SelectedApps' {
         Remove-SelectedApps -appsList @('One.App', 'Two.App')
         Should -Invoke Remove-WinGetApp -Times 0 -Exactly
         Should -Invoke Remove-AppxApp -Times 0 -Exactly
-        Should -Invoke Write-Host -Times 2 -Exactly -ParameterFilter { $Object -like '*WhatIf*Remove App*' }
+        Should -Invoke Write-Host -Times 2 -Exactly -ParameterFilter { $Object -like '*WhatIf*移除应用包*' }
     }
 
     It 'dispatches each app to its configured backend and target scope' {
