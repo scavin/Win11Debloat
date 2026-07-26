@@ -1,4 +1,4 @@
-param (
+﻿param (
     [switch]$Verbose,
     [switch]$WhatIf,
     [switch]$Dev,
@@ -7,8 +7,10 @@ param (
     [switch]$Sysprep,
     [string]$LogPath,
     [string]$User,
-    [switch]$NoRestartExplorer,
+    [Alias('NoRestartExplorer')]
+    [switch]$SkipExplorerRestart,
     [switch]$CreateRestorePoint,
+    [switch]$SkipRegistryBackup,
     [switch]$RunDefaults,
     [switch]$RunDefaultsLite,
     [switch]$RunSavedSettings,
@@ -33,6 +35,7 @@ param (
     [switch]$DisableUpdateASAP,
     [switch]$PreventUpdateAutoReboot,
     [switch]$DisableDeliveryOptimization,
+    [switch]$DisableDeviceAutoAppDownload,
     [switch]$DisableBing,
     [switch]$DisableStoreSearchSuggestions,
     [switch]$DisableDesktopSpotlight,
@@ -120,13 +123,13 @@ $tempRootPath = $env:TEMP
 $tempWorkPath = Join-Path $tempRootPath 'Win11Debloat'
 $tempArchivePath = Join-Path $tempRootPath 'win11debloat.zip'
 
-Write-Output "> 正在下载 Win11Debloat..."
-
 # Download Win11Debloat from GitHub as a zip archive.
 try {
     if ($Dev) {
+        Write-Output "> 正在下载 Win11Debloat 开发版..."
         $sourceUri = "https://github.com/Raphire/Win11Debloat/archive/refs/heads/master.zip"
     } else {
+        Write-Output "> 正在下载 Win11Debloat..."
         $sourceUri = (Invoke-RestMethod https://api.github.com/repos/Raphire/Win11Debloat/releases/latest).zipball_url
     }
     Invoke-RestMethod $sourceUri -OutFile $tempArchivePath

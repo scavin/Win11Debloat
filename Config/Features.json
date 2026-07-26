@@ -680,7 +680,7 @@
       "UndoLabel": "显示设置主页中的 Microsoft 365 Copilot 广告",
       "ApplyUndoText": "正在启用设置主页中的 Microsoft 365 Copilot 广告",
       "RegistryUndoKey": "Enable_Settings_365_Ads.reg",
-      "MinVersion": null,
+      "MinVersion": 22000,
       "MaxVersion": null
     },
     {
@@ -693,7 +693,7 @@
       "UndoLabel": "显示设置「主页」页面",
       "ApplyUndoText": "正在启用设置主页",
       "RegistryUndoKey": "Enable_Settings_Home.reg",
-      "MinVersion": null,
+      "MinVersion": 22000,
       "MaxVersion": null
     },
     {
@@ -813,6 +813,7 @@
       "UndoLabel": "启用窗口贴靠",
       "ApplyUndoText": "正在启用窗口贴靠",
       "RegistryUndoKey": "Enable_Window_Snapping.reg",
+      "RequiresReboot": true,
       "MinVersion": null,
       "MaxVersion": null
     },
@@ -1366,6 +1367,19 @@
       "UndoLabel": "启用与其他电脑共享下载的更新",
       "ApplyUndoText": "正在启用与其他电脑共享下载的更新",
       "RegistryUndoKey": "Enable_Delivery_Optimization.reg",
+      "MinVersion": null,
+      "MaxVersion": null
+    },
+    {
+      "FeatureId": "DisableDeviceAutoAppDownload",
+      "Label": "阻止 Windows 自动安装设备配套应用",
+      "ToolTip": "连接 LG、Alienware 显示器等特定设备时，阻止 Windows 通过 Windows 更新静默安装设备配套应用。设备仍可正常使用；此设置仅阻止 Windows 更新未经同意自动安装额外应用。",
+      "Category": "Windows Update",
+      "RegistryKey": "Disable_Device_Auto_App_Download.reg",
+      "ApplyText": "正在阻止自动安装设备配套应用",
+      "UndoLabel": "允许自动安装设备配套应用",
+      "ApplyUndoText": "正在允许自动安装设备配套应用",
+      "RegistryUndoKey": "Enable_Device_Auto_App_Download.reg",
       "MinVersion": null,
       "MaxVersion": null
     },

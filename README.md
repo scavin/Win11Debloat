@@ -87,7 +87,6 @@ irm https://raw.githubusercontent.com/scavin/Win11Debloat/master/Get_CN.ps1 | ie
 
 - 禁用遥测、诊断数据、活动历史记录、应用启动跟踪和定向广告。
 - 禁用 Windows、锁屏和 Microsoft Edge 中的提示、技巧、建议和广告。
-- 禁用 Windows 通知（来自应用和其他发送者）。
 - 禁用 Windows 定位服务、应用位置访问和「查找我的设备」位置跟踪。
 - 隐藏设置「主页」页面上的 Microsoft 365 广告，或完全隐藏「主页」页面。
 
@@ -101,7 +100,7 @@ irm https://raw.githubusercontent.com/scavin/Win11Debloat/master/Get_CN.ps1 | ie
 
 - 禁用共享和移动文件的「拖拽托盘」。
 - 恢复旧版 Windows 10 样式的右键菜单。
-- 关闭增强指针精确度（鼠标加速）。
+- 关闭「提高指针精确度」（鼠标加速）。
 - 禁用粘滞键快捷键。
 - 禁用存储感知自动磁盘清理。
 - 禁用快速启动以确保完全关机。
@@ -113,6 +112,7 @@ irm https://raw.githubusercontent.com/scavin/Win11Debloat/master/Get_CN.ps1 | ie
 - 阻止 Windows 在更新可用后立即获取。
 - 阻止登录后更新自动重启。
 - 禁用与其他电脑共享下载的更新（传递优化）。
+- 阻止 Windows 自动安装 LG Monitor App、Alienware Command Center 等设备配套应用。
 
 #### 外观
 

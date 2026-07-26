@@ -5,8 +5,10 @@ param (
     [switch]$Sysprep,
     [string]$LogPath,
     [string]$User,
-    [switch]$NoRestartExplorer,
+    [Alias('NoRestartExplorer')]
+    [switch]$SkipExplorerRestart,
     [switch]$CreateRestorePoint,
+    [switch]$SkipRegistryBackup,
     [switch]$RunDefaults,
     [switch]$RunDefaultsLite,
     [switch]$RunSavedSettings,
@@ -30,6 +32,7 @@ param (
     [switch]$DisableUpdateASAP,
     [switch]$PreventUpdateAutoReboot,
     [switch]$DisableDeliveryOptimization,
+    [switch]$DisableDeviceAutoAppDownload,
     [switch]$DisableBing,
     [switch]$DisableNotifications,
     [switch]$DisableStoreSearchSuggestions,
@@ -100,6 +103,17 @@ param (
     [switch]$HideDriveLetters
 )
 
+# Win11Debloat depends on Windows PowerShell 5.1 cmdlets (the Appx module's Get-AppxPackage /
+# Remove-AppxPackage, and Get-ComputerRestorePoint) that do not load in PowerShell 7 (pwsh), where the
+# Appx module fails with "Operation is not supported on this platform" (0x80131539). Without this guard
+# the run continues and silently fails to remove any apps while still reporting success. See issue #675.
+if ($PSVersionTable.PSEdition -eq 'Core') {
+    Write-Host "Win11Debloat 需要 Windows PowerShell 5.1，但当前正在 PowerShell $($PSVersionTable.PSVersion)（pwsh / Core 版）下运行。" -ForegroundColor Red
+    Write-Host "应用移除和系统还原点依赖 PowerShell 7 中不可用的模块，因此无法在此环境中正确完成运行。" -ForegroundColor Red
+    Write-Host "请改用 Windows PowerShell（powershell.exe）重新运行此脚本。" -ForegroundColor Yellow
+    exit 1
+}
+
 # Check if script is running as administrator
 $isAdmin = ([Security.Principal.WindowsPrincipal] `
     [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -147,7 +161,7 @@ if (-not $isAdmin) {
 }
 
 # Define script-level variables & paths
-$script:Version = "2026.06.24"
+$script:Version = "2026.07.11"
 $configPath = Join-Path $PSScriptRoot 'Config'
 $logsPath = Join-Path $PSScriptRoot 'Logs'
 $schemasPath = Join-Path $PSScriptRoot 'Schemas'
@@ -170,10 +184,10 @@ $script:SharedStylesSchema = Join-Path $schemasPath 'SharedStyles.xaml'
 $script:BubbleHintSchema = Join-Path $schemasPath 'BubbleHint.xaml'
 $script:ImportExportConfigSchema = Join-Path $schemasPath 'ImportExportConfigWindow.xaml'
 $script:RestoreBackupWindowSchema = Join-Path $schemasPath 'RestoreBackupWindow.xaml'
-$script:LoadAppsDetailsScriptPath = Join-Path (Join-Path $scriptsPath 'FileIO') 'LoadAppsDetailsFromJson.ps1'
+$script:LoadAppsDetailsScriptPath = Join-Path (Join-Path $scriptsPath 'FileIO') 'Import-AppDetailsFromJson.ps1'
 $script:TestAppInWingetListScriptPath = Join-Path (Join-Path $scriptsPath 'AppRemoval') 'Test-AppInWingetList.ps1'
 
-$script:ControlParams = 'WhatIf', 'Confirm', 'Verbose', 'Debug', 'LogPath', 'Silent', 'Sysprep', 'User', 'NoRestartExplorer', 'RunDefaults', 'RunDefaultsLite', 'RunSavedSettings', 'Config', 'CLI', 'AppRemovalTarget'
+$script:ControlParams = 'WhatIf', 'Confirm', 'Verbose', 'Debug', 'LogPath', 'Silent', 'Sysprep', 'User', 'SkipExplorerRestart', 'SkipRegistryBackup', 'RunDefaults', 'RunDefaultsLite', 'RunSavedSettings', 'Config', 'CLI', 'AppRemovalTarget'
 
 # Script-level variables for GUI elements
 $script:GuiWindow = $null
@@ -298,59 +312,59 @@ if (-not $script:WingetInstalled -and -not $Silent) {
 ##################################################################################################################
 
 # App removal functions
-. "$PSScriptRoot/Scripts/AppRemoval/ForceRemoveEdge.ps1"
-. "$PSScriptRoot/Scripts/AppRemoval/RemoveApps.ps1"
-. "$PSScriptRoot/Scripts/AppRemoval/GetInstalledAppsViaWinget.ps1"
+. "$PSScriptRoot/Scripts/AppRemoval/Invoke-ForceRemoveEdge.ps1"
+. "$PSScriptRoot/Scripts/AppRemoval/Remove-SelectedApps.ps1"
+. "$PSScriptRoot/Scripts/AppRemoval/Get-WingetInstalledApps.ps1"
 . "$PSScriptRoot/Scripts/AppRemoval/Test-AppInWingetList.ps1"
 
 # CLI functions
-. "$PSScriptRoot/Scripts/CLI/AwaitKeyToExit.ps1"
-. "$PSScriptRoot/Scripts/CLI/ShowCLILastUsedSettings.ps1"  
-. "$PSScriptRoot/Scripts/CLI/ShowCLIDefaultModeAppRemovalOptions.ps1"
-. "$PSScriptRoot/Scripts/CLI/ShowCLIDefaultModeOptions.ps1"
-. "$PSScriptRoot/Scripts/CLI/ShowCLIAppRemoval.ps1"
-. "$PSScriptRoot/Scripts/CLI/ShowCLIMenuOptions.ps1"
-. "$PSScriptRoot/Scripts/CLI/PrintPendingChanges.ps1"
-. "$PSScriptRoot/Scripts/CLI/PrintHeader.ps1"
+. "$PSScriptRoot/Scripts/CLI/Wait-ForKeyPress.ps1"
+. "$PSScriptRoot/Scripts/CLI/Show-CliLastUsedSettings.ps1"
+. "$PSScriptRoot/Scripts/CLI/Show-CliDefaultModeAppRemovalOptions.ps1"
+. "$PSScriptRoot/Scripts/CLI/Show-CliDefaultModeOptions.ps1"
+. "$PSScriptRoot/Scripts/CLI/Show-CliAppRemoval.ps1"
+. "$PSScriptRoot/Scripts/CLI/Show-CliMenuOptions.ps1"
+. "$PSScriptRoot/Scripts/CLI/Write-PendingChanges.ps1"
+. "$PSScriptRoot/Scripts/CLI/Write-CliHeader.ps1"
 
 # Features functions
-. "$PSScriptRoot/Scripts/Features/GetCurrentTweakState.ps1"
-. "$PSScriptRoot/Scripts/Features/InvokeChanges.ps1"
-. "$PSScriptRoot/Scripts/Features/CreateSystemRestorePoint.ps1"
-. "$PSScriptRoot/Scripts/Features/BackupRegistryFeatureSelection.ps1"
-. "$PSScriptRoot/Scripts/Features/BackupRegistrySnapshotCapture.ps1"
-. "$PSScriptRoot/Scripts/Features/BackupRegistryState.ps1"
-. "$PSScriptRoot/Scripts/Features/RegistryBackupValidation.ps1"
-. "$PSScriptRoot/Scripts/Features/RestoreRegistryApplyState.ps1"
-. "$PSScriptRoot/Scripts/Features/RestoreRegistryBackup.ps1"
-. "$PSScriptRoot/Scripts/Features/StoreSearchSuggestions.ps1"
-. "$PSScriptRoot/Scripts/Features/TelemetryScheduledTasks.ps1"
-. "$PSScriptRoot/Scripts/Features/WindowsOptionalFeatures.ps1"
-. "$PSScriptRoot/Scripts/Features/ImportRegistryFile.ps1"
-. "$PSScriptRoot/Scripts/Features/ReplaceStartMenu.ps1"
-. "$PSScriptRoot/Scripts/Features/RestartExplorer.ps1"
+. "$PSScriptRoot/Scripts/Features/Get-CurrentTweakState.ps1"
+. "$PSScriptRoot/Scripts/Features/Invoke-Changes.ps1"
+. "$PSScriptRoot/Scripts/Features/Invoke-SystemRestorePoint.ps1"
+. "$PSScriptRoot/Scripts/Features/Backup-RegistryFeatureSelection.ps1"
+. "$PSScriptRoot/Scripts/Features/Backup-RegistrySnapshotCapture.ps1"
+. "$PSScriptRoot/Scripts/Features/Backup-RegistryState.ps1"
+. "$PSScriptRoot/Scripts/Features/Registry-BackupValidation.ps1"
+. "$PSScriptRoot/Scripts/Features/Restore-RegistryApplyState.ps1"
+. "$PSScriptRoot/Scripts/Features/Restore-RegistryBackup.ps1"
+. "$PSScriptRoot/Scripts/Features/Set-StoreSearchSuggestions.ps1"
+. "$PSScriptRoot/Scripts/Features/Telemetry-ScheduledTasks.ps1"
+. "$PSScriptRoot/Scripts/Features/Windows-OptionalFeatures.ps1"
+. "$PSScriptRoot/Scripts/Features/Import-RegistryFile.ps1"
+. "$PSScriptRoot/Scripts/Features/Replace-StartMenu.ps1"
+. "$PSScriptRoot/Scripts/Features/Invoke-RestartExplorer.ps1"
 
 # File I/O functions
-. "$PSScriptRoot/Scripts/FileIO/LoadJsonFile.ps1"
-. "$PSScriptRoot/Scripts/FileIO/SaveToFile.ps1"
-. "$PSScriptRoot/Scripts/FileIO/SaveSettings.ps1"
-. "$PSScriptRoot/Scripts/FileIO/LoadSettings.ps1"
-. "$PSScriptRoot/Scripts/FileIO/ValidateAppslist.ps1"
-. "$PSScriptRoot/Scripts/FileIO/LoadAppsFromFile.ps1"
-. "$PSScriptRoot/Scripts/FileIO/LoadAppsDetailsFromJson.ps1"
-. "$PSScriptRoot/Scripts/FileIO/LoadAppPresetsFromJson.ps1"
+. "$PSScriptRoot/Scripts/FileIO/Import-JsonFile.ps1"
+. "$PSScriptRoot/Scripts/FileIO/Save-ToFile.ps1"
+. "$PSScriptRoot/Scripts/FileIO/Save-Settings.ps1"
+. "$PSScriptRoot/Scripts/FileIO/Import-Settings.ps1"
+. "$PSScriptRoot/Scripts/FileIO/Get-ValidatedAppList.ps1"
+. "$PSScriptRoot/Scripts/FileIO/Import-AppsFromFile.ps1"
+. "$PSScriptRoot/Scripts/FileIO/Import-AppDetailsFromJson.ps1"
+. "$PSScriptRoot/Scripts/FileIO/Import-AppPresetsFromJson.ps1"
 
 # GUI functions
-. "$PSScriptRoot/Scripts/GUI/GetSystemUsesDarkMode.ps1"
-. "$PSScriptRoot/Scripts/GUI/SetWindowThemeResources.ps1"
-. "$PSScriptRoot/Scripts/GUI/AttachShiftClickBehavior.ps1"
-. "$PSScriptRoot/Scripts/GUI/ApplySettingsToUiControls.ps1"
+. "$PSScriptRoot/Scripts/GUI/Get-SystemUsesDarkMode.ps1"
+. "$PSScriptRoot/Scripts/GUI/Set-WindowThemeResources.ps1"
+. "$PSScriptRoot/Scripts/GUI/Attach-ShiftClickBehavior.ps1"
+. "$PSScriptRoot/Scripts/GUI/Apply-SettingsToUiControls.ps1"
 . "$PSScriptRoot/Scripts/GUI/Show-MessageBox.ps1"
-. "$PSScriptRoot/Scripts/GUI/Show-ConfigWindow.ps1"
+. "$PSScriptRoot/Scripts/GUI/Show-ImportExportConfigWindow.ps1"
 . "$PSScriptRoot/Scripts/GUI/Show-ApplyModal.ps1"
 . "$PSScriptRoot/Scripts/GUI/Show-AppSelectionWindow.ps1"
 . "$PSScriptRoot/Scripts/GUI/Show-RestoreBackupWindow.ps1"
-. "$PSScriptRoot/Scripts/GUI/RestoreBackupDialogFeatureLists.ps1"
+. "$PSScriptRoot/Scripts/GUI/Restore-BackupDialogFeatureLists.ps1"
 . "$PSScriptRoot/Scripts/GUI/Show-RestoreBackupDialog.ps1"
 . "$PSScriptRoot/Scripts/GUI/MainWindow-WindowChrome.ps1"
 . "$PSScriptRoot/Scripts/GUI/MainWindow-AppSelection.ps1"
@@ -362,26 +376,27 @@ if (-not $script:WingetInstalled -and -not $Silent) {
 . "$PSScriptRoot/Scripts/GUI/Show-Bubble.ps1"
 
 # Helper functions
-. "$PSScriptRoot/Scripts/Helpers/AddParameter.ps1"
-. "$PSScriptRoot/Scripts/Helpers/ResolveUserProfilePath.ps1"
-. "$PSScriptRoot/Scripts/Helpers/UserHiveHelpers.ps1"
-. "$PSScriptRoot/Scripts/Helpers/CheckIfUserExists.ps1"
-. "$PSScriptRoot/Scripts/Helpers/CheckModernStandbySupport.ps1"
-. "$PSScriptRoot/Scripts/Helpers/GenerateAppsList.ps1"
-. "$PSScriptRoot/Scripts/Helpers/GetFriendlyRegistryBackupTarget.ps1"
-. "$PSScriptRoot/Scripts/Helpers/GetFriendlyTargetUserName.ps1"
-. "$PSScriptRoot/Scripts/Helpers/ImportConfigToParams.ps1"
-. "$PSScriptRoot/Scripts/Helpers/GetTargetUserForAppRemoval.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Add-Parameter.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Resolve-UserProfilePath.ps1"
+. "$PSScriptRoot/Scripts/Helpers/User-HiveHelpers.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Test-UserProfileExists.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Test-ModernStandbySupport.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Generate-AppsList.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Get-FriendlyRegistryBackupTarget.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Get-FriendlyTargetUserName.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Get-RebootFeatureLabels.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Import-ConfigToParams.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Get-TargetUserForAppRemoval.ps1"
 . "$PSScriptRoot/Scripts/Helpers/Get-RegFileOperations.ps1"
 . "$PSScriptRoot/Scripts/Helpers/Test-TargetUserName.ps1"
-. "$PSScriptRoot/Scripts/Helpers/GetUserDirectory.ps1"
-. "$PSScriptRoot/Scripts/Helpers/GetUserName.ps1"
-. "$PSScriptRoot/Scripts/Helpers/RegistryPathHelpers.ps1"
-. "$PSScriptRoot/Scripts/Helpers/ApplyRegistryRegFile.ps1"
-. "$PSScriptRoot/Scripts/Helpers/ConfirmUnsafeAppRemoval.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Get-UserDirectory.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Get-UserName.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Registry-PathHelpers.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Apply-RegistryRegFile.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Confirm-UnsafeAppRemoval.ps1"
 
 # Threading functions
-. "$PSScriptRoot/Scripts/Threading/DoEvents.ps1"
+. "$PSScriptRoot/Scripts/Threading/Invoke-DoEvents.ps1"
 . "$PSScriptRoot/Scripts/Threading/Invoke-NonBlocking.ps1"
 
 
@@ -398,7 +413,7 @@ if (-not $script:WingetInstalled -and -not $Silent) {
 $WinVersion = Get-ItemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' CurrentBuild
 
 # Check if the machine supports Modern Standby, this is used to determine if the DisableModernStandbyNetworking option can be used
-$script:ModernStandbySupported = CheckModernStandbySupport
+$script:ModernStandbySupported = Test-ModernStandbySupport
 
 $script:Params = $PSBoundParameters
 $script:UndoParams = @{}
@@ -431,24 +446,24 @@ else {
 }
 
 if ($script:Params.ContainsKey("Sysprep")) {
-    GetUserDirectory -userName "Default" | Out-Null
+    Get-UserDirectory -userName "Default" | Out-Null
 
     # Exit script if run in Sysprep mode on Windows 10
     if ($WinVersion -lt 22000) {
         Write-Error "Win11Debloat 的 Sysprep 模式不支持 Windows 10"
-        AwaitKeyToExit
+        Wait-ForKeyPress
     }
 }
 
 # Ensure that target user exists, if User or AppRemovalTarget parameter was provided
 if ($script:Params.ContainsKey("User")) {
-    GetUserDirectory -userName $script:Params.Item("User") | Out-Null
+    Get-UserDirectory -userName $script:Params.Item("User") | Out-Null
 }
 if ($script:Params.ContainsKey("AppRemovalTarget")) {
     $appRemovalTargetValue = $script:Params.Item("AppRemovalTarget")
     # 'AllUsers' / 'CurrentUser' are sentinel scope values, not real usernames - don't resolve them as a profile
     if ($appRemovalTargetValue -notin @('AllUsers', 'CurrentUser')) {
-        GetUserDirectory -userName $appRemovalTargetValue | Out-Null
+        Get-UserDirectory -userName $appRemovalTargetValue | Out-Null
     }
 }
 
@@ -463,35 +478,35 @@ $launchInCLI = $CLI -or $script:Params.ContainsKey("User") -or $script:Params.Co
 # Change script execution based on provided parameters or user input
 if ((-not $script:Params.Count) -or $RunDefaults -or $RunDefaultsLite -or $RunSavedSettings -or $Config -or ($controlParamsCount -eq $script:Params.Count)) {
     if ($RunDefaults -or $RunDefaultsLite) {
-        ShowCLIDefaultModeOptions
+        Show-CliDefaultModeOptions
     }
     elseif ($RunSavedSettings) {
         if (-not (Test-Path $script:SavedSettingsFilePath)) {
-            PrintHeader '自定义模式'
+            Write-CliHeader '自定义模式'
             Write-Error "无法找到 LastUsedSettings.json 文件，未做任何更改"
-            AwaitKeyToExit
+            Wait-ForKeyPress
         }
 
-        ShowCLILastUsedSettings
+        Show-CliLastUsedSettings
     }
     elseif ($Config) {
         try {
-            ImportConfigToParams -ConfigPath $Config -CurrentBuild $WinVersion -ExpectedVersion '1.0'
+            Import-ConfigToParams -ConfigPath $Config -CurrentBuild $WinVersion -ExpectedVersion '1.0'
         }
         catch {
             Write-Error "$_"
-            AwaitKeyToExit
+            Wait-ForKeyPress
         }
 
         if (-not $Silent) {
-            PrintHeader '自定义模式'
-            PrintPendingChanges
-            PrintHeader '自定义模式'
+            Write-CliHeader '自定义模式'
+            Write-PendingChanges
+            Write-CliHeader '自定义模式'
         }
     }
     else {
         if ($launchInCLI) {
-            $Mode = ShowCLIMenuOptions 
+            $Mode = Show-CliMenuOptions
         }
         else {
             try {
@@ -512,7 +527,7 @@ if ((-not $script:Params.Count) -or $RunDefaults -or $RunDefaultsLite -or $RunSa
                     $null = [System.Console]::ReadKey()
                 }
 
-                $Mode = ShowCLIMenuOptions
+                $Mode = Show-CliMenuOptions
             }
         }
     }
@@ -521,40 +536,48 @@ if ((-not $script:Params.Count) -or $RunDefaults -or $RunDefaultsLite -or $RunSa
     switch ($Mode) {
         # Default mode, loads defaults and app removal options
         '1' { 
-            ShowCLIDefaultModeOptions
+            Show-CliDefaultModeOptions
         }
 
         # App removal, remove apps based on user selection
         '2' {
-            ShowCLIAppRemoval
+            Show-CliAppRemoval
         }
 
         # Load last used options from the "LastUsedSettings.json" file
         '3' {
-            ShowCLILastUsedSettings
+            Show-CliLastUsedSettings
         }
     }
 }
 else {
-    PrintHeader '配置'
+    Write-CliHeader '配置'
 }
 
 # If the number of keys in ControlParams equals the number of keys in Params then no modifications/changes were selected
 #  or added by the user, and the script can exit without making any changes.
 if (($controlParamsCount -eq $script:Params.Keys.Count) -or ($script:Params.Keys.Count -eq 1 -and ($script:Params.Keys -contains 'CreateRestorePoint' -or $script:Params.Keys -contains 'Apps'))) {
     Write-Output "脚本已完成，未做任何更改。"
-    AwaitKeyToExit
+    Wait-ForKeyPress
 }
 
 # Execute all selected/provided parameters using the consolidated function
 # (This also handles restore point creation if requested)
 Invoke-AllChanges
 
-RestartExplorer
+if ($script:CancelRequested) {
+    Write-Warning "用户已取消脚本执行，剩余更改未应用。"
+    Wait-ForKeyPress
+}
+
+# Restart Explorer process unless running in Sysprep or User context
+if (-not ($script:Params.ContainsKey("Sysprep") -or $script:Params.ContainsKey("User"))) {
+    Invoke-RestartExplorer
+}
 
 Write-Output ""
 Write-Output ""
 Write-Output ""
 Write-Output "脚本已完成！请检查上方是否有任何错误。"
 
-AwaitKeyToExit
+Wait-ForKeyPress

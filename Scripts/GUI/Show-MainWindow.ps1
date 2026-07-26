@@ -1,8 +1,12 @@
-﻿function Show-MainWindow {
+﻿<#
+    .SYNOPSIS
+        Creates and displays the main Win11Debloat window.
+#>
+function Show-MainWindow {
     Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System.Windows.Forms | Out-Null
 
     $WinVersion = Get-ItemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' CurrentBuild
-    $usesDarkMode = GetSystemUsesDarkMode
+    $usesDarkMode = Get-SystemUsesDarkMode
 
     # ---- Load XAML ----
     $xaml = Get-Content -Path $script:MainWindowSchema -Raw
@@ -14,7 +18,7 @@
         $reader.Close()
     }
 
-    SetWindowThemeResources -window $window -usesDarkMode $usesDarkMode
+    Set-WindowThemeResources -window $window -usesDarkMode $usesDarkMode
 
     $mainBorder = $window.FindName('MainBorder')
     $titleBarBackground = $window.FindName('TitleBarBackground')
@@ -43,8 +47,8 @@
     # ---- Handle unhandled exceptions on the dispatcher thread ----
     [System.Windows.Threading.Dispatcher]::CurrentDispatcher.Add_UnhandledException({
         param($sender, $e)
-        Write-Warning "Unhandled exception in GUI: $($e.Exception.Message)"
-        Write-Warning "Stack trace: $($e.Exception.StackTrace)"
+        Write-Warning "图形界面中出现未处理的异常：$($e.Exception.Message)"
+        Write-Warning "堆栈跟踪：$($e.Exception.StackTrace)"
         $e.Handled = $true
     })
 
@@ -76,7 +80,7 @@
     })
 
     # ---- 菜单/按钮事件绑定 ----
-    $kofiBtn.Add_Click({ Start-Process "https://afdian.com/a/qingxwa" })
+    $kofiBtn.Add_Click({ Start-Process "https://ko-fi.com/raphire" })
 
     $menuBtn.Add_Click({
         $menuBtn.ContextMenu.PlacementTarget = $menuBtn
@@ -165,7 +169,7 @@
             Export-Configuration -Owner $window -UsesDarkMode $usesDarkMode -AppsPanel $appsPanel -UiControlMappings $script:UiControlMappings -UserSelectionCombo $userSelectionCombo -OtherUsernameTextBox $otherUsernameTextBox
         }
         catch {
-            Write-Warning "Export configuration failed: $($_.Exception.Message)"
+            Write-Warning "导出配置失败：$($_.Exception.Message)"
             Show-MessageBox -Owner $window -Message "无法打开导出配置对话框：$($_.Exception.Message)" -Title '导出配置失败' -Button 'OK' -Icon 'Error' | Out-Null
         }
     })
@@ -181,7 +185,7 @@
             }
         }
         catch {
-            Write-Warning "Import configuration failed: $($_.Exception.Message)"
+            Write-Warning "导入配置失败：$($_.Exception.Message)"
             Show-MessageBox -Owner $window -Message "无法打开导入配置对话框：$($_.Exception.Message)" -Title '导入配置失败' -Button 'OK' -Icon 'Error' | Out-Null
         }
     })
@@ -201,7 +205,7 @@
                 }
             }
             catch {
-                Write-Warning "Restore backup action failed: $($_.Exception.Message)"
+                Write-Warning "恢复备份操作失败：$($_.Exception.Message)"
                 Show-MessageBox -Owner $window -Message "无法打开恢复备份对话框：$($_.Exception.Message)" -Title '恢复备份失败' -Button 'OK' -Icon 'Error' | Out-Null
             }
         })
@@ -223,7 +227,7 @@
     if ($importConfigBtn) { $importConfigBtn.IsEnabled = $false }
 
     # ---- Build JSON-defined app presets ----
-    foreach ($preset in (LoadAppPresetsFromJson)) {
+    foreach ($preset in (Import-AppPresetsFromJson)) {
         $checkbox = New-Object System.Windows.Controls.CheckBox
         $checkbox.Content = $preset.Name
         $checkbox.IsThreeState = $true
@@ -301,8 +305,8 @@
 
     # ---- Load apps ----
     $appLoadStatusCallback = { Update-AppSelectionStatus -AppsPanel $appsPanel -AppSelectionStatus $appSelectionStatus -AppRemovalScopeCombo $appRemovalScopeCombo -AppRemovalScopeSection $appRemovalScopeSection -AppRemovalScopeDescription $appRemovalScopeDescription -UserSelectionCombo $userSelectionCombo }
-    $onlyInstalledAppsBox.Add_Checked({ Load-AppsIntoMainUI -Window $window -AppsPanel $appsPanel -OnlyInstalledAppsBox $onlyInstalledAppsBox -LoadingAppsIndicator $loadingAppsIndicator -ImportConfigBtn $importConfigBtn })
-    $onlyInstalledAppsBox.Add_Unchecked({ Load-AppsIntoMainUI -Window $window -AppsPanel $appsPanel -OnlyInstalledAppsBox $onlyInstalledAppsBox -LoadingAppsIndicator $loadingAppsIndicator -ImportConfigBtn $importConfigBtn })
+    $onlyInstalledAppsBox.Add_Checked({ Initialize-MainWindowApps -Window $window -AppsPanel $appsPanel -OnlyInstalledAppsBox $onlyInstalledAppsBox -LoadingAppsIndicator $loadingAppsIndicator -ImportConfigBtn $importConfigBtn })
+    $onlyInstalledAppsBox.Add_Unchecked({ Initialize-MainWindowApps -Window $window -AppsPanel $appsPanel -OnlyInstalledAppsBox $onlyInstalledAppsBox -LoadingAppsIndicator $loadingAppsIndicator -ImportConfigBtn $importConfigBtn })
 
     # ---- App presets popup ----
     $presetsPopup.Add_Opened({
@@ -617,9 +621,9 @@
             $ShowCurrentlyAppliedTweaksCheckBox.IsChecked = $false
         }
 
-        $defaultsJson = LoadJsonFile -filePath $script:DefaultSettingsFilePath -expectedVersion "1.0"
+        $defaultsJson = Import-JsonFile -filePath $script:DefaultSettingsFilePath -expectedVersion "1.0"
         if ($defaultsJson) {
-            ApplySettingsToUiControls -window $window -settingsJson $defaultsJson -uiControlMappings $script:UiControlMappings
+            Apply-SettingsToUiControls -window $window -settingsJson $defaultsJson -uiControlMappings $script:UiControlMappings
         }
 
         if ($script:IsLoadingApps) {
@@ -663,17 +667,17 @@
         $hasAppSelection = ($selectedApps.Count -gt 0)
 
         if ($selectedApps.Count -gt 0) {
-            if (-not (ConfirmUnsafeAppRemoval -SelectedApps $selectedApps -Owner $window)) { return }
+            if (-not (Confirm-UnsafeAppRemoval -SelectedApps $selectedApps -Owner $window)) { return }
 
-            AddParameter 'RemoveApps'
-            AddParameter 'Apps' ($selectedApps -join ',')
+            Add-Parameter 'RemoveApps'
+            Add-Parameter 'Apps' ($selectedApps -join ',')
 
             $selectedScopeItem = $appRemovalScopeCombo.SelectedItem
             if ($selectedScopeItem) {
                 switch ($selectedScopeItem.Content) {
-                    "所有用户" { AddParameter 'AppRemovalTarget' 'AllUsers' }
-                    "仅当前用户" { AddParameter 'AppRemovalTarget' 'CurrentUser' }
-                    "仅目标用户" { AddParameter 'AppRemovalTarget' ($otherUsernameTextBox.Text.Trim()) }
+                    "所有用户" { Add-Parameter 'AppRemovalTarget' 'AllUsers' }
+                    "仅当前用户" { Add-Parameter 'AppRemovalTarget' 'CurrentUser' }
+                    "仅目标用户" { Add-Parameter 'AppRemovalTarget' ($otherUsernameTextBox.Text.Trim()) }
                 }
             }
         }
@@ -681,7 +685,7 @@
         # Apply dynamic tweaks
         foreach ($tweakAction in @(Get-PendingTweakActions -Window $window -ShowAppliedTweaksMode:$showAppliedTweaksMode)) {
             if ($tweakAction.Action -eq 'Apply') {
-                AddParameter $tweakAction.FeatureId
+                Add-Parameter $tweakAction.FeatureId
                 $null = $selectedForwardFeatureIds.Add([string]$tweakAction.FeatureId)
                 continue
             }
@@ -695,27 +699,32 @@
 
         $restorePointCheckBox = $window.FindName('RestorePointCheckBox')
         if ($restorePointCheckBox -and $restorePointCheckBox.IsChecked) {
-            AddParameter 'CreateRestorePoint'
+            Add-Parameter 'CreateRestorePoint'
+        }
+
+        $registryBackupCheckBox = $window.FindName('RegistryBackupCheckBox')
+        if ($registryBackupCheckBox -and -not $registryBackupCheckBox.IsChecked) {
+            Add-Parameter 'SkipRegistryBackup'
         }
 
         switch ($userSelectionCombo.SelectedIndex) {
-            0 { Write-Host "已选择用户模式：当前用户 ($(GetUserName))" }
+            0 { Write-Host "已选择用户模式：当前用户 ($(Get-UserName))" }
             1 {
                 Write-Host "已选择用户模式：$($otherUsernameTextBox.Text.Trim())"
-                AddParameter User ($otherUsernameTextBox.Text.Trim())
+                Add-Parameter User ($otherUsernameTextBox.Text.Trim())
             }
             2 {
                 Write-Host "已选择用户模式：默认用户配置文件 (Sysprep)"
-                AddParameter Sysprep
+                Add-Parameter Sysprep
             }
         }
 
-        SaveSettings
+        Save-Settings
 
         $restartExplorerCheckBox = $window.FindName('RestartExplorerCheckBox')
         $shouldRestartExplorer = $restartExplorerCheckBox -and $restartExplorerCheckBox.IsChecked
 
-        Show-ApplyModal -Owner $window -RestartExplorer $shouldRestartExplorer
+        Show-ApplyModal -Owner $window -InvokeRestartExplorer $shouldRestartExplorer
         $window.Close()
     })
 
@@ -737,12 +746,12 @@
     $window.Add_Loaded({
         try {
             & $updateHomeContentPosition
-            Build-DynamicTweaks -Window $window -WinVersion $WinVersion
-            Load-CurrentTweakStateIntoUI -Window $window
+            New-DynamicTweakControls -Window $window -WinVersion $WinVersion
+            Set-CurrentTweakStateInUi -Window $window
             Update-TweaksResponsiveColumns -Window $window
 
-            $lastUsedSettingsJson = LoadJsonFile -filePath $script:SavedSettingsFilePath -expectedVersion "1.0" -optionalFile
-            $defaultsJson = LoadJsonFile -filePath $script:DefaultSettingsFilePath -expectedVersion "1.0"
+            $lastUsedSettingsJson = Import-JsonFile -filePath $script:SavedSettingsFilePath -expectedVersion "1.0" -optionalFile
+            $defaultsJson = Import-JsonFile -filePath $script:DefaultSettingsFilePath -expectedVersion "1.0"
 
             $script:SavedAppIds = Get-SavedAppIdsFromSettingsJson -SettingsJson $lastUsedSettingsJson
 
@@ -750,13 +759,13 @@
             Register-TweakPresetControlStateHandlers -Window $window
             Update-TweakPresetStates -Window $window
 
-            Load-AppsIntoMainUI -Window $window -AppsPanel $appsPanel -OnlyInstalledAppsBox $onlyInstalledAppsBox -LoadingAppsIndicator $loadingAppsIndicator -ImportConfigBtn $importConfigBtn
+            Initialize-MainWindowApps -Window $window -AppsPanel $appsPanel -OnlyInstalledAppsBox $onlyInstalledAppsBox -LoadingAppsIndicator $loadingAppsIndicator -ImportConfigBtn $importConfigBtn
 
             # Update Current User label
             if ($userSelectionCombo -and $userSelectionCombo.Items.Count -gt 0) {
                 $currentUserItem = $userSelectionCombo.Items[0]
                 if ($currentUserItem -is [System.Windows.Controls.ComboBoxItem]) {
-                    $currentUserItem.Content = "当前用户 ($(GetUserName))"
+                    $currentUserItem.Content = "当前用户 ($(Get-UserName))"
                 }
             }
 
@@ -773,9 +782,15 @@
             }
 
             $restartExplorerCheckBox = $window.FindName('RestartExplorerCheckBox')
-            if ($restartExplorerCheckBox -and $script:Params.ContainsKey("NoRestartExplorer")) {
+            if ($restartExplorerCheckBox -and $script:Params.ContainsKey('SkipExplorerRestart')) {
                 $restartExplorerCheckBox.IsChecked = $false
                 $restartExplorerCheckBox.IsEnabled = $false
+            }
+
+            $registryBackupCheckBox = $window.FindName('RegistryBackupCheckBox')
+            if ($registryBackupCheckBox -and $script:Params.ContainsKey('SkipRegistryBackup')) {
+                $registryBackupCheckBox.IsChecked = $false
+                $registryBackupCheckBox.IsEnabled = $false
             }
 
             if ($script:Params.ContainsKey("Sysprep")) {
@@ -794,8 +809,8 @@
             Invoke-NavigationUpdate
         }
         catch {
-            Write-Warning "Error during GUI initialization: $($_.Exception.Message)"
-            Write-Warning "Stack trace: $($_.Exception.StackTrace)"
+            Write-Warning "图形界面初始化时出错：$($_.Exception.Message)"
+            Write-Warning "堆栈跟踪：$($_.Exception.StackTrace)"
             Show-MessageBox -Message "初始化过程中发生错误：$($_.Exception.Message)" -Title "初始化错误" -Button 'OK' -Icon 'Error' | Out-Null
         }
     })
@@ -809,8 +824,8 @@
     })
 
     # ---- Tweak presets wiring ----
-    $lastUsedSettingsJson = LoadJsonFile -filePath $script:SavedSettingsFilePath -expectedVersion "1.0" -optionalFile
-    $defaultsJson = LoadJsonFile -filePath $script:DefaultSettingsFilePath -expectedVersion "1.0"
+    $lastUsedSettingsJson = Import-JsonFile -filePath $script:SavedSettingsFilePath -expectedVersion "1.0" -optionalFile
+    $defaultsJson = Import-JsonFile -filePath $script:DefaultSettingsFilePath -expectedVersion "1.0"
     $script:DefaultTweakPresetMap = @{}
     $script:LastUsedTweakPresetMap = @{}
     $script:PrivacyTweakPresetMap = @{}
@@ -869,10 +884,10 @@
 
     # ---- Preload app data ----
     try {
-        $script:PreloadedAppData = LoadAppsDetailsFromJson -OnlyInstalled:$false -InstalledList $null -InitialCheckedFromJson:$false
+        $script:PreloadedAppData = Import-AppDetailsFromJson -OnlyInstalled:$false -InstalledList $null -InitialCheckedFromJson:$false
     }
     catch {
-        Write-Warning "Failed to preload apps list: $_"
+        Write-Warning "预加载应用列表失败：$_"
     }
 
     # ---- Show window ----

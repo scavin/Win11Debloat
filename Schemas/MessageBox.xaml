@@ -1,6 +1,6 @@
 ﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="消息" 
+        Title="消息"
         Width="440"
         SizeToContent="Height"
         MaxHeight="501"
@@ -35,7 +35,7 @@
             <!-- Title Bar -->
             <Grid Grid.Row="0" x:Name="TitleBar" Style="{DynamicResource ModalTitleBarStyle}">
                 <TextBlock x:Name="TitleText" 
-                           Text="消息" 
+                           Text="消息"
                            Style="{DynamicResource ModalTitleTextStyle}"/>
             </Grid>
 
@@ -49,7 +49,7 @@
                 <!-- Icon -->
                 <TextBlock x:Name="IconText"
                            Grid.Column="0"
-                           FontFamily="Segoe Fluent Icons"
+                           FontFamily="{DynamicResource AppIconFontFamily}"
                            FontSize="24"
                            Foreground="{DynamicResource AppFgColor}"
                            VerticalAlignment="Center"

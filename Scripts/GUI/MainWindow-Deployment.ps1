@@ -13,6 +13,13 @@ function Get-UndoFeatureLabel {
     return [string]$script:FeatureLabelLookup[$FeatureId]
 }
 
+<#
+    .SYNOPSIS
+    Returns the tweak actions that are pending based on the current UI state.
+
+    .OUTPUTS
+    [PSCustomObject[]] Objects with Action, FeatureId, and Label properties.
+#>
 function Get-PendingTweakActions {
     param(
         [System.Windows.Window]$Window,
@@ -54,7 +61,7 @@ function Get-PendingTweakActions {
                 $actions.Add([PSCustomObject]@{
                         Action    = 'Undo'
                         FeatureId = [string]$mapping.FeatureId
-                        Label     = [string]$script:FeatureLabelLookup[$mapping.FeatureId]
+                        Label     = [string](Get-UndoFeatureLabel -FeatureId $mapping.FeatureId)
                     })
             }
         }
@@ -140,7 +147,20 @@ function Invoke-ShowChangesOverview {
     Show-MessageBox -Message $message -Title '已选更改' -Button 'OK' -Icon 'None' -Width 600
 }
 
-function Build-TweakPresetControlMap {
+<#
+    .SYNOPSIS
+        Builds the control values needed to apply a saved tweak preset.
+
+    .PARAMETER Window
+        The window that owns the visible tweak controls.
+
+    .PARAMETER SettingsJson
+        The saved settings object to translate into control values.
+
+    .OUTPUTS
+        System.Collections.Hashtable. Control metadata keyed by control name.
+#>
+function Get-TweakPresetControlMap {
     param(
         [System.Windows.Window]$Window,
         $SettingsJson
@@ -151,7 +171,7 @@ function Build-TweakPresetControlMap {
         return $presetMap
     }
 
-    # FeatureId -> control metadata, similar to ApplySettingsToUiControls lookup.
+    # FeatureId -> control metadata, similar to Apply-SettingsToUiControls lookup.
     $featureIdIndex = @{}
     foreach ($controlName in $script:UiControlMappings.Keys) {
         $control = $Window.FindName($controlName)
@@ -192,7 +212,20 @@ function Build-TweakPresetControlMap {
     return $presetMap
 }
 
-function Build-CategoryTweakPresetMap {
+<#
+    .SYNOPSIS
+        Builds the enabled state map for visible tweak controls in a category.
+
+    .PARAMETER Window
+        The window that owns the visible tweak controls.
+
+    .PARAMETER Category
+        The category whose mapped controls are included.
+
+    .OUTPUTS
+        System.Collections.Hashtable. Control metadata keyed by control name.
+#>
+function Get-CategoryTweakPresetMap {
     param(
         [System.Windows.Window]$Window,
         [string]$Category
@@ -368,10 +401,10 @@ function Initialize-TweakPresetSources {
         $LastUsedSettingsJson
     )
 
-    $script:DefaultTweakPresetMap = Build-TweakPresetControlMap -Window $Window -SettingsJson $DefaultSettingsJson
-    $script:LastUsedTweakPresetMap = Build-TweakPresetControlMap -Window $Window -SettingsJson $LastUsedSettingsJson
-    $script:PrivacyTweakPresetMap = Build-CategoryTweakPresetMap -Window $Window -Category '隐私与建议内容'
-    $script:AITweakPresetMap = Build-CategoryTweakPresetMap -Window $Window -Category 'AI'
+    $script:DefaultTweakPresetMap = Get-TweakPresetControlMap -Window $Window -SettingsJson $DefaultSettingsJson
+    $script:LastUsedTweakPresetMap = Get-TweakPresetControlMap -Window $Window -SettingsJson $LastUsedSettingsJson
+    $script:PrivacyTweakPresetMap = Get-CategoryTweakPresetMap -Window $Window -Category 'Privacy & Suggested Content'
+    $script:AITweakPresetMap = Get-CategoryTweakPresetMap -Window $Window -Category 'AI'
 
     $presetLastUsedTweaksBtn = $Window.FindName('PresetLastUsedTweaksBtn')
     if ($presetLastUsedTweaksBtn) {
@@ -414,7 +447,7 @@ function Update-UserSelectionDescription {
 
     switch ($UserSelectionCombo.SelectedIndex) {
         0 {
-            $currentUserName = GetUserName
+            $currentUserName = Get-UserName
             if ([string]::IsNullOrWhiteSpace($currentUserName)) {
                 $UserSelectionDescription.Text = "当前已登录的用户配置文件"
             }
@@ -435,6 +468,9 @@ function Update-UserSelectionDescription {
             $UserSelectionDescription.Text = "默认用户模板，影响此后创建的所有新用户。适用于 Sysprep 部署。"
         }
     }
+
+    # Mirror the description text on the combo's tooltip so the same context is shown on hover.
+    $UserSelectionCombo.ToolTip = $UserSelectionDescription.Text
 }
 
 function Test-OtherUsername {

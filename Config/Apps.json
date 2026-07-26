@@ -922,6 +922,14 @@
       "RemovalMethod": "Appx"
     },
     {
+      "FriendlyName": "LG Monitor App",
+      "AppId": "LGElectronics.LGMonitorApp",
+      "Description": "用于控制 LG 显示器的 LG OEM 软件；连接 LG 显示器时，Windows 更新可能会静默重新安装此应用",
+      "SelectedByDefault": false,
+      "Recommendation": "optional",
+      "RemovalMethod": "Appx"
+    },
+    {
       "FriendlyName": "HP AI Experience Center",
       "AppId": "AD2F1837.HPAIExperienceCenter",
       "Description": "HP 预装软件，AI 增强功能与支持",
@@ -1132,7 +1140,7 @@
       ]
     },
     {
-      "Name": "OEM 预装软件（Dell、HP、Lenovo）",
+      "Name": "OEM 软件（Dell、HP、Lenovo、LG）",
       "AppIds": [
         "AD2F1837.HPAIExperienceCenter",
         "AD2F1837.HPConnectedMusic",
@@ -1156,6 +1164,7 @@
         "AD2F1837.myHP",
         "E046963F.LenovoCompanion",
         "LenovoCompanyLimited.LenovoVantageService",
+        "LGElectronics.LGMonitorApp",
         "DellInc.DellSupportAssistforPCs",
         "DellInc.DellDigitalDelivery",
         "DellInc.DellMobileConnect"

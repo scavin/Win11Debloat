@@ -58,6 +58,25 @@ You can launch the prerelease version of Win11Debloat by running this command:
    .\Win11Debloat.ps1
    ```
 
+### Running Automated Tests
+
+The automated test cases use Pester 5 and do not modify the registry or other
+system state. The optional bootstrap step installs Pester for your user account
+when needed. To run the complete suite:
+
+```powershell
+.\Scripts\Run-Tests.ps1 -Bootstrap
+```
+
+After the initial setup, run the suite with:
+
+```powershell
+.\Scripts\Run-Tests.ps1
+```
+
+GitHub Actions runs the same test command with Windows PowerShell 5.1 for pull
+requests and pushes to `master`.
+
 ## Implementation Guidelines
 
 ### Project Structure
@@ -72,7 +91,7 @@ Win11Debloat/
 │   ├── Get.ps1                  # Script used for the quick launch method to automatically download and run Win11debloat
 │   ├── AppRemoval/              # App package removal logic
 │   ├── CLI/                     # Command-line interface helpers
-│   ├── Features/                # Feature apply/undo logic (e.g. InvokeChanges.ps1, ReplaceStartMenu.ps1)
+│   ├── Features/                # Feature apply/undo logic (e.g. Invoke-Changes.ps1, Replace-StartMenu.ps1)
 │   ├── FileIO/                  # File input/output helpers
 │   ├── GUI/                     # GUI window definitions and logic
 │   ├── Helpers/                 # Shared helper functions
@@ -159,9 +178,25 @@ To add a new app that can be removed via Win11Debloat:
      "FriendlyName": "Display Name",
      "AppId": "AppPackageIdentifier",
      "Description": "Brief description of the app",
-     "SelectedByDefault": true|false
+     "SelectedByDefault": false,
+     "Recommendation": "optional",
+     "RemovalMethod": "Appx"
    }
    ```
+
+   **Field Descriptions**:
+
+   - `FriendlyName`: Display name shown in the GUI.
+   - `AppId`: The `AppPackageIdentifier` from `Get-AppxPackage` or the `Id` from `winget list`, depending on removal method.
+   - `Description`: Brief description of the app shown in the GUI.
+   - `SelectedByDefault`: Set to `true` only for apps that are largely considered bloatware, otherwise set to `false`.
+   - `Recommendation`: Indicates how strongly the app is recommended for removal. One of:
+     - `safe` — safe to remove for most users
+     - `optional` — can be safely removed if the user doesn't need the app
+     - `unsafe` — should only remove if the user knows what they are doing
+   - `RemovalMethod`: The method used to remove the app. One of:
+     - `Appx` — remove as a standard Appx package via `Remove-AppxPackage` (most apps)
+     - `WinGet` — remove via WinGet (`winget uninstall`). Use for non-Appx apps such as Microsoft Copilot.
 
 3. **Follow the Guidelines**:
 
@@ -204,7 +239,7 @@ Windows Registry Editor Version 5.00
 
 #### 1b. Implement the Feature Logic
 
-If your feature requires more than just applying a registry file, add custom logic to the main script in the appropriate section. In most cases this will involve creating a new entry in the `Invoke-FeatureApply` function (in `Scripts/Features/InvokeChanges.ps1`) for your new feature. If your feature also requires custom undo logic (beyond a simple registry file import), add a corresponding entry to the `Invoke-FeatureUndo` function in the same file.
+If your feature requires more than just applying a registry file, add custom logic to the main script in the appropriate section. In most cases this will involve creating a new entry in the `Invoke-FeatureApply` function (in `Scripts/Features/Invoke-Changes.ps1`) for your new feature. If your feature also requires custom undo logic (beyond a simple registry file import), add a corresponding entry to the `Invoke-FeatureUndo` function in the same file.
 
 #### 2. Add Feature to Features.json
 

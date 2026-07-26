@@ -1,5 +1,5 @@
 ﻿@echo off
-setlocal EnableDelayedExpansion
+setlocal
 
 :: Set Windows Terminal installation paths. (Default and Scoop installation)
 set "wtDefaultPath=%LOCALAPPDATA%\Microsoft\WindowsApps\wt.exe"
@@ -15,22 +15,20 @@ if exist "%wtDefaultPath%" (
 ) else if exist "%wtScoopPath%" (
     set "wtPath=%wtScoopPath%"
 ) else (
-    echo 未找到 Windows Terminal，将使用默认的 PowerShell。
     set "wtPath="
 )
 
-set "SCRIPT_PATH=\"%~dp0Win11Debloat.ps1\""
+:: Interpolated into a PS single-quoted string below;
+:: Apostrophes escaped via %:'=''% and -File arg uses [char]34 to avoid quote-parity bugs.
+set "SCRIPT_PATH=%~dp0Win11Debloat.ps1"
 
-:: Launch script
 if defined wtPath (
     call :Log Launching Win11Debloat.ps1 with Windows Terminal...
-    PowerShell -Command "Start-Process -FilePath '%wtPath%' -ArgumentList 'PowerShell -NoProfile -ExecutionPolicy Bypass -File %SCRIPT_PATH%' -Verb RunAs" >> "%logFile%" || call :Error "PowerShell command failed"
-    call :Log Script execution passed successfully to Win11Debloat.ps1
+    PowerShell -NoProfile -ExecutionPolicy Bypass -Command "$p='%SCRIPT_PATH:'=''%'; $w='%wtPath:'=''%'; $q=[char]34; Start-Process -FilePath $w -ArgumentList ('PowerShell -NoProfile -ExecutionPolicy Bypass -File ' + $q + $p + $q) -Verb RunAs" >> "%logFile%" || call :Error "PowerShell 命令失败"
 ) else (
-    echo 未找到 Windows Terminal。将使用默认的 PowerShell 启动 Win11Debloat.ps1...
-    call :Log Windows Terminal not found. Using default PowerShell to launch Win11Debloat.ps1...
-    PowerShell -ExecutionPolicy Bypass -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -File %SCRIPT_PATH%' -Verb RunAs}" >> "%logFile%" || call :Error "PowerShell command failed"
-    call :Log Script execution passed successfully to Win11Debloat.ps1
+    echo 未找到 Windows 终端，正在使用默认 PowerShell...
+    call :Log 未找到 Windows 终端。正在使用默认 PowerShell 启动 Win11Debloat.ps1...
+    PowerShell -NoProfile -ExecutionPolicy Bypass -Command "$p='%SCRIPT_PATH:'=''%'; $q=[char]34; Start-Process PowerShell -ArgumentList ('-NoProfile -ExecutionPolicy Bypass -File ' + $q + $p + $q) -Verb RunAs" >> "%logFile%" || call :Error "PowerShell 命令失败"
 )
 
 echo.
@@ -40,11 +38,13 @@ goto :EOF
 
 :: Logging Function
 :Log
-echo %* >> "%logFile%"
+echo(%* >> "%logFile%"
 goto :EOF
+
 :: Error Handler
 :Error
-echo 错误：%*
+echo(错误：%*
+call :Log 错误：%*
 echo 已记录到 %logFile%
 pause
 goto :EOF

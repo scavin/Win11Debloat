@@ -1,14 +1,24 @@
-﻿function Show-ApplyModal {
+﻿<#
+    .SYNOPSIS
+        Displays the modal progress window while selected changes are applied.
+
+    .PARAMETER Owner
+        The optional window that owns the modal and its overlay.
+
+    .PARAMETER InvokeRestartExplorer
+        Indicates whether the modal should run the Explorer-restart flow after applying changes.
+#>
+function Show-ApplyModal {
     param (
         [Parameter(Mandatory=$false)]
         [System.Windows.Window]$Owner = $null,
         [Parameter(Mandatory=$false)]
-        [bool]$RestartExplorer = $false
+        [bool]$InvokeRestartExplorer = $false
     )
     
     Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase | Out-Null
     
-    $usesDarkMode = GetSystemUsesDarkMode
+    $usesDarkMode = Get-SystemUsesDarkMode
     
     # Determine owner window
     $ownerWindow = if ($Owner) { $Owner } else { $script:GuiWindow }
@@ -44,7 +54,7 @@
     }
     
     # Apply theme resources
-    SetWindowThemeResources -window $applyWindow -usesDarkMode $usesDarkMode
+    Set-WindowThemeResources -window $applyWindow -usesDarkMode $usesDarkMode
     
     # Get UI elements
     $script:ApplyInProgressPanel = $applyWindow.FindName('ApplyInProgressPanel')
@@ -81,7 +91,7 @@
         $pct = if ($totalSteps -gt 0) { [math]::Round((($currentStep - 1) / $totalSteps) * 100) } else { 0 }
         $script:ApplyProgressBarEl.Value = $pct
         # Process pending window messages to keep UI responsive
-        DoEvents
+        Invoke-DoEvents
     }
 
     # Sub-step callback updates step name and interpolates progress bar within the current step
@@ -96,7 +106,7 @@
             $stepFraction = ($subIndex / $subCount) / $totalSteps
             $script:ApplyProgressBarEl.Value = [math]::Round(($baseProgress + $stepFraction) * 100)
         }
-        DoEvents
+        Invoke-DoEvents
     }
     
     # Run changes in background to keep UI responsive
@@ -107,8 +117,8 @@
             $registryImportFailureCount = [int]$script:RegistryImportFailures
             
             # Restart explorer if requested
-            if ($RestartExplorer -and -not $script:CancelRequested) {
-                RestartExplorer
+            if ($InvokeRestartExplorer -and -not $script:CancelRequested) {
+                Invoke-RestartExplorer
                 
                 # Wait for Explorer to finish relaunching, then reclaim focus.
                 Start-Sleep -Milliseconds 800
@@ -143,14 +153,8 @@
                 $script:ApplyCompletionTitleEl.Text = "更改已应用"
 
                 # Show completion message with reboot instructions if any applied features require reboot
-                if ($RestartExplorer) {
-                    $rebootFeatures = @()
-                    foreach ($paramKey in $script:Params.Keys) {
-                        if ($script:Features.ContainsKey($paramKey) -and $script:Features[$paramKey].RequiresReboot -eq $true) {
-                            $feature = $script:Features[$paramKey]
-                            $rebootFeatures += "$($feature.Label)"
-                        }
-                    }
+                if ($InvokeRestartExplorer) {
+                    $rebootFeatures = Get-RebootFeatureLabels
 
                     if ($rebootFeatures.Count -gt 0) {
                         foreach ($featureName in $rebootFeatures) {
@@ -172,7 +176,7 @@
             $applyWindow.Dispatcher.Invoke([System.Windows.Threading.DispatcherPriority]::Render, [action]{})
         }
         catch {
-            Write-Host "Error: $($_.Exception.Message)"
+            Write-Host "错误：$($_.Exception.Message)"
             $script:ApplyInProgressPanel.Visibility = 'Collapsed'
             $script:ApplyCompletionPanel.Visibility = 'Visible'
             $script:ApplyCompletionIconEl.Text = [char]0xEA39
@@ -211,9 +215,9 @@
 
     $applyKofiBtn.Add_Click({
         if ($script:ApplyModalInErrorState) {
-            Start-Process "https://github.com/scavin/Win11Debloat/issues/new"
+            Start-Process "https://github.com/Raphire/Win11Debloat/issues/new"
         } else {
-            Start-Process "https://afdian.com/a/qingxwa"
+            Start-Process "https://ko-fi.com/raphire"
         }
     })
 

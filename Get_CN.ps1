@@ -1,12 +1,16 @@
 ﻿param (
+    [switch]$WhatIf,
+    [switch]$Dev,
     [switch]$CLI,
     [switch]$Silent,
     [switch]$Verbose,
     [switch]$Sysprep,
     [string]$LogPath,
     [string]$User,
-    [switch]$NoRestartExplorer,
+    [Alias('NoRestartExplorer')]
+    [switch]$SkipExplorerRestart,
     [switch]$CreateRestorePoint,
+    [switch]$SkipRegistryBackup,
     [switch]$RunDefaults,
     [switch]$RunDefaultsLite,
     [switch]$RunSavedSettings,
@@ -30,6 +34,7 @@
     [switch]$DisableUpdateASAP,
     [switch]$PreventUpdateAutoReboot,
     [switch]$DisableDeliveryOptimization,
+    [switch]$DisableDeviceAutoAppDownload,
     [switch]$DisableBing,
     [switch]$DisableNotifications,
     [switch]$DisableStoreSearchSuggestions,
@@ -122,12 +127,17 @@ $tempRootPath = $env:TEMP
 $tempWorkPath = Join-Path $tempRootPath 'Win11Debloat'
 $tempArchivePath = Join-Path $tempRootPath 'win11debloat.zip'
 
-Write-Output "> 正在下载 Win11Debloat 中文版..."
-
 # Download latest version of Win11Debloat Chinese fork from GitHub as zip archive
 try {
-    $LatestReleaseUri = (Invoke-RestMethod https://api.github.com/repos/scavin/Win11Debloat/releases/latest).zipball_url
-    Invoke-RestMethod $LatestReleaseUri -OutFile $tempArchivePath
+    if ($Dev) {
+        Write-Output "> 正在下载 Win11Debloat 中文开发版..."
+        $sourceUri = "https://github.com/scavin/Win11Debloat/archive/refs/heads/master.zip"
+    }
+    else {
+        Write-Output "> 正在下载 Win11Debloat 中文版..."
+        $sourceUri = (Invoke-RestMethod https://api.github.com/repos/scavin/Win11Debloat/releases/latest).zipball_url
+    }
+    Invoke-RestMethod $sourceUri -OutFile $tempArchivePath
 }
 catch {
     Write-Host "错误：无法从 GitHub 获取最新版本。请检查您的网络连接后重试。" -ForegroundColor Red
@@ -189,8 +199,8 @@ if (Test-Path "$backupDir") {
     Remove-Item "$backupDir" -Recurse -Force
 }
 
-# Make list of arguments to pass on to the script
-$arguments = $($PSBoundParameters.GetEnumerator() | ForEach-Object {
+# Make list of arguments to pass on to the script (exclude the -Dev switch, which only affects this launcher)
+$arguments = $($PSBoundParameters.GetEnumerator() | Where-Object { $_.Key -ne 'Dev' } | ForEach-Object {
     if ($_.Value -eq $true) {
         "-$($_.Key)"
     }

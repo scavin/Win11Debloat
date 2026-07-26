@@ -1,13 +1,26 @@
 ﻿# MainWindow-TweaksBuilder.ps1
 # Dynamic tweaks UI construction from Features.json, tweak state management, selection clear, and search/highlight.
 
-function Build-DynamicTweaks {
+<#
+    .SYNOPSIS
+        Builds the main window's dynamic tweak controls from Features.json.
+
+    .PARAMETER Window
+        The main window whose category columns receive the generated controls.
+
+    .PARAMETER WinVersion
+        The Windows build number used for the category-icon fallback.
+
+    .NOTES
+        Initializes script-scoped control and category mappings used by the tweak UI.
+#>
+function New-DynamicTweakControls {
     param(
         [System.Windows.Window]$Window,
         [int]$WinVersion
     )
 
-    $featuresJson = LoadJsonFile -filePath $script:FeaturesFilePath -expectedVersion "1.0"
+    $featuresJson = Import-JsonFile -filePath $script:FeaturesFilePath -expectedVersion "1.0"
 
     if (-not $featuresJson) {
         throw "无法加载 Features.json 文件。GUI 无法在没有功能定义的情况下继续运行。"
@@ -29,7 +42,26 @@ function Build-DynamicTweaks {
     $script:TweaksCompactMode = $null
     $script:TweaksCardsMovedFromCol2 = @()
 
-    function CreateLabeledCombo($parent, $labelText, $comboName, $items) {
+    <#
+        .SYNOPSIS
+            Creates and registers a labeled combo box or a checkbox for a tweak.
+
+        .PARAMETER Parent
+            The panel that receives the generated control.
+
+        .PARAMETER LabelText
+            The display and automation label for the tweak.
+
+        .PARAMETER ComboName
+            The name used to register the generated control.
+
+        .PARAMETER Items
+            The available tweak options; two options produce a checkbox.
+
+        .OUTPUTS
+            System.Windows.Controls.Control. The generated checkbox or combo box.
+    #>
+    function New-LabeledCombo($parent, $labelText, $comboName, $items) {
         # If only 2 items (No Change + one option), use a checkbox instead
         if ($items.Count -eq 2) {
             $checkbox = New-Object System.Windows.Controls.CheckBox
@@ -96,7 +128,17 @@ function Build-DynamicTweaks {
         return $combo
     }
 
-    function GetWikiUrlForCategory($category) {
+    <#
+        .SYNOPSIS
+            Returns the Features wiki URL for a tweak category.
+
+        .PARAMETER Category
+            The category name converted to a wiki anchor.
+
+        .OUTPUTS
+            System.String. The category URL, or the Features page for an empty category.
+    #>
+    function Get-WikiUrlForCategory($category) {
         if (-not $category) { return 'https://github.com/Raphire/Win11Debloat/wiki/Features' }
 
         $slug = $category.ToLowerInvariant()
@@ -107,7 +149,17 @@ function Build-DynamicTweaks {
         return "https://github.com/Raphire/Win11Debloat/wiki/Features#$slug"
     }
 
-    function GetOrCreateCategoryCard($categoryObj) {
+    <#
+        .SYNOPSIS
+            Returns the existing category panel or creates and registers a new one.
+
+        .PARAMETER CategoryObj
+            The category definition containing Name and Icon properties.
+
+        .OUTPUTS
+            System.Windows.Controls.StackPanel. The category's content panel.
+    #>
+    function Get-OrCreateCategoryCard($categoryObj) {
         $categoryName = $categoryObj.Name
         $categoryIcon = $categoryObj.Icon
 
@@ -132,6 +184,9 @@ function Build-DynamicTweaks {
         # Convert HTML entity to character (e.g., &#xE72E; -> actual character)
         if ($categoryIcon -match '&#x([0-9A-Fa-f]+);') {
             $hexValue = [Convert]::ToInt32($matches[1], 16)
+            if ($WinVersion -lt 22000 -and $hexValue -eq 0xE794) {
+                $hexValue = 0xE734
+            }
             $icon.Text = [char]$hexValue
         }
         $icon.Style = $Window.Resources['CategoryHeaderIcon']
@@ -149,7 +204,7 @@ function Build-DynamicTweaks {
         $helpBtn = New-Object System.Windows.Controls.Button
         $helpBtn.Content = $helpIcon
         $helpBtn.ToolTip = "打开 Wiki 以获取关于'$categoryName'调整的更多信息"
-        $helpBtn.Tag = (GetWikiUrlForCategory -category $categoryName)
+        $helpBtn.Tag = (Get-WikiUrlForCategory -category $categoryName)
         $helpBtn.Style = $Window.Resources['CategoryHelpLinkButtonStyle']
         $helpBtn.Add_Click({
                 param($button, $e)
@@ -201,9 +256,8 @@ function Build-DynamicTweaks {
     foreach ($categoryObj in $orderedCategories) {
         $categoryName = $categoryObj.Name
 
-        # Create/get card for this category
-        $panel = GetOrCreateCategoryCard -categoryObj $categoryObj
-        if (-not $panel) { continue }
+        # Card is created lazily on the first rendered item
+        $panel = $null
 
         # Collect groups and features for this category, then sort by priority
         $categoryItems = @()
@@ -287,7 +341,8 @@ function Build-DynamicTweaks {
                         if ($soleFeature.FeatureId -match '^Disable') { $opt = '禁用' } elseif ($soleFeature.FeatureId -match '^Enable') { $opt = '启用' }
                         $items = @('不更改', $opt)
                         $comboName = ("Feature_{0}_Combo" -f $soleFeature.FeatureId) -replace '[^a-zA-Z0-9_]', ''
-                        $combo = CreateLabeledCombo -parent $panel -labelText $soleFeature.Label -comboName $comboName -items $items
+                        if (-not $panel) { $panel = Get-OrCreateCategoryCard -categoryObj $categoryObj }
+                        $combo = New-LabeledCombo -parent $panel -labelText $soleFeature.Label -comboName $comboName -items $items
                         # attach tooltip from Features.json if present
                         if ($soleFeature.ToolTip -or $soleFeature.DisableWhenApplied -eq $true) {
                             $tooltipText = $soleFeature.ToolTip
@@ -311,7 +366,8 @@ function Build-DynamicTweaks {
 
                 $items = @('不更改') + ($filteredValues | ForEach-Object { $_.Label })
                 $comboName = 'Group_{0}Combo' -f $group.GroupId
-                $combo = CreateLabeledCombo -parent $panel -labelText $group.Label -comboName $comboName -items $items
+                if (-not $panel) { $panel = Get-OrCreateCategoryCard -categoryObj $categoryObj }
+                $combo = New-LabeledCombo -parent $panel -labelText $group.Label -comboName $comboName -items $items
                 # attach tooltip from UiGroups if present
                 if ($group.ToolTip) {
                     $tipBlock = New-Object System.Windows.Controls.TextBlock
@@ -331,7 +387,8 @@ function Build-DynamicTweaks {
                 if ($feature.FeatureId -match '^Disable') { $opt = '禁用' } elseif ($feature.FeatureId -match '^Enable') { $opt = '启用' }
                 $items = @('不更改', $opt)
                 $comboName = ("Feature_{0}_Combo" -f $feature.FeatureId) -replace '[^a-zA-Z0-9_]', ''
-                $combo = CreateLabeledCombo -parent $panel -labelText $feature.Label -comboName $comboName -items $items
+                if (-not $panel) { $panel = Get-OrCreateCategoryCard -categoryObj $categoryObj }
+                $combo = New-LabeledCombo -parent $panel -labelText $feature.Label -comboName $comboName -items $items
                 # attach tooltip from Features.json if present, and include the disabled-state reason
                 if ($feature.ToolTip -or $feature.DisableWhenApplied -eq $true) {
                     $tooltipText = $feature.ToolTip
@@ -372,7 +429,7 @@ function Update-CurrentTweakSystemState {
     if (-not $script:UiControlMappings) { return }
     if (-not $script:Features) { return }
 
-    $featuresJson = LoadJsonFile -filePath $script:FeaturesFilePath -expectedVersion "1.0"
+    $featuresJson = Import-JsonFile -filePath $script:FeaturesFilePath -expectedVersion "1.0"
     if (-not $featuresJson) { return }
 
     $groupMap = @{}
@@ -418,7 +475,14 @@ function Update-CurrentTweakSystemState {
     }
 }
 
-function Load-CurrentTweakStateIntoUI {
+<#
+    .SYNOPSIS
+        Updates tweak controls to reflect the current system state.
+
+    .PARAMETER Window
+        The window that owns the generated tweak controls.
+#>
+function Set-CurrentTweakStateInUi {
     param([System.Windows.Window]$Window)
 
     Update-CurrentTweakSystemState -Window $Window -ApplyToUi:$true

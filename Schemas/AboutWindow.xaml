@@ -1,6 +1,6 @@
 ﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="关于 Win11Debloat" 
+        Title="关于 Win11Debloat"
         Width="500"
         SizeToContent="Height"
         ResizeMode="NoResize"
@@ -22,7 +22,7 @@
 
             <!-- Title Bar -->
             <Grid Grid.Row="0" x:Name="TitleBar" Style="{DynamicResource ModalTitleBarStyle}">
-                <TextBlock Text="关于 Win11Debloat" 
+                <TextBlock Text="关于 Win11Debloat"
                            Style="{DynamicResource ModalTitleTextStyle}"/>
             </Grid>
 
@@ -105,7 +105,7 @@
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 FontWeight="SemiBold"
-                                FontFamily="Segoe Fluent Icons"
+                                FontFamily="{DynamicResource AppIconFontFamily}"
                                 Text="&#xEB52;" 
                                 Foreground="{DynamicResource TitleBarCloseHoverColor}"
                                 Margin="0,0,8,0"/>

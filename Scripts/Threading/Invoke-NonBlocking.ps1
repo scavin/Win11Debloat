@@ -31,7 +31,7 @@ function Invoke-NonBlocking {
                     $ps.Stop()
                     throw "操作在 $TimeoutSeconds 秒后超时"
                 }
-                DoEvents
+                Invoke-DoEvents
                 Start-Sleep -Milliseconds 16
             }
         }
