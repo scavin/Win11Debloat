@@ -1,4 +1,5 @@
-﻿@echo off
+@echo off
+chcp 65001 >nul
 setlocal
 
 :: Set Windows Terminal installation paths. (Default and Scoop installation)
