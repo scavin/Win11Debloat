@@ -172,7 +172,7 @@ if (-not $isAdmin) {
 }
 
 # Define script-level variables & paths
-$script:Version = "2026.08.24"
+$script:Version = "2026.10.21"
 $configPath = Join-Path $PSScriptRoot 'Config'
 $script:UserDataPath = Join-Path $env:LOCALAPPDATA 'Win11Debloat'
 $script:LogsPath = Join-Path $script:UserDataPath 'Logs'

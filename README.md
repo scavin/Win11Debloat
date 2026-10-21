@@ -14,6 +14,14 @@ Win11Debloat 是一款轻量级、易于使用的 PowerShell 脚本，让您可�
 
 [![爱发电](https://img.shields.io/badge/爱发电-支持作者-946ce6?style=for-the-badge)](https://afdian.com/a/qingxwa)
 
+## 2026.10.21 中文版更新
+
+- 同步上游至 `a2d63c7`，接入官方多语言框架，支持在界面中切换语言与主题。
+- 新增禁用 Chrome AI、隐藏桌面“了解此图片”图标并保留聚焦壁纸轮换等选项。
+- 改进 WinGet 超时提示和用户级应用延期卸载，修复 Windows 10 卸载结果误报。
+- 加强注册表备份恢复检查，用户数据统一保存到 `%LOCALAPPDATA%\Win11Debloat`。
+- 保留中文命令行与下载入口，默认开发分支改为 `main`。
+
 ## 使用方法
 
 > [!Warning]
@@ -27,7 +35,7 @@ Win11Debloat 是一款轻量级、易于使用的 PowerShell 脚本，让您可�
 2. 将以下命令复制并粘贴到 PowerShell 中：
 
 ```PowerShell
-& ([scriptblock]::Create((irm "https://raw.githubusercontent.com/scavin/Win11Debloat/master/Get_CN.ps1")))
+& ([scriptblock]::Create((irm "https://raw.githubusercontent.com/scavin/Win11Debloat/main/Get_CN.ps1")))
 ```
 
 3. 等待脚本自动下载并启动 Win11Debloat。
@@ -50,7 +58,7 @@ Win11Debloat 是一款轻量级、易于使用的 PowerShell 脚本，让您可�
 <details>
   <summary>手动下载并运行脚本。</summary><br/>
 
-  1. [下载最新版本的脚本](https://github.com/Raphire/Win11Debloat/releases/latest)，并将 .ZIP 文件解压到您想要的位置。
+  1. [下载最新中文版本的脚本](https://github.com/scavin/Win11Debloat/releases/latest)，并将 .ZIP 文件解压到您想要的位置。
   2. 导航到 Win11Debloat 文件夹。
   3. 双击 `Run.bat` 文件启动脚本。注意：如果控制台窗口立即关闭且没有任何反应，请尝试下面的高级方式。
   4. 接受 Windows UAC 提示以管理员身份运行脚本，这是脚本正常工作所必需的。
@@ -62,7 +70,7 @@ Win11Debloat 是一款轻量级、易于使用的 PowerShell 脚本，让您可�
 <details>
   <summary>手动下载脚本并通过 PowerShell 运行。推荐高级用户使用。</summary><br/>
 
-  1. [下载最新版本的脚本](https://github.com/Raphire/Win11Debloat/releases/latest)，并将 .ZIP 文件解压到您想要的位置。
+  1. [下载最新中文版本的脚本](https://github.com/scavin/Win11Debloat/releases/latest)，并将 .ZIP 文件解压到您想要的位置。
   2. 以管理员身份打开 PowerShell 或终端。
   3. 输入以下命令临时启用 PowerShell 执行策略：
 
