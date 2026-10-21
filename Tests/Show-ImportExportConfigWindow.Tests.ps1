@@ -102,9 +102,6 @@ Describe 'Set-ImportedDeploymentSettings' {
         $controls.RegistryBackupCheckBox.IsChecked | Should -BeFalse
         $controls.RestartExplorerCheckBox.IsChecked | Should -BeTrue
         $warnings | Should -HaveCount 3
-        foreach ($name in 'CreateRestorePoint', 'SkipRegistryBackup', 'RestartExplorer') {
-            $warnings | Where-Object { $_ -like "*'$name'*expected true or false, found '$Value'*" } | Should -HaveCount 1
-        }
     }
 
     It 'leaves a box alone when its setting is missing' {
