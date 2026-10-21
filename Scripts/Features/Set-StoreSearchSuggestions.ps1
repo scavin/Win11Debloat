@@ -10,22 +10,41 @@
 
     .EXAMPLE
     DisableStoreSearchSuggestionsForAllUsers
+
+    .OUTPUTS
+    System.Boolean. $true when a profile is processed and all ACL changes succeed; otherwise $false.
 #>
 function Set-StoreSearchSuggestionsDisabledForAllUsers {
+    $success = $true
+    $processedProfiles = 0
+
     # Get path to Store app database for all users
     $userPathString = Get-UserDirectory -userName "*" -fileName "AppData\Local\Packages"
     $usersStoreDbPaths = Get-ChildItem -Path $userPathString -ErrorAction SilentlyContinue
 
     # Go through all users and disable start search suggestions
     foreach ($storeDbPath in $usersStoreDbPaths) {
-        Set-StoreSearchSuggestionsDisabled -StoreAppsDatabase ($storeDbPath.FullName + "\Microsoft.WindowsStore_8wekyb3d8bbwe\LocalState\store.db")
+        $processedProfiles++
+        if (-not (Set-StoreSearchSuggestionsDisabled -StoreAppsDatabase ($storeDbPath.FullName + "\Microsoft.WindowsStore_8wekyb3d8bbwe\LocalState\store.db"))) {
+            $success = $false
+        }
     }
 
     # Also disable start search suggestions for the default user profile
     $defaultStoreDbPath = Get-StoreAppsDatabasePathForUser -UserName "Default"
     if ($defaultStoreDbPath) {
-        Set-StoreSearchSuggestionsDisabled -StoreAppsDatabase $defaultStoreDbPath
+        $processedProfiles++
+        if (-not (Set-StoreSearchSuggestionsDisabled -StoreAppsDatabase $defaultStoreDbPath)) {
+            $success = $false
+        }
     }
+
+    if ($processedProfiles -eq 0) {
+        Write-Warning '无法禁用 Microsoft Store 搜索建议，因为无法解析任何目标用户配置文件。'
+        return $false
+    }
+
+    return $success
 }
 
 
@@ -44,6 +63,9 @@ function Set-StoreSearchSuggestionsDisabledForAllUsers {
 
     .EXAMPLE
     DisableStoreSearchSuggestions -StoreAppsDatabase "$env:LOCALAPPDATA\Packages\Microsoft.WindowsStore_8wekyb3d8bbwe\LocalState\store.db"
+
+    .OUTPUTS
+    System.Boolean. $true when the database ACL is restricted or previewed; otherwise $false.
 #>
 function Set-StoreSearchSuggestionsDisabled {
     param (
@@ -56,30 +78,35 @@ function Set-StoreSearchSuggestionsDisabled {
 
     if ($script:Params.ContainsKey("WhatIf")) {
         Write-Host "[WhatIf] 通过限制对 ${StoreAppsDatabase} 的访问来禁用用户 $userName 的 Microsoft Store 搜索建议" -ForegroundColor Cyan
-        return
+        return $true
     }
 
-    # This file doesn't exist in EEA (No Store app suggestions).
-    if (-not (Test-Path -Path $StoreAppsDatabase))
-    {
-        Write-Host "未找到用户 $userName 的 Store 应用数据库，正在创建以防止 Windows 后续重新创建..." -ForegroundColor Yellow
+    try {
+        # This file doesn't exist in EEA (No Store app suggestions).
+        if (-not (Test-Path -Path $StoreAppsDatabase)) {
+            Write-Host "未找到用户 $userName 的 Store 应用数据库，正在创建以防止 Windows 后续重新创建..." -ForegroundColor Yellow
 
-        $storeDbDir = Split-Path -Path $StoreAppsDatabase -Parent
+            $storeDbDir = Split-Path -Path $StoreAppsDatabase -Parent
+            if (-not (Test-Path -Path $storeDbDir)) {
+                New-Item -Path $storeDbDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
+            }
 
-        if (-not (Test-Path -Path $storeDbDir)) {
-            New-Item -Path $storeDbDir -ItemType Directory -Force | Out-Null
+            New-Item -Path $StoreAppsDatabase -ItemType File -Force -ErrorAction Stop | Out-Null
         }
 
-        New-Item -Path $StoreAppsDatabase -ItemType File -Force | Out-Null
+        $AccountSid = [System.Security.Principal.SecurityIdentifier]::new('S-1-1-0') # 'EVERYONE' group
+        $Acl = Get-Acl -Path $StoreAppsDatabase -ErrorAction Stop
+        $Ace = [System.Security.AccessControl.FileSystemAccessRule]::new($AccountSid, 'FullControl', 'Deny')
+        $Acl.SetAccessRule($Ace) | Out-Null
+        Set-Acl -Path $StoreAppsDatabase -AclObject $Acl -ErrorAction Stop | Out-Null
     }
-    
-    $AccountSid = [System.Security.Principal.SecurityIdentifier]::new('S-1-1-0') # 'EVERYONE' group
-    $Acl = Get-Acl -Path $StoreAppsDatabase
-    $Ace = [System.Security.AccessControl.FileSystemAccessRule]::new($AccountSid, 'FullControl', 'Deny')
-    $Acl.SetAccessRule($Ace) | Out-Null
-    Set-Acl -Path $StoreAppsDatabase -AclObject $Acl | Out-Null
+    catch {
+        Write-Warning "限制商店数据库 '$StoreAppsDatabase' 的 ACL 失败：$($_.Exception.Message)"
+        return $false
+    }
 
     Write-Host "已禁用用户 $userName 的 Microsoft Store 搜索建议"
+    return $true
 }
 
 <#
@@ -94,22 +121,41 @@ function Set-StoreSearchSuggestionsDisabled {
 
     .EXAMPLE
     EnableStoreSearchSuggestionsForAllUsers
+
+    .OUTPUTS
+    System.Boolean. $true when a profile is processed and all ACL changes succeed; otherwise $false.
 #>
 function Set-StoreSearchSuggestionsEnabledForAllUsers {
+    $success = $true
+    $processedProfiles = 0
+
     # Get path to Store app database for all users
     $userPathString = Get-UserDirectory -userName "*" -fileName "AppData\Local\Packages"
     $usersStoreDbPaths = Get-ChildItem -Path $userPathString -ErrorAction SilentlyContinue
 
     # Go through all users and re-enable start search suggestions
     foreach ($storeDbPath in $usersStoreDbPaths) {
-        Set-StoreSearchSuggestionsEnabled -StoreAppsDatabase ($storeDbPath.FullName + "\Microsoft.WindowsStore_8wekyb3d8bbwe\LocalState\store.db")
+        $processedProfiles++
+        if (-not (Set-StoreSearchSuggestionsEnabled -StoreAppsDatabase ($storeDbPath.FullName + "\Microsoft.WindowsStore_8wekyb3d8bbwe\LocalState\store.db"))) {
+            $success = $false
+        }
     }
 
     # Also re-enable for the default user profile
     $defaultStoreDbPath = Get-StoreAppsDatabasePathForUser -UserName "Default"
     if ($defaultStoreDbPath) {
-        Set-StoreSearchSuggestionsEnabled -StoreAppsDatabase $defaultStoreDbPath
+        $processedProfiles++
+        if (-not (Set-StoreSearchSuggestionsEnabled -StoreAppsDatabase $defaultStoreDbPath)) {
+            $success = $false
+        }
     }
+
+    if ($processedProfiles -eq 0) {
+        Write-Warning '无法重新启用 Microsoft Store 搜索建议，因为无法解析任何目标用户配置文件。'
+        return $false
+    }
+
+    return $success
 }
 
 <#
@@ -127,6 +173,9 @@ function Set-StoreSearchSuggestionsEnabledForAllUsers {
 
     .EXAMPLE
     EnableStoreSearchSuggestions -StoreAppsDatabase "$env:LOCALAPPDATA\Packages\Microsoft.WindowsStore_8wekyb3d8bbwe\LocalState\store.db"
+
+    .OUTPUTS
+    System.Boolean. $true when the deny ACL is removed, the database is absent, or the change is previewed; otherwise $false.
 #>
 function Set-StoreSearchSuggestionsEnabled {
     param (
@@ -139,23 +188,31 @@ function Set-StoreSearchSuggestionsEnabled {
 
     if ($script:Params.ContainsKey("WhatIf")) {
         Write-Host "[WhatIf] 通过恢复对 ${StoreAppsDatabase} 的访问来重新启用用户 $userName 的 Microsoft Store 搜索建议" -ForegroundColor Cyan
-        return
+        return $true
     }
 
     if (-not (Test-Path -Path $StoreAppsDatabase)) {
         Write-Host "未找到用户 $userName 的 Store 应用数据库，无需撤销"
-        return
+        return $true
     }
 
     # Ensure we can modify/delete the file even if restrictive ACLs were set.
     $global:LASTEXITCODE = 0
     takeown /F "$StoreAppsDatabase" /A | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "撤销 Microsoft Store 搜索建议更改时，取得商店数据库 '$StoreAppsDatabase' 的所有权失败。退出代码：$LASTEXITCODE"
+        return $false
+    }
     icacls "$StoreAppsDatabase" /grant *S-1-5-32-544:F /C | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "撤销 Microsoft Store 搜索建议更改时，授予 Administrators 对商店数据库 '$StoreAppsDatabase' 的访问权限失败。退出代码：$LASTEXITCODE"
+        return $false
+    }
 
     $everyoneSid = [System.Security.Principal.SecurityIdentifier]::new('S-1-1-0') # 'EVERYONE' group
 
     try {
-        $acl = Get-Acl -Path $StoreAppsDatabase
+        $acl = Get-Acl -Path $StoreAppsDatabase -ErrorAction Stop
         $denyRules = @(
             $acl.Access | Where-Object {
                 if ($_.AccessControlType -ne [System.Security.AccessControl.AccessControlType]::Deny) { return $false }
@@ -173,7 +230,7 @@ function Set-StoreSearchSuggestionsEnabled {
             $null = $acl.RemoveAccessRuleSpecific($denyRule)
         }
 
-        Set-Acl -Path $StoreAppsDatabase -AclObject $acl | Out-Null
+        Set-Acl -Path $StoreAppsDatabase -AclObject $acl -ErrorAction Stop | Out-Null
     }
     catch {
         Write-Warning "无法规范化 Store 数据库 '$StoreAppsDatabase' 的 ACL：$($_.Exception.Message)"
@@ -182,9 +239,11 @@ function Set-StoreSearchSuggestionsEnabled {
     try {
         Remove-Item -Path $StoreAppsDatabase -Force -ErrorAction Stop
         Write-Host "已重新启用用户 $userName 的 Microsoft Store 搜索建议"
+        return $true
     }
     catch {
-        throw "撤销用户 $userName 的 Microsoft Store 搜索建议时无法删除 '$StoreAppsDatabase'：$($_.Exception.Message)"
+        Write-Warning "撤销用户 $userName 的 Microsoft Store 搜索建议更改时，删除 '$StoreAppsDatabase' 失败。$($_.Exception.Message)"
+        return $false
     }
 }
 

@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
         Returns the explicitly targeted user name or the current process user name.
 #>

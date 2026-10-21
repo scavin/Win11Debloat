@@ -2,6 +2,7 @@
     . (Join-Path $PSScriptRoot '..\Scripts\Helpers\Registry-PathHelpers.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Helpers\Get-RegFileOperations.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Helpers\User-HiveHelpers.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\Helpers\Windows-BuildHelpers.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Features\Invoke-Changes.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Features\Backup-RegistryFeatureSelection.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Save-ToFile.ps1')
@@ -69,11 +70,11 @@ Describe 'New-RegistrySettingsBackup' {
         $script:RegistryBackupsPath = Join-Path $TestDrive 'Backups'
         $script:Features = @{ Feature = [PSCustomObject]@{ FeatureId = 'Feature'; RegistryKey = 'feature.reg' } }
         Mock Get-RegistryBackupPayload { @{ Version = '1.0' } }
-        Mock Save-ToFile { $true }
         Mock Write-Host {}
     }
 
     It 'returns null and does not write when no selected feature has registry data' {
+        Mock Save-ToFile { $true }
         $script:Features.Feature.RegistryKey = ''
 
         New-RegistrySettingsBackup -ActionableKeys @('Feature') | Should -BeNullOrEmpty
@@ -85,13 +86,13 @@ Describe 'New-RegistrySettingsBackup' {
 
         $result | Should -Match 'Win11Debloat-RegistryBackup-\d{8}_\d{6}\.json$'
         Test-Path -LiteralPath $script:RegistryBackupsPath | Should -BeTrue
-        Should -Invoke Save-ToFile -Times 1 -Exactly -ParameterFilter { $FilePath -eq $result -and $MaxDepth -eq 25 }
+        (Get-Content -LiteralPath $result -Raw | ConvertFrom-Json).Version | Should -Be '1.0'
     }
 
     It 'throws when persistence reports failure' {
         Mock Save-ToFile { $false }
 
-        { New-RegistrySettingsBackup -ActionableKeys @('Feature') } | Should -Throw '无法将注册表备份保存到 *'
+        { New-RegistrySettingsBackup -ActionableKeys @('Feature') } | Should -Throw
     }
 }
 
@@ -167,7 +168,7 @@ Describe 'Get-RegistryBackupCapturePlans' {
         Mock Get-RegistryFilePathForFeature { Join-Path $TestDrive 'missing.reg' }
 
         { Get-RegistryBackupCapturePlans -SelectedRegistryFeatures @([PSCustomObject]@{ RegistryKey = 'missing.reg' }) } |
-            Should -Throw '无法找到用于备份的注册表文件：missing.reg*'
+            Should -Throw
         Should -Invoke Get-RegFileOperations -Times 0 -Exactly
     }
 
@@ -175,7 +176,7 @@ Describe 'Get-RegistryBackupCapturePlans' {
         Mock Resolve-RegistryBackupUndoFilePath { Join-Path $TestDrive 'missing-undo.reg' }
 
         { Get-RegistryBackupCapturePlans -UndoRegistryFeatures @([PSCustomObject]@{ RegistryUndoKey = 'missing-undo.reg' }) } |
-            Should -Throw '无法找到用于备份的注册表撤销文件：missing-undo.reg*'
+            Should -Throw
     }
 
     It 'skips undo features that do not resolve to a registry file' {

@@ -10,37 +10,37 @@ function Get-FriendlyRegistryBackupTarget {
     )
 
     if ([string]::IsNullOrWhiteSpace($Target)) {
-        return '未知'
+        return Get-Translation -Key 'RestoreTargetUnknown'
     }
 
     if ($Target -eq 'DefaultUserProfile') {
-        return '默认用户配置文件'
+        return Get-Translation -Key 'RestoreTargetDefaultUserProfile'
     }
 
     if ($Target -eq 'CurrentUser') {
-        return '当前用户'
+        return Get-Translation -Key 'RestoreTargetCurrentUser'
     }
 
     if ($Target -eq 'AllUsers') {
-        return '所有用户'
+        return Get-Translation -Key 'RestoreTargetAllUsers'
     }
 
     if ($Target -like 'CurrentUser:*') {
         $userName = $Target.Substring(12)
         if ([string]::IsNullOrWhiteSpace($userName)) {
-            return '当前用户'
+            return Get-Translation -Key 'RestoreTargetCurrentUser'
         }
 
-        return "当前用户 ($userName)"
+        return Get-Translation -Key 'RestoreTargetCurrentUserNamed' -FormatArgs @($userName)
     }
 
     if ($Target -like 'User:*') {
         $userName = $Target.Substring(5)
         if ([string]::IsNullOrWhiteSpace($userName)) {
-            return '用户'
+            return Get-Translation -Key 'RestoreTargetUser'
         }
 
-        return "用户 ($userName)"
+        return Get-Translation -Key 'RestoreTargetUserNamed' -FormatArgs @($userName)
     }
 
     return $Target

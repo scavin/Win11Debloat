@@ -17,7 +17,7 @@ $testPath = Join-Path $repositoryRoot 'Tests'
 
 if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version.Major -eq 5 })) {
     if (-not $Bootstrap) {
-        Write-Error 'Pester 5 is required. Install it with: .\Scripts\Run-Tests.ps1 -Bootstrap'
+        Write-Error '需要 Pester 5。请运行以下命令安装：.\Scripts\Run-Tests.ps1 -Bootstrap'
         exit 1
     }
 
@@ -36,7 +36,7 @@ if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version.Maj
     }
 
     if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version.Major -eq 5 })) {
-        Write-Error 'Pester 5 was not installed. Update PowerShellGet or install Pester 5 manually, then run the tests again.'
+        Write-Error '未能安装 Pester 5。请更新 PowerShellGet 或手动安装 Pester 5，然后重新运行测试。'
         exit 1
     }
 }

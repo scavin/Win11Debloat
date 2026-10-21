@@ -1,4 +1,4 @@
-﻿<Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Name="BubblePanel"
       SnapsToDevicePixels="True">
@@ -23,7 +23,7 @@
                     Color="Black"/>
         </Border.Effect>
         <TextBlock Name="BubbleText"
-               Text="在此查看已选更改"
+               Text="%LANG:BubbleViewChanges%"
                TextWrapping="Wrap"
                MaxWidth="260"
                Foreground="{DynamicResource AppFgColor}"/>

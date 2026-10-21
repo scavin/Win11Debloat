@@ -46,9 +46,9 @@ function Get-UserDirectory {
     }
     catch {
         Write-Error "尝试查找用户 $userName 的目录路径时出错。请确认该用户存在于此系统上"
-        Wait-ForKeyPress
+        Wait-ForKeyPress -ExitCode 1
     }
 
     Write-Error "无法找到用户 $userName 的目录路径"
-    Wait-ForKeyPress
+    Wait-ForKeyPress -ExitCode 1
 }

@@ -1,10 +1,22 @@
 BeforeAll {
     Add-Type -AssemblyName PresentationFramework
+    function Invoke-DoEvents {}
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-JsonFile.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-LanguageFile.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-AppDetailsFromJson.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\Threading\Invoke-NonBlocking.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\GUI\MainWindow-AppSelection.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\GUI\MainWindow-Deployment.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\GUI\MainWindow-Navigation.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\Helpers\Windows-BuildHelpers.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\GUI\MainWindow-TweaksBuilder.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\GUI\Set-WindowThemeResources.ps1')
+    $script:LanguagesPath = Join-Path $PSScriptRoot '..\Config\Languages'
+    $script:Lang = Import-LanguageFile -LanguageCode 'en-US'
+    $script:LoadAppsDetailsScriptPath = Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-AppDetailsFromJson.ps1'
+    $script:TestAppInWingetListScriptPath = Join-Path $PSScriptRoot '..\Scripts\AppRemoval\Test-AppInWingetList.ps1'
+    $script:ImportLanguageFileScriptPath = Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-LanguageFile.ps1'
+    $script:AppsListFilePath = Join-Path $PSScriptRoot '..\Config\Apps.json'
 
     function New-TestWindow {
         $window = New-Object System.Windows.Window
@@ -12,6 +24,32 @@ BeforeAll {
         $window.Resources['ProgressActiveColor'] = [System.Windows.Media.Brushes]::Green
         $window.Resources['ProgressInactiveColor'] = [System.Windows.Media.Brushes]::Gray
         return $window
+    }
+}
+
+Describe 'Invoke-AppDetailsFromJsonAsync' {
+    BeforeEach { $script:GuiWindow = [PSCustomObject]@{} }
+
+    It 'resolves translated FriendlyName and Description inside the background runspace' {
+        $appCatalog = Import-JsonFile -filePath $script:AppsListFilePath
+        $result = @(Invoke-AppDetailsFromJsonAsync -OnlyInstalled:$false)
+
+        $result.Count | Should -Be @($appCatalog.Apps).Count
+        $clipchamp = $result | Where-Object { $_.AppId -contains 'Clipchamp.Clipchamp' }
+        $clipchamp.FriendlyName | Should -Be 'Clipchamp'
+        $clipchamp.Description | Should -Be 'Video editor from Microsoft'
+    }
+
+    It 'does not return null entries when OnlyInstalled filters the runspace results' {
+        $result = Invoke-AppDetailsFromJsonAsync -OnlyInstalled:$true -InstalledList @()
+
+        # The async helper returns $null when no installed apps match.
+        if ($null -eq $result) {
+            $result | Should -BeNullOrEmpty
+        }
+        else {
+            @($result | Where-Object { -not $_ }).Count | Should -Be 0
+        }
     }
 }
 
@@ -117,12 +155,25 @@ Describe 'Get-PendingTweakActions' {
         $checkBox = New-Object System.Windows.Controls.CheckBox
         $checkBox.Visibility = 'Visible'
         $window.RegisterName('DisableTelemetryCheckBox', $checkBox)
-        $script:UiControlMappings = @{ DisableTelemetryCheckBox = [PSCustomObject]@{ Category = 'Privacy'; Type = 'feature'; FeatureId = 'DisableTelemetry' } }
+        $script:UiControlMappings = @{ DisableTelemetryCheckBox = [PSCustomObject]@{ CategoryId = 'PrivacySuggestedContent'; Type = 'feature'; FeatureId = 'DisableTelemetry' } }
 
-        $map = Get-CategoryTweakPresetMap -Window $window -Category 'Privacy'
+        $map = Get-CategoryTweakPresetMap -Window $window -CategoryId 'PrivacySuggestedContent'
 
         $map['DisableTelemetryCheckBox'].ControlType | Should -Be 'CheckBox'
         $map['DisableTelemetryCheckBox'].DesiredValue | Should -BeTrue
+    }
+
+    It 'matches a mapping whose CategoryId fell back to its Name, for a category missing CategoryId' {
+        $window = New-TestWindow
+        $checkBox = New-Object System.Windows.Controls.CheckBox
+        $checkBox.Visibility = 'Visible'
+        $window.RegisterName('LegacyCheckBox', $checkBox)
+        # New-DynamicTweakControls falls back to Name when a category has no CategoryId of its own.
+        $script:UiControlMappings = @{ LegacyCheckBox = [PSCustomObject]@{ CategoryId = 'Legacy Category'; Type = 'feature'; FeatureId = 'SomeFeature' } }
+
+        $map = Get-CategoryTweakPresetMap -Window $window -CategoryId 'Legacy Category'
+
+        $map['LegacyCheckBox'].ControlType | Should -Be 'CheckBox'
     }
 
     It 'updates navigation visibility and progress indicators for an interior tab' {
@@ -139,6 +190,86 @@ Describe 'Get-PendingTweakActions' {
         $window.FindName('NextBtn').Visibility | Should -Be 'Visible'
         $window.FindName('ProgressIndicator1').Fill | Should -Be $window.Resources['ProgressActiveColor']
         $window.FindName('ProgressIndicator3').Fill | Should -Be $window.Resources['ProgressInactiveColor']
+    }
+}
+
+Describe 'Update-AppRemovalScopeDescription' {
+    It 'matches on the ComboBoxItem Name rather than its (translatable) Content for <Name>' -ForEach @(
+        @{ Name = 'AppRemovalScopeAllUsers'; ExpectedText = 'Apps will be removed for all users and from the Windows image to prevent reinstallation for new users.' }
+        @{ Name = 'AppRemovalScopeCurrentUser'; ExpectedText = 'Apps will only be removed for the current user.' }
+        @{ Name = 'AppRemovalScopeTargetUser'; ExpectedText = 'Apps will only be removed for the specified target user.' }
+    ) {
+        $combo = New-Object System.Windows.Controls.ComboBox
+        $item = New-Object System.Windows.Controls.ComboBoxItem
+        $item.Name = $Name
+        $item.Content = 'Texto traducido'
+        $combo.Items.Add($item) | Out-Null
+        $combo.SelectedItem = $item
+        $description = New-Object System.Windows.Controls.TextBlock
+
+        Update-AppRemovalScopeDescription -AppRemovalScopeCombo $combo -AppRemovalScopeDescription $description
+
+        $description.Text | Should -Be $ExpectedText
+    }
+}
+
+Describe 'Get-AppRemovalScopeTarget' {
+    It 'matches on the ComboBoxItem Name rather than its (translatable) Content for <Name>' -ForEach @(
+        @{ Name = 'AppRemovalScopeAllUsers'; ExpectedTarget = 'AllUsers' }
+        @{ Name = 'AppRemovalScopeCurrentUser'; ExpectedTarget = 'CurrentUser' }
+    ) {
+        $combo = New-Object System.Windows.Controls.ComboBox
+        $item = New-Object System.Windows.Controls.ComboBoxItem
+        $item.Name = $Name
+        $item.Content = 'Texto traducido'
+        $combo.Items.Add($item) | Out-Null
+        $combo.SelectedItem = $item
+        $usernameBox = New-Object System.Windows.Controls.TextBox
+
+        Get-AppRemovalScopeTarget -AppRemovalScopeCombo $combo -OtherUsernameTextBox $usernameBox | Should -Be $ExpectedTarget
+    }
+
+    It 'returns the trimmed username for the target-user scope' {
+        $combo = New-Object System.Windows.Controls.ComboBox
+        $item = New-Object System.Windows.Controls.ComboBoxItem
+        $item.Name = 'AppRemovalScopeTargetUser'
+        $item.Content = 'Texto traducido'
+        $combo.Items.Add($item) | Out-Null
+        $combo.SelectedItem = $item
+        $usernameBox = New-Object System.Windows.Controls.TextBox
+        $usernameBox.Text = '  jdoe  '
+
+        Get-AppRemovalScopeTarget -AppRemovalScopeCombo $combo -OtherUsernameTextBox $usernameBox | Should -Be 'jdoe'
+    }
+
+    It 'returns null when nothing is selected' {
+        $combo = New-Object System.Windows.Controls.ComboBox
+        $usernameBox = New-Object System.Windows.Controls.TextBox
+
+        Get-AppRemovalScopeTarget -AppRemovalScopeCombo $combo -OtherUsernameTextBox $usernameBox | Should -BeNullOrEmpty
+    }
+
+    It 'returns null for an unrecognized ComboBoxItem Name' {
+        $combo = New-Object System.Windows.Controls.ComboBox
+        $item = New-Object System.Windows.Controls.ComboBoxItem
+        $item.Name = 'SomeUnrelatedControl'
+        $combo.Items.Add($item) | Out-Null
+        $combo.SelectedItem = $item
+        $usernameBox = New-Object System.Windows.Controls.TextBox
+
+        Get-AppRemovalScopeTarget -AppRemovalScopeCombo $combo -OtherUsernameTextBox $usernameBox | Should -BeNullOrEmpty
+    }
+
+    It 'returns an empty string for the target-user scope when the username is blank' {
+        $combo = New-Object System.Windows.Controls.ComboBox
+        $item = New-Object System.Windows.Controls.ComboBoxItem
+        $item.Name = 'AppRemovalScopeTargetUser'
+        $combo.Items.Add($item) | Out-Null
+        $combo.SelectedItem = $item
+        $usernameBox = New-Object System.Windows.Controls.TextBox
+        $usernameBox.Text = '   '
+
+        Get-AppRemovalScopeTarget -AppRemovalScopeCombo $combo -OtherUsernameTextBox $usernameBox | Should -BeExactly ''
     }
 }
 

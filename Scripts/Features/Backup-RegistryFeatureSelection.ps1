@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
         Filters a list of features to those that have a non-empty RegistryKey.
 

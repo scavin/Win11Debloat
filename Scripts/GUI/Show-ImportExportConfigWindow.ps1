@@ -1,5 +1,28 @@
 ﻿<#
     .SYNOPSIS
+        Maps an internal import/export category ID ('Applications', 'System Tweaks',
+        'Deployment Settings') to its Chrome.json translation key.
+
+    .DESCRIPTION
+        The category strings stay as the stable internal IDs used for -contains checks and
+        hashtable lookups throughout this file; only the label shown to the user is translated.
+#>
+function Get-ImportExportCategoryLabelKey {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Category
+    )
+
+    switch ($Category) {
+        'Applications' { return 'ImportExportCategoryApplications' }
+        'System Tweaks' { return 'ImportExportCategorySystemTweaks' }
+        'Deployment Settings' { return 'ImportExportCategoryDeploymentSettings' }
+        default { return $Category }
+    }
+}
+
+<#
+    .SYNOPSIS
         Shows a modal category-selection dialog for importing or exporting configuration.
 #>
 function Show-ImportExportConfigWindow {
@@ -8,10 +31,10 @@ function Show-ImportExportConfigWindow {
         [bool]$UsesDarkMode,
         [string]$Title,
         [string]$Prompt,
-        [string[]]$Categories = @('应用程序', '系统调整', '部署设置'),
+        [string[]]$Categories = @('Applications', 'System Tweaks', 'Deployment Settings'),
         [string[]]$DisabledCategories = @(),
-        [hashtable]$CategoryDetails = @(),
-        [string]$ActionLabel = 'OK'
+        [hashtable]$CategoryDetails = @{},
+        [string]$ActionLabel = (Get-Translation -Key 'MessageBoxOk')
     )
 
     # Show overlay on owner window
@@ -32,7 +55,7 @@ function Show-ImportExportConfigWindow {
     $schemaPath = $script:ImportExportConfigSchema
 
     if (-not $schemaPath -or -not (Test-Path $schemaPath)) {
-        Show-MessageBox -Message '找不到导入/导出窗口架构文件。' -Title '错误' -Button 'OK' -Icon 'Error' -Owner $Owner | Out-Null
+        Show-MessageBox -Message (Get-Translation -Key 'ImportExportSchemaMissingMessage') -Title (Get-Translation -Key 'ErrorTitle') -Button 'OK' -Icon 'Error' -Owner $Owner | Out-Null
         if ($overlay -and -not $overlayWasAlreadyVisible) {
             try { $Owner.Dispatcher.Invoke([action]{ $overlay.Visibility = 'Collapsed' }) } catch { }
         }
@@ -40,6 +63,7 @@ function Show-ImportExportConfigWindow {
     }
 
     $xaml = Get-Content -Path $schemaPath -Raw
+    $xaml = ConvertTo-LocalizedXaml -Xaml $xaml
     $reader = [System.Xml.XmlReader]::Create([System.IO.StringReader]::new($xaml))
     try {
         $dlg = [System.Windows.Markup.XamlReader]::Load($reader)
@@ -79,7 +103,7 @@ function Show-ImportExportConfigWindow {
 
         # Create checkbox
         $cb = New-Object System.Windows.Controls.CheckBox
-        $cb.Content = $cat
+        $cb.Content = Get-Translation -Key (Get-ImportExportCategoryLabelKey -Category $cat)
         $cb.IsChecked = $true
         $cb.Margin = [System.Windows.Thickness]::new(0,0,0,4)
         $cb.FontSize = 14
@@ -89,7 +113,7 @@ function Show-ImportExportConfigWindow {
             $cb.IsChecked = $false
             $cb.IsEnabled = $false
             $cb.Opacity = 0.65
-            $cb.ToolTip = '此类别中没有可用的已选设置。'
+            $cb.ToolTip = Get-Translation -Key 'ImportExportCategoryDisabledTooltip'
         }
         
         $container.Children.Add($cb) | Out-Null
@@ -238,13 +262,18 @@ function Get-AvailableImportExportCategories {
     )
 
     $availableCategories = @()
-    if ($Config.Apps) { $availableCategories += '应用程序' }
-    if ($Config.Tweaks) { $availableCategories += '系统调整' }
-    if ($Config.Deployment) { $availableCategories += '部署设置' }
+    if ($Config.Apps) { $availableCategories += 'Applications' }
+    if ($Config.Tweaks) { $availableCategories += 'System Tweaks' }
+    if ($Config.Deployment) { $availableCategories += 'Deployment Settings' }
 
     return $availableCategories
 }
 
+<#
+    .SYNOPSIS
+        Summarizes a deployment settings array into the short description shown under the
+        "Deployment Settings" checkbox in the import/export category picker.
+#>
 function Get-DeploymentCategoryDetailString {
     param (
         [array]$DeploymentSettings
@@ -261,33 +290,40 @@ function Get-DeploymentCategoryDetailString {
 
     if ($lookup.ContainsKey('UserSelectionIndex')) {
         switch ([int]$lookup['UserSelectionIndex']) {
-            0 { $line1 += '用户：当前用户' }
-            1 { $line1 += "用户：$(if ($lookup['OtherUsername']) { $lookup['OtherUsername'] } else { '其他用户' })" }
-            2 { $line1 += '用户：Sysprep' }
+            0 { $line1 += Get-Translation -Key 'ImportExportDeployUserCurrentUser' }
+            1 { $line1 += Get-Translation -Key 'ImportExportDeployUserOther' -FormatArgs @($(if ($lookup['OtherUsername']) { $lookup['OtherUsername'] } else { Get-Translation -Key 'ImportExportDeployUserOtherFallback' })) }
+            2 { $line1 += Get-Translation -Key 'ImportExportDeployUserSysprep' }
         }
     }
 
     if ($lookup.ContainsKey('AppRemovalScopeIndex')) {
         switch ([int]$lookup['AppRemovalScopeIndex']) {
-            0 { $line1 += '应用移除：所有用户' }
-            1 { $line1 += '应用移除：当前用户' }
-            2 { $line1 += "应用移除：$(if ($lookup['OtherUsername']) { $lookup['OtherUsername'] } else { '其他用户' })" }
+            0 { $line1 += Get-Translation -Key 'ImportExportAppRemovalAllUsers' }
+            1 { $line1 += Get-Translation -Key 'ImportExportAppRemovalCurrentUser' }
+            2 { $line1 += Get-Translation -Key 'ImportExportAppRemovalOther' -FormatArgs @($(if ($lookup['OtherUsername']) { $lookup['OtherUsername'] } else { Get-Translation -Key 'ImportExportDeployUserOtherFallback' })) }
         }
     }
 
     $options = @()
-    if ($lookup.ContainsKey('CreateRestorePoint') -and [bool]$lookup['CreateRestorePoint']) { $options += '还原点' }
-    if (-not ($lookup.ContainsKey('SkipRegistryBackup') -and [bool]$lookup['SkipRegistryBackup'])) { $options += '注册表备份' }
-    if ($lookup.ContainsKey('RestartExplorer')    -and [bool]$lookup['RestartExplorer'])    { $options += '重启资源管理器' }
+    if ((ConvertTo-ConfigBoolean $lookup['CreateRestorePoint']) -eq $true) { $options += Get-Translation -Key 'ImportExportOptionRestorePoint' }
+    # Registry backup is on unless it is skipped; a value that is not a boolean is ignored by the import, so it is not listed
+    $skipRegistryBackup = ConvertTo-ConfigBoolean $lookup['SkipRegistryBackup']
+    if ($skipRegistryBackup -eq $false -or -not $lookup.ContainsKey('SkipRegistryBackup')) { $options += Get-Translation -Key 'ImportExportOptionRegistryBackup' }
+    if ((ConvertTo-ConfigBoolean $lookup['RestartExplorer']) -eq $true) { $options += Get-Translation -Key 'ImportExportOptionRestartExplorer' }
 
     $lines = @()
     if ($line1.Count -gt 0)   { $lines += $line1 -join ', ' }
-    if ($options.Count -gt 0) { $lines += "选项：$($options -join '，')" }
+    if ($options.Count -gt 0) { $lines += Get-Translation -Key 'ImportExportOptionsPrefix' -FormatArgs @($options -join ', ') }
 
     if ($lines.Count -gt 0) { return $lines -join "`n" }
-    return '默认部署设置'
+    return Get-Translation -Key 'ImportExportDefaultDeploymentSettings'
 }
 
+<#
+    .SYNOPSIS
+        Builds the per-category description text shown under each checkbox in the
+        import/export category picker.
+#>
 function Build-CategoryDetails {
     param (
         [int]$AppCount = 0,
@@ -298,21 +334,21 @@ function Build-CategoryDetails {
     $details = @{}
 
     if ($AppCount -gt 0) {
-        $details['应用程序'] = "已选择 $AppCount 个应用程序"
+        $details['Applications'] = Get-Translation -Key 'ImportExportAppsSelected' -Count $AppCount -FormatArgs @($AppCount)
     }
     else {
-        $details['应用程序'] = '未选择应用程序'
+        $details['Applications'] = Get-Translation -Key 'ImportExportNoAppsSelected'
     }
 
     if ($TweakCount -gt 0) {
-        $details['系统调整'] = "已选择 $TweakCount 项调整"
+        $details['System Tweaks'] = Get-Translation -Key 'ImportExportTweaksSelected' -Count $TweakCount -FormatArgs @($TweakCount)
     }
     else {
-        $details['系统调整'] = '未选择调整'
+        $details['System Tweaks'] = Get-Translation -Key 'ImportExportNoTweaksSelected'
     }
 
     if ($DeploymentSettings) {
-        $details['部署设置'] = Get-DeploymentCategoryDetailString -DeploymentSettings $DeploymentSettings
+        $details['Deployment Settings'] = Get-DeploymentCategoryDetailString -DeploymentSettings $DeploymentSettings
     }
 
     return $details
@@ -379,21 +415,23 @@ function Set-ImportedDeploymentSettings {
         $appRemovalScopeCombo.SelectedIndex = [int]$lookup['AppRemovalScopeIndex']
     }
 
+    # A value that is not a boolean (see ConvertTo-ConfigBoolean) leaves the checkbox as it is, after a warning
     $restorePointCheckBox = $Owner.FindName('RestorePointCheckBox')
-    if ($lookup.ContainsKey('CreateRestorePoint') -and $restorePointCheckBox) {
-        $restorePointCheckBox.IsChecked = [bool]$lookup['CreateRestorePoint']
+    $createRestorePoint = Get-ConfigDeploymentFlag -Lookup $lookup -Name 'CreateRestorePoint'
+    if ($null -ne $createRestorePoint -and $restorePointCheckBox) {
+        $restorePointCheckBox.IsChecked = $createRestorePoint
     }
 
     $registryBackupCheckBox = $Owner.FindName('RegistryBackupCheckBox')
-    if ($registryBackupCheckBox) {
-        if ($lookup.ContainsKey('SkipRegistryBackup')) {
-            $registryBackupCheckBox.IsChecked = -not [bool]$lookup['SkipRegistryBackup']
-        }
+    $skipRegistryBackup = Get-ConfigDeploymentFlag -Lookup $lookup -Name 'SkipRegistryBackup'
+    if ($null -ne $skipRegistryBackup -and $registryBackupCheckBox) {
+        $registryBackupCheckBox.IsChecked = -not $skipRegistryBackup
     }
 
     $restartExplorerCheckBox = $Owner.FindName('RestartExplorerCheckBox')
-    if ($lookup.ContainsKey('RestartExplorer') -and $restartExplorerCheckBox) {
-        $restartExplorerCheckBox.IsChecked = [bool]$lookup['RestartExplorer']
+    $restartExplorer = Get-ConfigDeploymentFlag -Lookup $lookup -Name 'RestartExplorer'
+    if ($null -ne $restartExplorer -and $restartExplorerCheckBox) {
+        $restartExplorerCheckBox.IsChecked = $restartExplorer
     }
 }
 
@@ -416,57 +454,57 @@ function Export-Configuration {
     $tweakSettings = Get-SelectedTweakSettings -Owner $Owner -UiControlMappings $UiControlMappings
 
     $disabledCategories = @()
-    if ($selectedApps.Count -eq 0) { $disabledCategories += '应用程序' }
-    if ($tweakSettings.Count -eq 0) { $disabledCategories += '系统调整' }
+    if ($selectedApps.Count -eq 0) { $disabledCategories += 'Applications' }
+    if ($tweakSettings.Count -eq 0) { $disabledCategories += 'System Tweaks' }
 
     $deploymentSettings = Get-DeploymentSettings -Owner $Owner -UserSelectionCombo $UserSelectionCombo -OtherUsernameTextBox $OtherUsernameTextBox
     $categoryDetails = Build-CategoryDetails -AppCount $selectedApps.Count -TweakCount $tweakSettings.Count -DeploymentSettings $deploymentSettings
 
-    $categories = Show-ImportExportConfigWindow -Owner $Owner -UsesDarkMode $UsesDarkMode -Title '导出配置' -Prompt '基于当前已选设置创建配置文件。您可以选择要包含在导出中的设置类别。' -DisabledCategories $disabledCategories -CategoryDetails $categoryDetails -ActionLabel '导出设置'
+    $categories = Show-ImportExportConfigWindow -Owner $Owner -UsesDarkMode $UsesDarkMode -Title (Get-Translation -Key 'ImportExportExportTitle') -Prompt (Get-Translation -Key 'ImportExportExportPrompt') -DisabledCategories $disabledCategories -CategoryDetails $categoryDetails -ActionLabel (Get-Translation -Key 'ImportExportExportActionLabel')
     if (-not $categories) {
-        Write-Host '导出已取消。'
+        Write-Host '已取消导出。'
         return
     }
 
     $config = @{ Version = '1.0' }
 
-    if ($categories -contains '应用程序') {
+    if ($categories -contains 'Applications') {
         $config['Apps'] = @($selectedApps)
     }
-    if ($categories -contains '系统调整') {
+    if ($categories -contains 'System Tweaks') {
         $config['Tweaks'] = @($tweakSettings)
     }
-    if ($categories -contains '部署设置') {
+    if ($categories -contains 'Deployment Settings') {
         $config['Deployment'] = @($deploymentSettings)
     }
 
     # Show native save-file dialog
     $saveDialog = New-Object Microsoft.Win32.SaveFileDialog
-    $saveDialog.Title = '导出配置'
+    $saveDialog.Title = Get-Translation -Key 'ImportExportSelectExportFileDialogTitle'
     $saveDialog.Filter = 'JSON files (*.json)|*.json|All files (*.*)|*.*'
     $saveDialog.DefaultExt = '.json'
     $saveDialog.FileName = "Win11Debloat-Config-$(Get-Date -Format 'yyyyMMdd').json"
 
     if ($saveDialog.ShowDialog($Owner) -ne $true) {
-        Write-Host '导出保存对话框已取消。'
+        Write-Host '已取消选择导出保存位置。'
         return
     }
 
-    Write-Host "正在导出配置到 '$($saveDialog.FileName)'...（类别：$($categories -join '，')）"
+    Write-Host "正在将配置导出到 '$($saveDialog.FileName)'……（类别：$($categories -join ', ')）"
 
     if ($script:Params.ContainsKey("WhatIf")) {
-        Write-Host "[WhatIf] 导出配置到 '$($saveDialog.FileName)'" -ForegroundColor Cyan
-        Show-MessageBox -Message "[WhatIf] 配置将被导出到此文件（未写入文件）。" -Title '导出配置' -Button 'OK' -Icon 'Information' | Out-Null
+        Write-Host "[模拟运行] 将配置导出到 '$($saveDialog.FileName)'" -ForegroundColor Cyan
+        Show-MessageBox -Message (Get-Translation -Key 'ImportExportWhatIfExportMessage') -Title (Get-Translation -Key 'ImportExportExportTitle') -Button 'OK' -Icon 'Information' | Out-Null
         return
     }
 
     if (Save-ToFile -Config $config -FilePath $saveDialog.FileName) {
-        Write-Host "配置导出成功：$($saveDialog.FileName)"
-        Show-MessageBox -Message "配置导出成功。" -Title '导出配置' -Button 'OK' -Icon 'Information' | Out-Null
+        Write-Host "配置已成功导出：$($saveDialog.FileName)"
+        Show-MessageBox -Message (Get-Translation -Key 'ImportExportExportSuccessMessage') -Title (Get-Translation -Key 'ImportExportExportTitle') -Button 'OK' -Icon 'Information' | Out-Null
     }
     else {
-        Write-Error "导出配置到 '$($saveDialog.FileName)' 失败"
-        Show-MessageBox -Message "导出配置失败" -Title '错误' -Button 'OK' -Icon 'Error' | Out-Null
+        Write-Error "将配置导出到 '$($saveDialog.FileName)' 失败"
+        Show-MessageBox -Message (Get-Translation -Key 'ImportExportExportFailedMessage') -Title (Get-Translation -Key 'ErrorTitle') -Button 'OK' -Icon 'Error' | Out-Null
     }
 }
 
@@ -488,51 +526,46 @@ function Import-Configuration {
 
     # Show native open-file dialog
     $openDialog = New-Object Microsoft.Win32.OpenFileDialog
-    $openDialog.Title = '选择配置文件'
+    $openDialog.Title = Get-Translation -Key 'ImportExportSelectImportFileDialogTitle'
     $openDialog.Filter = 'JSON files (*.json)|*.json|All files (*.*)|*.*'
     $openDialog.DefaultExt = '.json'
 
     if ($openDialog.ShowDialog($Owner) -ne $true) {
-        Write-Host '导入文件对话框已取消。'
+        Write-Host '已取消选择导入文件。'
         return
     }
 
-    Write-Host "正在从 '$($openDialog.FileName)' 导入配置..."
+    Write-Host "正在从 '$($openDialog.FileName)' 导入配置……"
 
     $config = Import-JsonFile -filePath $openDialog.FileName -expectedVersion '1.0'
     if (-not $config) {
         Write-Error "读取配置文件 '$($openDialog.FileName)' 失败"
-        Show-MessageBox -Message "读取配置文件失败" -Title '无效配置' -Button 'OK' -Icon 'Error' | Out-Null
+        Show-MessageBox -Message (Get-Translation -Key 'ImportExportReadFailedMessage') -Title (Get-Translation -Key 'ImportExportInvalidConfigTitle') -Button 'OK' -Icon 'Error' | Out-Null
         return
     }
 
-    if (-not $config.Version) {
-        Write-Error "配置文件格式无效：'$($openDialog.FileName)'"
-        Show-MessageBox -Message "配置文件格式无效。" -Title '无效配置' -Button 'OK' -Icon 'Error' | Out-Null
+    $consistencyError = Test-ConfigConsistency -Config $config
+    if ($consistencyError) {
+        Write-Error "配置文件 '$($openDialog.FileName)' 无效：$consistencyError"
+        Show-MessageBox -Message (Get-Translation -Key 'ImportExportInvalidConfigMessage' -FormatArgs @($consistencyError)) -Title (Get-Translation -Key 'ImportExportInvalidConfigTitle') -Button 'OK' -Icon 'Error' | Out-Null
         return
     }
 
     $availableCategories = Get-AvailableImportExportCategories -Config $config
 
-    if ($availableCategories.Count -eq 0) {
-        Write-Warning "配置文件 '$($openDialog.FileName)' 不包含可导入的数据。"
-        Show-MessageBox -Message "所选文件不包含可导入的数据。" -Title '无效配置' -Button 'OK' -Icon 'Error' | Out-Null
-        return
-    }
-
-    Write-Host "配置中的可用类别：$($availableCategories -join '，')"
+    Write-Host "配置中的可用类别：$($availableCategories -join ', ')"
 
     $appCount = @($config.Apps | Where-Object { $_ -is [string] -and -not [string]::IsNullOrWhiteSpace($_) }).Count
     $tweakCount = @($config.Tweaks | Where-Object { $_ -and $_.Name -and $_.Value -eq $true }).Count
     $categoryDetails = Build-CategoryDetails -AppCount $appCount -TweakCount $tweakCount -DeploymentSettings @($config.Deployment)
 
-    $categories = Show-ImportExportConfigWindow -Owner $Owner -UsesDarkMode $UsesDarkMode -Title '导入配置' -Prompt '选择要导入的设置类别。您可以在应用前查看和修改导入的设置。' -Categories $availableCategories -CategoryDetails $categoryDetails -ActionLabel '导入设置'
+    $categories = Show-ImportExportConfigWindow -Owner $Owner -UsesDarkMode $UsesDarkMode -Title (Get-Translation -Key 'ImportExportImportTitle') -Prompt (Get-Translation -Key 'ImportExportImportPrompt') -Categories $availableCategories -CategoryDetails $categoryDetails -ActionLabel (Get-Translation -Key 'ImportExportImportActionLabel')
     if (-not $categories) {
-        Write-Host '导入已取消。'
+        Write-Host '已取消导入。'
         return
     }
 
-    if ($categories -contains '应用程序' -and $config.Apps) {
+    if ($categories -contains 'Applications' -and $config.Apps) {
         $appIds = @(
             $config.Apps | 
             Where-Object { $_ -is [string] } | 
@@ -540,25 +573,25 @@ function Import-Configuration {
             Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
         )
 
-        Write-Host "正在导入 $($appIds.Count) 个应用选择。"
+        Write-Host "正在导入 $($appIds.Count) 个应用的选择状态。"
         Set-ImportedApplications -AppsPanel $AppsPanel -AppIds $appIds
         
         if ($OnAppsImported) { 
             & $OnAppsImported
         }
     }
-    if ($categories -contains '系统调整' -and $config.Tweaks) {
+    if ($categories -contains 'System Tweaks' -and $config.Tweaks) {
         $tweakCount = @($config.Tweaks).Count
-        Write-Host "正在导入 $tweakCount 项调整。"
+        Write-Host "正在导入 $tweakCount 项系统调整。"
         Set-ImportedTweakSettings -Owner $Owner -UiControlMappings $UiControlMappings -TweakSettings @($config.Tweaks)
     }
-    if ($categories -contains '部署设置' -and $config.Deployment) {
+    if ($categories -contains 'Deployment Settings' -and $config.Deployment) {
         Write-Host '正在导入部署设置。'
         Set-ImportedDeploymentSettings -Owner $Owner -UserSelectionCombo $UserSelectionCombo -OtherUsernameTextBox $OtherUsernameTextBox -DeploymentSettings @($config.Deployment)
     }
 
-    Write-Host '配置导入成功。'
-    Show-MessageBox -Message "配置导入成功。" -Title '导入配置' -Button 'OK' -Icon 'Information' | Out-Null
+    Write-Host '配置已成功导入。'
+    Show-MessageBox -Message (Get-Translation -Key 'ImportExportImportSuccessMessage') -Title (Get-Translation -Key 'ImportExportImportTitle') -Button 'OK' -Icon 'Information' | Out-Null
 
     if ($OnImportCompleted) {
         & $OnImportCompleted $categories

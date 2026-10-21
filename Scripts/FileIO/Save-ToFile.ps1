@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
         Serializes a configuration hashtable to a UTF-8 JSON file.
 
@@ -27,10 +27,13 @@ function Save-ToFile {
     )
 
     try {
-        $Config | ConvertTo-Json -Depth $MaxDepth | Set-Content -Path $FilePath -Encoding UTF8
+        $directory = Split-Path -Parent $FilePath
+        if ($directory) { [void][System.IO.Directory]::CreateDirectory($directory) }
+        $Config | ConvertTo-Json -Depth $MaxDepth | Set-Content -Path $FilePath -Encoding UTF8 -ErrorAction Stop
         return $true
     }
     catch {
+        Write-Error "写入 '$FilePath' 失败：$($_.Exception.Message)"
         return $false
     }
 }

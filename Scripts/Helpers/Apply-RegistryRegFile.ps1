@@ -11,27 +11,44 @@
     return [string]$ValueName
 }
 
+<#
+    .SYNOPSIS
+        Converts a parsed .reg operation into a Name/Kind/Value set for RegistryKey.SetValue.
+#>
 function Convert-RegOperationToValueKind {
     param(
         [Parameter(Mandatory)]
         $Operation
     )
 
-    $valueName = if ([string]::IsNullOrEmpty([string]$Operation.ValueName)) { '' } else { [string]$Operation.ValueName }
+    $valueName = Get-NormalizedRegistryValueName -ValueName $Operation.ValueName
     $valueType = [string]$Operation.ValueType
     $operationKeyPath = [string]$Operation.KeyPath
 
+    # ValueType here is whatever Get-RegFileOperations parsed it as.
+    # Hex2/Hex7 are its names for REG_EXPAND_SZ/REG_MULTI_SZ, already decoded to string/string[].
     switch ($valueType) {
         'DWord' {
             $unsigned = [uint32]$Operation.ValueData
             $value = [BitConverter]::ToInt32([BitConverter]::GetBytes($unsigned), 0)
             return @{ Name = $valueName; Kind = [Microsoft.Win32.RegistryValueKind]::DWord; Value = $value }
         }
+        'QWord' {
+            $unsigned = [uint64]$Operation.ValueData
+            $value = [BitConverter]::ToInt64([BitConverter]::GetBytes($unsigned), 0)
+            return @{ Name = $valueName; Kind = [Microsoft.Win32.RegistryValueKind]::QWord; Value = $value }
+        }
         'String' {
             return @{ Name = $valueName; Kind = [Microsoft.Win32.RegistryValueKind]::String; Value = [string]$Operation.ValueData }
         }
+        'Hex2' {
+            return @{ Name = $valueName; Kind = [Microsoft.Win32.RegistryValueKind]::ExpandString; Value = [string]$Operation.ValueData }
+        }
         'Binary' {
             return @{ Name = $valueName; Kind = [Microsoft.Win32.RegistryValueKind]::Binary; Value = [byte[]]$Operation.ValueData }
+        }
+        'Hex7' {
+            return @{ Name = $valueName; Kind = [Microsoft.Win32.RegistryValueKind]::MultiString; Value = [string[]]@($Operation.ValueData) }
         }
         default {
             throw "对 '$operationKeyPath' 应用 reg 操作时遇到不支持的值类型 '$valueType'"
@@ -174,6 +191,13 @@ function Invoke-RegistryOperation {
     }
 }
 
+<#
+    .SYNOPSIS
+    Applies all parsed operations from a registry file.
+
+    .OUTPUTS
+    System.Boolean. $true when all operations complete, including WhatIf; otherwise $false.
+#>
 function Invoke-RegistryOperationsFromRegFile {
     param(
         [Parameter(Mandatory)]
@@ -186,7 +210,7 @@ function Invoke-RegistryOperationsFromRegFile {
 
     if ($script:Params.ContainsKey("WhatIf")) {
         Write-Host "[WhatIf] 从 '$RegFilePath' 应用 $totalOperations 项注册表更改" -ForegroundColor Cyan
-        return
+        return $true
     }
 
     foreach ($operation in $operations) {
@@ -205,5 +229,8 @@ function Invoke-RegistryOperationsFromRegFile {
 
     if ($accessDeniedCount -gt 0) {
         Write-Warning "注册表回退导入已完成，'$RegFilePath' 中有 $accessDeniedCount 个受访问限制的操作被跳过。"
+        return $false
     }
+
+    return $true
 }

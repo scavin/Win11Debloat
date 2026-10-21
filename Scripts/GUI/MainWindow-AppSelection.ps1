@@ -142,6 +142,15 @@ function Update-AppsPanelSort {
     }
 }
 
+<#
+    .SYNOPSIS
+        Updates the "N apps selected" status text and shows or hides the app-removal scope section.
+
+    .DESCRIPTION
+        The scope section only makes sense once at least one app is selected, so it's hidden
+        entirely at zero and its description text is refreshed via Update-AppRemovalScopeDescription
+        whenever the selection count changes.
+#>
 function Update-AppSelectionStatus {
     param(
         [System.Windows.Controls.Panel]$AppsPanel,
@@ -158,7 +167,7 @@ function Update-AppSelectionStatus {
             $selectedCount++
         }
     }
-    $AppSelectionStatus.Text = "已选择 $selectedCount 个应用进行移除"
+    $AppSelectionStatus.Text = Get-Translation -Key 'AppSelectionStatusSelected' -Count $selectedCount -FormatArgs @($selectedCount)
 
     if ($AppRemovalScopeCombo -and $AppRemovalScopeSection -and $AppRemovalScopeDescription) {
         if ($selectedCount -gt 0) {
@@ -174,6 +183,10 @@ function Update-AppSelectionStatus {
     }
 }
 
+<#
+    .SYNOPSIS
+        Updates the app-removal scope description to match the selected ComboBoxItem.
+#>
 function Update-AppRemovalScopeDescription {
     param(
         [System.Windows.Controls.ComboBox]$AppRemovalScopeCombo,
@@ -182,16 +195,56 @@ function Update-AppRemovalScopeDescription {
 
     $selectedItem = $AppRemovalScopeCombo.SelectedItem
     if ($selectedItem) {
-        switch ($selectedItem.Content) {
-            "All users" {
-                $AppRemovalScopeDescription.Text = "应用将从所有用户和 Windows 映像中移除，以防止新用户重新安装。"
+        # Content is the display text and will change once translated; Name is stable.
+        switch ($selectedItem.Name) {
+            "AppRemovalScopeAllUsers" {
+                $AppRemovalScopeDescription.Text = Get-Translation -Key 'AppRemovalScopeDescriptionAllUsers'
             }
-            "Current user only" {
-                $AppRemovalScopeDescription.Text = "应用将仅对当前用户移除。"
+            "AppRemovalScopeCurrentUser" {
+                $AppRemovalScopeDescription.Text = Get-Translation -Key 'AppRemovalScopeDescriptionCurrentUser'
             }
-            "Target user only" {
-                $AppRemovalScopeDescription.Text = "应用将仅对指定的目标用户移除。"
+            "AppRemovalScopeTargetUser" {
+                $AppRemovalScopeDescription.Text = Get-Translation -Key 'AppRemovalScopeDescriptionTargetUser'
             }
+        }
+    }
+}
+
+<#
+    .SYNOPSIS
+        Tests whether the app-removal scope combo is currently set to "Target user only".
+#>
+function Test-AppRemovalScopeTargetsOtherUser {
+    param(
+        [System.Windows.Controls.ComboBox]$AppRemovalScopeCombo
+    )
+
+    return ($AppRemovalScopeCombo -and $AppRemovalScopeCombo.SelectedItem -and $AppRemovalScopeCombo.SelectedItem.Name -eq 'AppRemovalScopeTargetUser')
+}
+
+<#
+    .SYNOPSIS
+        Resolves the -AppRemovalTarget value for the selected app-removal scope.
+#>
+function Get-AppRemovalScopeTarget {
+    param(
+        [System.Windows.Controls.ComboBox]$AppRemovalScopeCombo,
+        [System.Windows.Controls.TextBox]$OtherUsernameTextBox
+    )
+
+    $selectedItem = $AppRemovalScopeCombo.SelectedItem
+    if (-not $selectedItem) { return $null }
+
+    if (Test-AppRemovalScopeTargetsOtherUser -AppRemovalScopeCombo $AppRemovalScopeCombo) {
+        return $OtherUsernameTextBox.Text.Trim()
+    }
+
+    switch ($selectedItem.Name) {
+        "AppRemovalScopeAllUsers" { return 'AllUsers' }
+        "AppRemovalScopeCurrentUser" { return 'CurrentUser' }
+        default {
+            Write-Warning "无法识别应用卸载范围项 '$($selectedItem.Name)'，跳过应用卸载。"
+            return $null
         }
     }
 }
@@ -338,27 +391,15 @@ function Add-AppsToMainWindow {
 
     $script:MainWindowLastSelectedCheckbox = $null
 
-    $loaderScriptPath = $script:LoadAppsDetailsScriptPath
-    $helperScriptPath = $script:TestAppInWingetListScriptPath
-    $appsFilePath = $script:AppsListFilePath
     $onlyInstalled = [bool]$OnlyInstalledAppsBox.IsChecked
 
-    # Use preloaded data if available; otherwise load in background job
+    # Use preloaded data if available; otherwise load in a background job to keep the UI responsive.
     if (-not $onlyInstalled -and $script:PreloadedAppData) {
         $rawAppData = $script:PreloadedAppData
         $script:PreloadedAppData = $null
     }
     else {
-        # Load apps details in a background job to keep the UI responsive.
-        # The helper is dot-sourced inside the job because the runspace
-        # does not inherit the parent scope's dot-sourced functions.
-        $rawAppData = Invoke-NonBlocking -ScriptBlock {
-            param($loaderScript, $helperScript, $appsListFilePath, $installedList, $onlyInstalled)
-            $script:AppsListFilePath = $appsListFilePath
-            . $helperScript
-            . $loaderScript
-            Import-AppDetailsFromJson -OnlyInstalled:$onlyInstalled -InstalledList $installedList -InitialCheckedFromJson:$false
-        } -ArgumentList $loaderScriptPath, $helperScriptPath, $appsFilePath, $ListOfApps, $onlyInstalled
+        $rawAppData = Invoke-AppDetailsFromJsonAsync -OnlyInstalled:$onlyInstalled -InstalledList $ListOfApps
     }
 
     $appsToAdd = @($rawAppData | Where-Object { $_ -and ($_.AppId -or $_.FriendlyName) } | Sort-Object -Property FriendlyName)
@@ -390,7 +431,7 @@ function Add-AppsToMainWindow {
         $checkbox.IsChecked = $app.IsChecked
         $checkbox.Style = $Window.Resources['AppsPanelCheckBoxStyle']
 
-        # Build table row: Recommendation dot | Name | Description | App ID
+        # Build table row: Recommendation indicator | Name | Description | App ID
         $row = New-Object System.Windows.Controls.Grid
         $row.Style = $Window.Resources['AppTableRowStyle']
         $c0 = New-Object System.Windows.Controls.ColumnDefinition; $c0.Width = $Window.Resources['AppTableDotColWidth']
@@ -400,15 +441,30 @@ function Add-AppsToMainWindow {
         $row.ColumnDefinitions.Add($c0); $row.ColumnDefinitions.Add($c1)
         $row.ColumnDefinitions.Add($c2); $row.ColumnDefinitions.Add($c3)
 
-        $dot = New-Object System.Windows.Shapes.Ellipse
-        $dot.Style = $Window.Resources['AppRecommendationDotStyle']
-        $dot.Fill = switch ($app.Recommendation) { 'safe' { $brushSafe } 'unsafe' { $brushUnsafe } default { $brushDefault } }
-        $dot.ToolTip = switch ($app.Recommendation) {
-            'safe'   { '[推荐] 对大多数用户来说可以安全移除' }
-            'unsafe' { '[不推荐] 仅在您了解后果时才移除' }
-            default  { '[可选] 如果不需要此应用，可以安全移除' }
+        $indicator = switch ($app.Recommendation) {
+            'safe' { New-Object System.Windows.Shapes.Ellipse }
+            'unsafe' {
+                $triangle = New-Object System.Windows.Shapes.Polygon
+                $triangle.Points = [System.Windows.Media.PointCollection]::Parse('0,9 4.5,0 9,9')
+                $triangle.Stretch = 'Fill'
+                $triangle
+            }
+            default {
+                $diamond = New-Object System.Windows.Shapes.Polygon
+                $diamond.Points = [System.Windows.Media.PointCollection]::Parse('4.5,0 9,4.5 4.5,9 0,4.5')
+                $diamond.Stretch = 'Fill'
+                $diamond
+            }
         }
-        [System.Windows.Controls.Grid]::SetColumn($dot, 0)
+        $indicator.Style = $Window.Resources['AppRecommendationIndicatorStyle']
+        $indicator.Fill = switch ($app.Recommendation) { 'safe' { $brushSafe } 'unsafe' { $brushUnsafe } default { $brushDefault } }
+        $recommendationKey = switch ($app.Recommendation) {
+            'safe'   { 'AppLegendRecommendedTooltip' }
+            'unsafe' { 'AppLegendNotRecommendedTooltip' }
+            default  { 'AppLegendOptionalTooltip' }
+        }
+        $indicator.SetResourceReference([System.Windows.FrameworkElement]::ToolTipProperty, "Language_$recommendationKey")
+        [System.Windows.Controls.Grid]::SetColumn($indicator, 0)
 
         $tbName = New-Object System.Windows.Controls.TextBlock
         $tbName.Text = $app.FriendlyName
@@ -427,7 +483,7 @@ function Add-AppsToMainWindow {
         $tbId.ToolTip = $app.AppIdDisplay
         [System.Windows.Controls.Grid]::SetColumn($tbId, 3)
 
-        $row.Children.Add($dot) | Out-Null
+        $row.Children.Add($indicator) | Out-Null
         $row.Children.Add($tbName) | Out-Null
         $row.Children.Add($tbDesc) | Out-Null
         $row.Children.Add($tbId) | Out-Null
@@ -438,6 +494,8 @@ function Add-AppsToMainWindow {
         Add-Member -InputObject $checkbox -MemberType NoteProperty -Name 'SelectedByDefault' -Value $app.SelectedByDefault
         Add-Member -InputObject $checkbox -MemberType NoteProperty -Name 'AppIds' -Value @($app.AppId)
         Add-Member -InputObject $checkbox -MemberType NoteProperty -Name 'AppIdDisplay' -Value $app.AppIdDisplay
+        Add-Member -InputObject $checkbox -MemberType NoteProperty -Name 'AppNameText' -Value $tbName
+        Add-Member -InputObject $checkbox -MemberType NoteProperty -Name 'AppDescriptionText' -Value $tbDesc
 
         $checkbox.Add_Checked({
             $w = $script:MainWindow
@@ -533,6 +591,8 @@ function Initialize-MainWindowApps {
     # Prevent concurrent loads
     if ($script:IsLoadingApps) { return }
     $script:IsLoadingApps = $true
+    $settingsButton = $Window.FindName('SettingsBtn')
+    if ($settingsButton) { $settingsButton.IsEnabled = $false }
 
     if ($ImportConfigBtn) {
         $ImportConfigBtn.IsEnabled = $false
@@ -559,12 +619,12 @@ function Initialize-MainWindowApps {
                 $listOfApps = $null
 
                 if ($OnlyInstalledAppsBox.IsChecked -and ($script:WingetInstalled -eq $true)) {
-                    Write-Host "正在通过 WinGet 获取已安装应用..."
+                    Write-Host "正在通过 WinGet 获取已安装的应用……"
                     $listOfApps = Get-WingetInstalledApps -TimeOut 20 -NonBlocking
 
                     if ($null -eq $listOfApps) {
-                        Write-Warning "WinGet 未返回数据（命令超时或失败）"
-                        Show-MessageBox -Message '无法通过 WinGet 加载已安装应用列表。' -Title '错误' -Button 'OK' -Icon 'Error' | Out-Null
+                        Write-Warning "WinGet 未返回数据（命令超时或执行失败）"
+                        Show-MessageBox -Message (Get-Translation -Key 'AppSelectionWinGetLoadFailedMessage') -Title (Get-Translation -Key 'ErrorTitle') -Button 'OK' -Icon 'Error' | Out-Null
                         $OnlyInstalledAppsBox.IsChecked = $false
                     }
                 }
@@ -581,6 +641,8 @@ function Initialize-MainWindowApps {
             }
             finally {
                 $script:IsLoadingApps = $false
+                $settingsButton = $Window.FindName('SettingsBtn')
+                if ($settingsButton) { $settingsButton.IsEnabled = $true }
             }
         }) | Out-Null
 }

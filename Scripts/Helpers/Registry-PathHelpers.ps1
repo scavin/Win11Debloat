@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
         Normalizes a rooted registry path and returns its hive and subkey components.
 #>

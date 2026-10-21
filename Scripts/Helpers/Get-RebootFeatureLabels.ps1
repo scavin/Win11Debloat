@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
     Resolves display labels for selected features that require reboot.
 
@@ -15,7 +15,7 @@ function Get-RebootFeatureLabels {
         if ($script:Features.ContainsKey($paramKey) -and $script:Features[$paramKey].RequiresReboot -eq $true) {
             $feature = $script:Features[$paramKey]
             $isUndo = $script:UndoParams.ContainsKey($paramKey)
-            $displayLabel = if ($isUndo -and $feature.UndoLabel) { $feature.UndoLabel } else { $feature.Label }
+            $displayLabel = if ($isUndo -and $feature.UndoLabel) { Get-Translation -Key $paramKey -Field 'UndoLabel' -Section 'Features' } else { Get-Translation -Key $paramKey -Field 'Label' -Section 'Features' }
 
             if (-not [string]::IsNullOrWhiteSpace([string]$displayLabel)) {
                 [void]$rebootFeatureLabels.Add([string]$displayLabel)

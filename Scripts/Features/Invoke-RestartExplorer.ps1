@@ -23,7 +23,7 @@ function Invoke-RestartExplorer {
         Write-Host "警告：“$displayLabel”需要重启电脑才能完全生效" -ForegroundColor Yellow
     }
 
-    # Only restart if the powershell process matches the OS architecture.
+    # Only restart if the PowerShell process matches the OS architecture.
     # Restarting explorer from a 32bit PowerShell window will fail on a 64bit OS
     if ([Environment]::Is64BitProcess -eq [Environment]::Is64BitOperatingSystem) {
         Write-Host "正在重启 Windows 资源管理器进程...（这可能会导致屏幕闪烁）"

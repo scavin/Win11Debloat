@@ -7,9 +7,9 @@ function Show-CliDefaultModeAppRemovalOptions {
 
     Do {
         Write-Host "选项：" -ForegroundColor Yellow
-        Write-Host " (n) 不移除任何应用" -ForegroundColor Yellow
-        Write-Host " (1) 仅移除默认选择的应用" -ForegroundColor Yellow
-        Write-Host " (2) 手动选择要移除的应用" -ForegroundColor Yellow
+        Write-Host " (n) 不卸载任何应用" -ForegroundColor Yellow
+        Write-Host " (1) 仅卸载默认选择的应用" -ForegroundColor Yellow
+        Write-Host " (2) 手动选择要卸载的应用" -ForegroundColor Yellow
         $RemoveAppsInput = Read-Host "是否要移除应用？应用将为所有用户移除 (n/1/2)"
 
         # Show app selection form if user entered option 3

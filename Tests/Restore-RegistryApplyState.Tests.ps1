@@ -9,11 +9,11 @@ Describe 'Convert-RegistryValueKindFromBackup' {
     }
 
     It '<Case>' -ForEach @(
-        @{ Case = 'parses registry kinds case-insensitively'; KindName = 'dword'; Expected = [Microsoft.Win32.RegistryValueKind]::DWord; ExpectedError = $null }
-        @{ Case = 'rejects an invalid registry kind'; KindName = 'NotARegistryValueKind'; Expected = $null; ExpectedError = '备份中不支持的注册表值类型：NotARegistryValueKind' }
+        @{ Case = 'parses registry kinds case-insensitively'; KindName = 'dword'; Expected = [Microsoft.Win32.RegistryValueKind]::DWord; Reject = $false }
+        @{ Case = 'rejects an invalid registry kind'; KindName = 'NotARegistryValueKind'; Expected = $null; Reject = $true }
     ) {
-        if ($ExpectedError) {
-            { Convert-RegistryValueKindFromBackup -KindName $KindName } | Should -Throw $ExpectedError
+        if ($Reject) {
+            { Convert-RegistryValueKindFromBackup -KindName $KindName } | Should -Throw
         }
         else {
             Convert-RegistryValueKindFromBackup -KindName $KindName | Should -Be $Expected
@@ -48,7 +48,7 @@ Describe 'Convert-RegistryValueDataFromBackup' {
 
     It 'rejects binary backup data that cannot be represented as bytes' {
         { Convert-RegistryValueDataFromBackup -Kind ([Microsoft.Win32.RegistryValueKind]::Binary) -Data @(-1, 256, 'invalid') } |
-            Should -Throw '备份中的二进制注册表数据无效*'
+            Should -Throw
     }
 
     It 'preserves an empty binary value as a byte array' {

@@ -27,18 +27,18 @@ function Show-RestoreBackupWindow {
         if ($dialogResult.Result -eq 'RestoreRegistry') {
             $backup = $dialogResult.Backup
             if (-not $backup) {
-                throw '请求恢复注册表备份但未选择备份。'
+                throw '请求恢复注册表备份，但尚未选择备份。'
             }
 
-            Write-Host "用户确认恢复 $($backup.Target) 的注册表。"
+            Write-Host "用户已确认恢复注册表，目标：$($backup.Target)。"
             $restoreOpResult = Restore-RegistryBackupState -Backup $backup
             if ($restoreOpResult -and $restoreOpResult.Result) {
                 $restoreResult.RestoredRegistry = $true
                 if ($script:Params.ContainsKey("WhatIf")) {
-                    $successMessage = '[WhatIf] 注册表备份将被恢复（未做任何更改）。'
+                    $successMessage = Get-Translation -Key 'RestoreRegistryWhatIfMessage'
                 }
                 else {
-                    $successMessage = '注册表备份恢复成功。部分更改可能需要重启才能生效。'
+                    $successMessage = Get-Translation -Key 'RestoreRegistrySuccessMessage'
                 }
             }
         }
@@ -54,7 +54,7 @@ function Show-RestoreBackupWindow {
             }
 
             if ($useManualBackupFile -and [string]::IsNullOrWhiteSpace($backupFilePath)) {
-                throw '开始菜单恢复已取消：未选择备份文件。'
+                throw '已取消恢复开始菜单：未选择备份文件。'
             }
 
             $result = if ($scope -eq 'AllUsers') {
@@ -70,22 +70,22 @@ function Show-RestoreBackupWindow {
 
             if ($successCount -eq 0) {
                 $errorSummary = ($resultEntries | ForEach-Object { $_.Message }) -join [Environment]::NewLine
-                throw "恢复开始菜单备份失败。`n$errorSummary"
+                throw (Get-Translation -Key 'RestoreStartMenuFailedMessage' -FormatArgs @($errorSummary))
             }
 
             if ($failedEntries.Count -gt 0) {
                 $failureSummary = ($failedEntries | ForEach-Object { $_.Message }) -join [Environment]::NewLine
-                $warningMessage = "已成功为 $successCount 个用户恢复开始菜单备份。`n部分用户无法恢复：`n$failureSummary"
+                $warningMessage = Get-Translation -Key 'RestoreStartMenuPartialSuccessMessage' -FormatArgs @($successCount, $failureSummary)
             }
             else {
                 if ($script:Params.ContainsKey("WhatIf")) {
-                    $successMessage = '[WhatIf] 开始菜单备份将被恢复（未做任何更改）。'
+                    $successMessage = Get-Translation -Key 'RestoreStartMenuWhatIfMessage'
                 }
                 elseif ($scope -eq 'AllUsers') {
-                    $successMessage = "已成功为所有用户恢复开始菜单备份。更改将在用户下次登录时生效。"
+                    $successMessage = Get-Translation -Key 'RestoreStartMenuAllUsersSuccessMessage'
                 }
                 else {
-                    $successMessage = "已成功为当前用户恢复开始菜单备份。更改将在您下次登录时生效。"
+                    $successMessage = Get-Translation -Key 'RestoreStartMenuCurrentUserSuccessMessage'
                 }
             }
 
@@ -94,19 +94,19 @@ function Show-RestoreBackupWindow {
 
         if ($warningMessage) {
             Write-Host "$warningMessage"
-            Show-MessageBox -Title '备份已恢复' -Message $warningMessage -Icon Warning
+            Show-MessageBox -Title (Get-Translation -Key 'RestoreBackupRestoredTitle') -Message $warningMessage -Icon Warning
         }
         elseif ($successMessage) {
             Write-Host "$successMessage"
-            Show-MessageBox -Title '备份已恢复' -Message $successMessage -Icon Success
+            Show-MessageBox -Title (Get-Translation -Key 'RestoreBackupRestoredTitle') -Message $successMessage -Icon Success
         }
 
         return $restoreResult
     }
     catch {
-        $errorMessage = if ($_.Exception.Message) { $_.Exception.Message } else { '发生意外错误。' }
+        $errorMessage = if ($_.Exception.Message) { $_.Exception.Message } else { Get-Translation -Key 'RestoreUnexpectedError' }
         Write-Error "恢复操作失败：$errorMessage"
-        Show-MessageBox -Title '错误' -Message "恢复失败：$errorMessage" -Icon Error
+        Show-MessageBox -Title (Get-Translation -Key 'ErrorTitle') -Message (Get-Translation -Key 'RestoreOperationFailedMessage' -FormatArgs @($errorMessage)) -Icon Error
         return [PSCustomObject]@{
             RestoredRegistry = $false
             RestoredStartMenu = $false

@@ -1,4 +1,4 @@
-# MainWindow-WindowChrome.ps1
+﻿# MainWindow-WindowChrome.ps1
 # Window sizing, DPI-aware coordinate conversion, and UI animations.
 
 # Convert screen-pixel coordinates to WPF device-independent pixels (DIP)

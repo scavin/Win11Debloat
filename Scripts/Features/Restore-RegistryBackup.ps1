@@ -21,14 +21,14 @@ function Import-RegistryBackup {
     )
 
     if (-not (Test-Path -LiteralPath $FilePath)) {
-        throw "未找到备份文件：$FilePath"
+        throw (Get-Translation -Key 'BackupFileNotFound' -FormatArgs @($FilePath))
     }
 
     try {
         $rawBackup = Get-Content -LiteralPath $FilePath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     }
     catch {
-        throw "无法读取备份文件 '$FilePath'。该文件不是有效的 JSON。"
+        throw (Get-Translation -Key 'BackupFileNotValidJson' -FormatArgs @($FilePath))
     }
 
     return ConvertTo-NormalizedRegistryBackup -Backup $rawBackup
@@ -61,22 +61,22 @@ function ConvertTo-NormalizedRegistryBackup {
     $errors = New-Object System.Collections.Generic.List[string]
 
     if (-not $Backup.PSObject.Properties['Version']) {
-        $errors.Add('缺少属性：Version')
+        $errors.Add((Get-Translation -Key 'BackupMissingProperty' -FormatArgs @('Version')))
     }
     elseif ([string]$Backup.Version -ne '1.0') {
-        $errors.Add("不支持的备份版本 '$($Backup.Version)'。")
+        $errors.Add((Get-Translation -Key 'BackupUnsupportedVersion' -FormatArgs @($Backup.Version)))
     }
 
     if (-not $Backup.PSObject.Properties['BackupType']) {
-        $errors.Add('缺少属性：BackupType')
+        $errors.Add((Get-Translation -Key 'BackupMissingProperty' -FormatArgs @('BackupType')))
     }
     elseif ([string]$Backup.BackupType -ne 'RegistryState') {
-        $errors.Add("不支持的备份类型 '$($Backup.BackupType)'。")
+        $errors.Add((Get-Translation -Key 'BackupUnsupportedType' -FormatArgs @($Backup.BackupType)))
     }
 
     $normalizedTarget = ''
     if (-not $Backup.PSObject.Properties['Target'] -or [string]::IsNullOrWhiteSpace([string]$Backup.Target)) {
-        $errors.Add('缺少属性：Target')
+        $errors.Add((Get-Translation -Key 'BackupMissingProperty' -FormatArgs @('Target')))
     }
     else {
         $normalizedTarget = [string]$Backup.Target
@@ -88,27 +88,27 @@ function ConvertTo-NormalizedRegistryBackup {
             $targetUserName = $normalizedTarget.Substring(5)
             $targetValidation = Test-TargetUserName -UserName $targetUserName
             if (-not $targetValidation.IsValid) {
-                $errors.Add("无效的用户 '$normalizedTarget'")
+                $errors.Add((Get-Translation -Key 'BackupInvalidUser' -FormatArgs @($normalizedTarget)))
             }
         }
         elseif ($normalizedTarget -like 'CurrentUser:*') {
             $targetCurrentUserName = $normalizedTarget.Substring(12)
             if (Test-RunningAsSystem) {
-                $errors.Add("此备份为用户 '$targetCurrentUserName' 创建且仅适用于该用户。请以该用户身份重新运行；SYSTEM 无法恢复 CurrentUser 备份。")
+                $errors.Add((Get-Translation -Key 'BackupUserScopedWrongContext' -FormatArgs @($targetCurrentUserName)))
             }
             elseif ([string]::IsNullOrWhiteSpace($targetCurrentUserName) -or
                 -not (Test-UserNameMatch -UserNameA $targetCurrentUserName -UserNameB $env:USERNAME)) {
-                 $errors.Add("备份是为 '$targetCurrentUserName' 创建的，与当前用户 '$env:USERNAME' 不匹配。")
+                 $errors.Add((Get-Translation -Key 'BackupUserMismatch' -FormatArgs @($targetCurrentUserName, $env:USERNAME)))
             }
         }
         else {
-            $errors.Add("不支持的目标 '$normalizedTarget'。")
+            $errors.Add((Get-Translation -Key 'BackupUnsupportedTarget' -FormatArgs @($normalizedTarget)))
         }
     }
 
     $registryKeys = @()
     if (-not $Backup.PSObject.Properties['RegistryKeys']) {
-        $errors.Add('缺少属性：RegistryKeys')
+        $errors.Add((Get-Translation -Key 'BackupMissingProperty' -FormatArgs @('RegistryKeys')))
     }
     else {
         $registryKeys = @($Backup.RegistryKeys)
@@ -133,7 +133,7 @@ function ConvertTo-NormalizedRegistryBackup {
 
     $allSelectedFeatures = @($selectedFeatures) + @($selectedUndoFeatures)
     if ($allSelectedFeatures.Count -eq 0) {
-        $errors.Add('备份必须在 SelectedFeatures 或 SelectedUndoFeatures 中包含至少一个功能 ID。')
+        $errors.Add((Get-Translation -Key 'BackupMissingSelectedFeatures'))
     }
     else {
         try {
@@ -143,17 +143,17 @@ function ConvertTo-NormalizedRegistryBackup {
             }
         }
         catch {
-            $errors.Add("验证备份失败：$($_.Exception.Message)")
+            $errors.Add((Get-Translation -Key 'BackupAllowlistValidationFailed' -FormatArgs @($_.Exception.Message)))
         }
     }
 
     if ($errors.Count -gt 0) {
         Write-Error "备份验证失败：$($errors -join ' ')"
         if ($errors.Count -eq 1) {
-            throw ("验证失败：$($errors[0])")
+            throw (Get-Translation -Key 'BackupValidationSingleError' -FormatArgs @($errors[0]))
         }
         else {
-            throw ("验证失败，共 $($errors.Count) 个错误。详情请参见控制台输出。")
+            throw (Get-Translation -Key 'BackupValidationMultipleErrors' -FormatArgs @($errors.Count))
         }
     }
 

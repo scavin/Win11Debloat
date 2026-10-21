@@ -1,4 +1,4 @@
-# Processes all pending WPF window messages (input, render, etc.) to keep the UI responsive
+﻿# Processes all pending WPF window messages (input, render, etc.) to keep the UI responsive
 # during long-running operations on the UI thread. Equivalent to Application.Invoke-DoEvents().
 function Invoke-DoEvents {
     if (-not $script:GuiWindow) { return }

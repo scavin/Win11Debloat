@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
         Attaches shift-click range-selection behavior to an application checkbox.
 

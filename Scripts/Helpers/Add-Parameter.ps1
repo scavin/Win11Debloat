@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
         Adds or updates a value in the active parameter collection.
 #>

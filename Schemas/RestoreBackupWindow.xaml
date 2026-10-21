@@ -1,6 +1,6 @@
-﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="还原备份"
+        Title="%LANG:RestoreWindowTitle%"
         Width="500"
         SizeToContent="Height"
         MaxHeight="560"
@@ -63,7 +63,7 @@
 
             <Grid Grid.Row="0" x:Name="TitleBar" Style="{DynamicResource ModalTitleBarStyle}">
                 <TextBlock x:Name="TitleText"
-                           Text="还原备份"
+                           Text="%LANG:RestoreWindowTitle%"
                            Style="{DynamicResource ModalTitleTextStyle}"/>
             </Grid>
 
@@ -72,8 +72,8 @@
                     Width="36" Height="32"
                     BorderThickness="0"
                     Cursor="Hand"
-                    ToolTip="关闭"
-                    AutomationProperties.Name="关闭">
+                    ToolTip="%LANG:TitleBarClose%"
+                    AutomationProperties.Name="%LANG:TitleBarClose%">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" BorderThickness="0" CornerRadius="0,8,0,0">
@@ -122,7 +122,7 @@
                                    FontSize="14"
                                    LineHeight="20"
                                    Foreground="{DynamicResource AppFgColor}"
-                                   Text="选择您想要还原的更改。"/>
+                                   Text="%LANG:RestoreSelectTypePrompt%"/>
 
                         <Button x:Name="ChooseRegistryBtn"
                                 Grid.Row="1"
@@ -142,10 +142,10 @@
                                 <StackPanel Grid.Column="1"
                                             VerticalAlignment="Center"
                                             Margin="0,0,12,0">
-                                    <TextBlock Text="还原注册表备份"
+                                    <TextBlock Text="%LANG:RestoreChooseRegistryTitle%"
                                                FontSize="16"
                                                FontWeight="SemiBold"/>
-                                    <TextBlock Text="从备份还原系统注册表配置"
+                                    <TextBlock Text="%LANG:RestoreChooseRegistryDescription%"
                                                FontSize="12"
                                                Opacity="0.75"
                                                TextWrapping="Wrap"
@@ -172,10 +172,10 @@
                                 <StackPanel Grid.Column="1"
                                             VerticalAlignment="Center"
                                             Margin="0,0,12,0">
-                                    <TextBlock Text="还原开始菜单备份"
+                                    <TextBlock Text="%LANG:RestoreChooseStartMenuTitle%"
                                                FontSize="16"
                                                FontWeight="SemiBold"/>
-                                    <TextBlock Text="从备份还原开始菜单固定应用布局"
+                                    <TextBlock Text="%LANG:RestoreChooseStartMenuDescription%"
                                                FontSize="12"
                                                Opacity="0.75"
                                                TextWrapping="Wrap"
@@ -204,7 +204,7 @@
                                        FontSize="14"
                                        LineHeight="20"
                                        Foreground="{DynamicResource AppFgColor}"
-                                       Text="这将把 Win11Debloat 所做的所有系统注册表更改还原到之前的状态。您可以在选择备份文件后查看更改内容。已卸载的应用需要手动重新安装。"/>
+                                       Text="%LANG:RestoreRegistryIntro%"/>
 
                             <TextBlock Grid.Row="1"
                                        Margin="0,12,0,2"
@@ -212,7 +212,7 @@
                                        FontSize="13"
                                        Foreground="{DynamicResource AppFgColor}"
                                        Opacity="0.75"
-                                       Text="警告：仅使用 Win11Debloat 生成的备份文件。"/>
+                                       Text="%LANG:RestoreRegistryWarning%"/>
                         </Grid>
 
                         <Grid x:Name="OverviewPanel" Grid.Row="1" Margin="0" Visibility="Collapsed">
@@ -237,14 +237,14 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="文件：" Style="{DynamicResource ModalInfoLabelTextStyle}"/>
-                                <TextBlock x:Name="BackupFileText" Grid.Row="0" Grid.Column="1" Text="未选择" Style="{DynamicResource ModalInfoValueTextStyle}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="%LANG:RestoreFileLabel%" Style="{DynamicResource ModalInfoLabelTextStyle}"/>
+                                <TextBlock x:Name="BackupFileText" Grid.Row="0" Grid.Column="1" Text="%LANG:RestoreFileNotSelected%" Style="{DynamicResource ModalInfoValueTextStyle}" TextWrapping="Wrap" Margin="0,0,0,8"/>
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="创建时间：" Style="{DynamicResource ModalInfoLabelTextStyle}"/>
-                                <TextBlock x:Name="BackupCreatedText" Grid.Row="1" Grid.Column="1" Text="不适用" Style="{DynamicResource ModalInfoValueTextStyle}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="%LANG:RestoreCreatedLabel%" Style="{DynamicResource ModalInfoLabelTextStyle}"/>
+                                <TextBlock x:Name="BackupCreatedText" Grid.Row="1" Grid.Column="1" Text="%LANG:RestoreCreatedUnavailable%" Style="{DynamicResource ModalInfoValueTextStyle}"/>
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="目标：" Style="{DynamicResource ModalInfoLabelTextStyle}" Margin="0,0,16,0"/>
-                                <TextBlock x:Name="BackupTargetText" Grid.Row="2" Grid.Column="1" Text="N/A" Style="{DynamicResource ModalInfoValueTextStyle}" Margin="0"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="%LANG:RestoreTargetLabel%" Style="{DynamicResource ModalInfoLabelTextStyle}" Margin="0,0,16,0"/>
+                                <TextBlock x:Name="BackupTargetText" Grid.Row="2" Grid.Column="1" Text="%LANG:RestoreCreatedUnavailable%" Style="{DynamicResource ModalInfoValueTextStyle}" Margin="0"/>
                             </Grid>
 
                             <Border Grid.Row="1" Height="1" Background="{DynamicResource AppBorderColor}" Margin="0,0,0,12"/>
@@ -256,13 +256,13 @@
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0"
-                                           Text="以下更改将被还原："
+                                           Text="%LANG:RestoreRevertibleFeaturesTitle%"
                                            FontSize="13"
                                            Foreground="{DynamicResource AppFgColor}"
                                            FontWeight="SemiBold"
                                            Margin="0,0,0,8"/>
 
-                                <ItemsControl x:Name="FeaturesItemsControl" Grid.Row="1">
+                                <ItemsControl x:Name="FeaturesItemsControl" Grid.Row="1" Focusable="False" IsTabStop="False">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <StackPanel Orientation="Vertical" IsItemsHost="True"/>
@@ -282,7 +282,7 @@
                                        Foreground="{DynamicResource AppFgColor}"
                                        TextWrapping="Wrap"
                                        Visibility="Collapsed"
-                                       Text="这将为当前用户还原开始菜单固定应用布局。"/>
+                                       Text="%LANG:RestoreStartMenuSummary%"/>
 
                             <Border x:Name="ReappliedSeparator" Grid.Row="3" Height="1" Background="{DynamicResource AppBorderColor}" Margin="0,12,0,12" Visibility="Collapsed"/>
 
@@ -293,13 +293,13 @@
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0"
-                                           Text="以下更改将被重新应用："
+                                           Text="%LANG:RestoreReappliedFeaturesTitle%"
                                            FontSize="13"
                                            Foreground="{DynamicResource AppFgColor}"
                                            FontWeight="SemiBold"
                                            Margin="0,0,0,8"/>
 
-                                <ItemsControl x:Name="ReappliedFeaturesItemsControl" Grid.Row="1">
+                                <ItemsControl x:Name="ReappliedFeaturesItemsControl" Grid.Row="1" Focusable="False" IsTabStop="False">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <StackPanel Orientation="Vertical" IsItemsHost="True"/>
@@ -323,13 +323,13 @@
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0"
-                                           Text="以下更改不会被还原："
+                                           Text="%LANG:RestoreNonRevertibleFeaturesTitle%"
                                            FontSize="13"
                                            Foreground="{DynamicResource AppFgColor}"
                                            FontWeight="SemiBold"
                                            Margin="0,0,0,8"/>
 
-                                <ItemsControl x:Name="NonRevertibleFeaturesItemsControl" Grid.Row="1">
+                                <ItemsControl x:Name="NonRevertibleFeaturesItemsControl" Grid.Row="1" Focusable="False" IsTabStop="False">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <StackPanel Orientation="Vertical" IsItemsHost="True"/>
@@ -342,14 +342,16 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
 
-                                <TextBlock x:Name="NonRevertibleWikiLink"
+                                <TextBlock
                                         Grid.Row="2"
                                         Margin="0,8,0,0"
-                                        Text="访问维基获取更多信息"
                                         FontSize="13"
                                         FontWeight="SemiBold"
-                                        Style="{DynamicResource HyperlinkStyle}"
-                                        TextWrapping="Wrap"/>
+                                        TextWrapping="Wrap">
+                                    <Hyperlink x:Name="NonRevertibleWikiLink"
+                                               Style="{DynamicResource InlineHyperlinkStyle}"
+                                               AutomationProperties.Name="%LANG:RestoreWikiLink%">%LANG:RestoreWikiLink%</Hyperlink>
+                                </TextBlock>
                             </Grid>
                         </Grid>
                     </Grid>
@@ -374,7 +376,7 @@
                                        LineHeight="20"
                                        Margin="0,0,0,12"
                                        Foreground="{DynamicResource AppFgColor}"
-                                       Text="这将使用 Win11Debloat 自动创建的备份，为选定用户还原开始菜单固定应用布局。也可以使用手动创建的备份。"/>
+                                       Text="%LANG:RestoreStartMenuIntro%"/>
 
                             <ComboBox x:Name="StartMenuScopeCombo"
                                         Grid.Row="1"
@@ -382,13 +384,13 @@
                                         Margin="0,0,0,2"
                                         MinWidth="408"
                                         HorizontalAlignment="Left">
-                                <ComboBoxItem Content="当前用户" Tag="CurrentUser"/>
-                                <ComboBoxItem Content="所有用户" Tag="AllUsers"/>
+                                <ComboBoxItem Content="%LANG:RestoreStartMenuScopeCurrentUser%" Tag="CurrentUser"/>
+                                <ComboBoxItem Content="%LANG:RestoreStartMenuScopeAllUsers%" Tag="AllUsers"/>
                             </ComboBox>
 
                             <CheckBox x:Name="StartMenuAutoBackupCheck"
                                        Grid.Row="2"
-                                       Content="自动查找开始菜单备份"
+                                       Content="%LANG:RestoreStartMenuAutoBackupCheckbox%"
                                        IsChecked="True"
                                        FontSize="12"
                                        Margin="0,10,0,0"
@@ -411,13 +413,13 @@
 
                     <Button x:Name="PrimaryActionBtn"
                             Grid.Column="0"
-                            Content="下一步"
+                            Content="%LANG:NavNext%"
                             Visibility="Collapsed"
                             Style="{DynamicResource ModalPrimaryStretchedButtonStyle}"/>
 
                     <Button x:Name="BackBtn"
                             Grid.Column="1"
-                            Content="返回"
+                            Content="%LANG:RestoreBackBtnBack%"
                             Visibility="Collapsed"
                             Style="{DynamicResource ModalSecondaryStretchedButtonStyle}"/>
                 </Grid>

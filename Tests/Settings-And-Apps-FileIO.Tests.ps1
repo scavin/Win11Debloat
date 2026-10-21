@@ -3,8 +3,10 @@
     function Test-AppInWingetList { param($appId, $InstalledList) $false }
 
     . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-JsonFile.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-LanguageFile.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Helpers\Add-Parameter.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Save-ToFile.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\Helpers\Windows-BuildHelpers.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-Settings.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Save-Settings.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-AppsFromFile.ps1')
@@ -12,6 +14,27 @@
     . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-AppPresetsFromJson.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Get-ValidatedAppList.ps1')
     $script:JsonFixturePath = Join-Path $PSScriptRoot 'TestData\JsonFileLoading'
+    $script:LanguagesPath = Join-Path $PSScriptRoot '..\Config\Languages'
+    $script:Lang = Import-LanguageFile -LanguageCode 'en-US'
+}
+
+Describe 'Save-ToFile' {
+    It 'creates the destination directory on first use' {
+        $path = Join-Path $TestDrive 'UserData\LastUsedSettings.json'
+
+        Save-ToFile -Config @{ Setting = $true } -FilePath $path | Should -BeTrue
+
+        (Get-Content -LiteralPath $path -Raw | ConvertFrom-Json).Setting | Should -BeTrue
+    }
+
+    It 'reports the write error and returns false when persistence fails' {
+        Mock Set-Content { throw [System.IO.IOException]::new('Disk is full') }
+        Mock Write-Error {}
+
+        Save-ToFile -Config @{ Setting = $true } -FilePath (Join-Path $TestDrive 'settings.json') | Should -BeFalse
+
+        Should -Invoke Write-Error -Times 1 -Exactly
+    }
 }
 
 Describe 'Import-Settings' {
@@ -45,7 +68,7 @@ Describe 'Import-Settings' {
                 $ErrorActionPreference = 'Continue'
                 Import-Settings -filePath $path
             }
-        } | Should -Throw "无法从 $FileName 加载设置"
+        } | Should -Throw
         Should -Invoke Add-Parameter -Times 0 -Exactly
         Should -Invoke Write-Error -Times $WriteErrorCalls -Exactly
     }
@@ -137,13 +160,26 @@ Describe 'Import-AppDetailsFromJson' {
         $apps = @(Import-AppDetailsFromJson -InitialCheckedFromJson)
 
         $apps | Should -HaveCount 2
-        $apps[0].DisplayName | Should -Be 'One (One.App, Alias.App)'
+        # 'One.App' has no en-US Apps.json entry, so Get-Translation falls back to the raw key.
+        $apps[0].DisplayName | Should -Be 'One.App (One.App, Alias.App)'
         $apps[0].IsChecked | Should -BeTrue
         $apps[0].RemovalMethod | Should -Be 'WinGet'
         $apps[1].FriendlyName | Should -Be 'Two.App'
         $apps[1].RemovalMethod | Should -Be 'Appx'
         $apps[1].AppId -is [array] | Should -BeTrue
         @($apps[1].AppId) | Should -HaveCount 1
+    }
+
+    It 'resolves FriendlyName and Description from Config/Languages/en-US/Apps.json for a real AppId' {
+        '{"Apps":[{"AppId":"Clipchamp.Clipchamp","FriendlyName":"stale JSON name, should not appear","Description":"stale JSON description, should not appear"}]}' |
+            Set-Content -LiteralPath $script:AppsListFilePath -Encoding UTF8
+
+        $apps = @(Import-AppDetailsFromJson)
+
+        $apps | Should -HaveCount 1
+        $apps[0].FriendlyName | Should -Be 'Clipchamp'
+        $apps[0].Description | Should -Be 'Video editor from Microsoft'
+        $apps[0].DisplayName | Should -Be 'Clipchamp (Clipchamp.Clipchamp)'
     }
 
     It 'skips missing, blank, and non-string app IDs without failing the complete catalog' {
@@ -158,13 +194,14 @@ Describe 'Import-AppDetailsFromJson' {
     }
 
     It 'filters to installed apps using Appx and winget detection' {
-        Mock Get-AppxPackage { param($Name) if ($Name -eq 'Two.App') { [PSCustomObject]@{ Name = $Name } } }
+        Mock Get-AppxPackage { [PSCustomObject]@{ Name = 'Two.App' } }
         Mock Test-AppInWingetList { $false }
 
         $apps = @(Import-AppDetailsFromJson -OnlyInstalled -InstalledList @())
 
         $apps | Should -HaveCount 1
         $apps[0].AppId | Should -Be 'Two.App'
+        Should -Invoke Get-AppxPackage -Times 1 -Exactly
     }
 
     It 'loads presets and preserves their ID arrays' {
