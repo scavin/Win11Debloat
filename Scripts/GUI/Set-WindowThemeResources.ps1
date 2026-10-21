@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
     Applies light or dark theme colors to a WPF window's resource dictionary.
 
@@ -113,6 +113,7 @@ function Set-WindowThemeResources {
     }
 
     $Theme = if ($usesDarkMode) { 'Dark' } else { 'Light' }
+    $window.Resources['AppUsesDarkMode'] = $usesDarkMode
 
     foreach ($Group in $ThemeColor.GetEnumerator()) {
         foreach ($Resource in $Group.Value.GetEnumerator()) {
@@ -123,19 +124,20 @@ function Set-WindowThemeResources {
         }
     }
 
-    # Segoe Fluent Icons ships only on Windows 11 (build >= 22000).
+    # Segoe Fluent Icons ships only on Windows 11 (build >= 22000). 
     # On Windows 10, fall back to Segoe MDL2 Assets.
     $winBuild = Get-ItemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' CurrentBuild
     $iconFontName = if ($winBuild -ge 22000) { 'Segoe Fluent Icons' } else { 'Segoe MDL2 Assets' }
     $window.Resources['AppIconFontFamily'] = [System.Windows.Media.FontFamily]::new($iconFontName)
 
     # Load and merge shared styles
-    if ($script:SharedStylesSchema -and (Test-Path $script:SharedStylesSchema)) {
+    if (-not $window.Resources.Contains('AppSharedStylesLoaded') -and $script:SharedStylesSchema -and (Test-Path $script:SharedStylesSchema)) {
         $sharedXaml = Get-Content -Path $script:SharedStylesSchema -Raw
         $sharedReader = [System.Xml.XmlReader]::Create([System.IO.StringReader]::new($sharedXaml))
         try {
             $sharedDict = [System.Windows.Markup.XamlReader]::Load($sharedReader)
             $window.Resources.MergedDictionaries.Add($sharedDict)
+            $window.Resources['AppSharedStylesLoaded'] = $true
         }
         finally {
             $sharedReader.Close()

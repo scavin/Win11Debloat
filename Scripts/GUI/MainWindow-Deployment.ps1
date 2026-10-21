@@ -96,6 +96,17 @@ function Get-PendingTweakActions {
     return @($actions.ToArray())
 }
 
+<#
+    .SYNOPSIS
+        Builds the plain-text list of pending changes: apps to remove and tweaks to apply or undo.
+
+    .PARAMETER ShowCurrentlyAppliedTweaksCheckBox
+        When checked, pending tweak actions are computed against the system's live applied
+        state instead of the controls' initial values.
+
+    .OUTPUTS
+        System.String[]. One line per pending change, or an empty array if nothing is selected.
+#>
 function New-Overview {
     param(
         [System.Windows.Window]$Window,
@@ -114,12 +125,12 @@ function New-Overview {
         }
     }
     if ($selectedAppsCount -gt 0) {
-        $changesList += "移除 $selectedAppsCount 个应用程序"
+        $changesList += Get-Translation -Key 'DeployChangeRemoveApps' -Count $selectedAppsCount -FormatArgs @($selectedAppsCount)
     }
 
     foreach ($tweakAction in @(Get-PendingTweakActions -Window $Window -ShowAppliedTweaksMode:$showAppliedTweaksMode)) {
         if ($tweakAction.Action -eq 'Undo') {
-            $changesList += "撤销：$($tweakAction.Label)"
+            $changesList += Get-Translation -Key 'DeployChangeUndoPrefix' -FormatArgs @($tweakAction.Label)
         }
         else {
             $changesList += $tweakAction.Label
@@ -129,6 +140,11 @@ function New-Overview {
     return $changesList
 }
 
+<#
+    .SYNOPSIS
+        Shows the pending-changes list from New-Overview in a message box, or a
+        "no changes selected" message when there's nothing to show.
+#>
 function Invoke-ShowChangesOverview {
     param(
         [System.Windows.Window]$Window,
@@ -139,12 +155,12 @@ function Invoke-ShowChangesOverview {
     $changesList = New-Overview -Window $Window -AppsPanel $AppsPanel -ShowCurrentlyAppliedTweaksCheckBox $ShowCurrentlyAppliedTweaksCheckBox
 
     if ($changesList.Count -eq 0) {
-        Show-MessageBox -Message '未选择任何更改。' -Title '已选更改' -Button 'OK' -Icon 'Information'
+        Show-MessageBox -Message (Get-Translation -Key 'DeployNoChangesSelectedMessage') -Title (Get-Translation -Key 'DeploySelectedChangesTitle') -Button 'OK' -Icon 'Information'
         return
     }
 
     $message = ($changesList | ForEach-Object { "$([char]0x2022) $_" }) -join "`n"
-    Show-MessageBox -Message $message -Title '已选更改' -Button 'OK' -Icon 'None' -Width 600
+    Show-MessageBox -Message $message -Title (Get-Translation -Key 'DeploySelectedChangesTitle') -Button 'OK' -Icon 'None' -Width 600
 }
 
 <#
@@ -219,8 +235,8 @@ function Get-TweakPresetControlMap {
     .PARAMETER Window
         The window that owns the visible tweak controls.
 
-    .PARAMETER Category
-        The category whose mapped controls are included.
+    .PARAMETER CategoryId
+        The stable CategoryId (from Features.json) whose mapped controls are included.
 
     .OUTPUTS
         System.Collections.Hashtable. Control metadata keyed by control name.
@@ -228,7 +244,7 @@ function Get-TweakPresetControlMap {
 function Get-CategoryTweakPresetMap {
     param(
         [System.Windows.Window]$Window,
-        [string]$Category
+        [string]$CategoryId
     )
 
     $presetMap = @{}
@@ -236,7 +252,7 @@ function Get-CategoryTweakPresetMap {
 
     foreach ($controlName in $script:UiControlMappings.Keys) {
         $mapping = $script:UiControlMappings[$controlName]
-        if ($mapping.Category -ne $Category) { continue }
+        if ($mapping.CategoryId -ne $CategoryId) { continue }
 
         $control = $Window.FindName($controlName)
         if (-not $control -or $control.Visibility -ne 'Visible') { continue }
@@ -403,8 +419,8 @@ function Initialize-TweakPresetSources {
 
     $script:DefaultTweakPresetMap = Get-TweakPresetControlMap -Window $Window -SettingsJson $DefaultSettingsJson
     $script:LastUsedTweakPresetMap = Get-TweakPresetControlMap -Window $Window -SettingsJson $LastUsedSettingsJson
-    $script:PrivacyTweakPresetMap = Get-CategoryTweakPresetMap -Window $Window -Category 'Privacy & Suggested Content'
-    $script:AITweakPresetMap = Get-CategoryTweakPresetMap -Window $Window -Category 'AI'
+    $script:PrivacyTweakPresetMap = Get-CategoryTweakPresetMap -Window $Window -CategoryId 'PrivacySuggestedContent'
+    $script:AITweakPresetMap = Get-CategoryTweakPresetMap -Window $Window -CategoryId 'AI'
 
     $presetLastUsedTweaksBtn = $Window.FindName('PresetLastUsedTweaksBtn')
     if ($presetLastUsedTweaksBtn) {
@@ -437,6 +453,14 @@ function Update-AppliedTweaksUserModeState {
     }
 }
 
+<#
+    .SYNOPSIS
+        Updates the deployment-target description text to match the selected user option.
+
+    .DESCRIPTION
+        Falls back to a generic description (current user, other user, or Sysprep default
+        profile) when a username can't be resolved yet, and to a specific one once it can.
+#>
 function Update-UserSelectionDescription {
     param(
         [System.Windows.Window]$Window,
@@ -449,23 +473,23 @@ function Update-UserSelectionDescription {
         0 {
             $currentUserName = Get-UserName
             if ([string]::IsNullOrWhiteSpace($currentUserName)) {
-                $UserSelectionDescription.Text = "当前已登录的用户配置文件"
+                $UserSelectionDescription.Text = Get-Translation -Key 'DeployUserDescriptionCurrentUser'
             }
             else {
-                $UserSelectionDescription.Text = "当前已登录的用户配置文件：$currentUserName"
+                $UserSelectionDescription.Text = Get-Translation -Key 'DeployUserDescriptionCurrentUserNamed' -FormatArgs @($currentUserName)
             }
         }
         1 {
             $targetUserName = $OtherUsernameTextBox.Text.Trim()
             if ([string]::IsNullOrWhiteSpace($targetUserName)) {
-                $UserSelectionDescription.Text = "此系统上的其他用户配置文件"
+                $UserSelectionDescription.Text = Get-Translation -Key 'DeployUserDescriptionOtherUser'
             }
             else {
-                $UserSelectionDescription.Text = "此系统上的其他用户配置文件：$targetUserName"
+                $UserSelectionDescription.Text = Get-Translation -Key 'DeployUserDescriptionOtherUserNamed' -FormatArgs @($targetUserName)
             }
         }
         default {
-            $UserSelectionDescription.Text = "默认用户模板，影响此后创建的所有新用户。适用于 Sysprep 部署。"
+            $UserSelectionDescription.Text = Get-Translation -Key 'DeployUserDescriptionSysprep'
         }
     }
 
@@ -478,11 +502,14 @@ function Test-OtherUsername {
         [System.Windows.Window]$Window,
         [System.Windows.Controls.ComboBox]$UserSelectionCombo,
         [System.Windows.Controls.TextBox]$OtherUsernameTextBox,
-        [System.Windows.Controls.TextBlock]$UsernameValidationMessage
+        [System.Windows.Controls.TextBlock]$UsernameValidationMessage,
+        [System.Windows.Controls.ComboBox]$AppRemovalScopeCombo
     )
 
-    # Only validate if "Other User" is selected
-    if ($UserSelectionCombo.SelectedIndex -ne 1) {
+    # Only validate if "Other User" is the deployment target, or "Target user only" is the app-removal scope
+    $isOtherUserSelected = ($UserSelectionCombo.SelectedIndex -eq 1)
+    $isAppRemovalTargetUserSelected = Test-AppRemovalScopeTargetsOtherUser -AppRemovalScopeCombo $AppRemovalScopeCombo
+    if (-not $isOtherUserSelected -and -not $isAppRemovalTargetUserSelected) {
         return $true
     }
 

@@ -3,13 +3,16 @@
         Creates and displays the main Win11Debloat window.
 #>
 function Show-MainWindow {
+    if (-not $script:Lang) { throw '无法加载界面语言。' }
+    $script:CancelRequested = $false
     Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System.Windows.Forms | Out-Null
 
     $WinVersion = Get-ItemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' CurrentBuild
-    $usesDarkMode = Get-SystemUsesDarkMode
+    $usesDarkMode = Get-AppUsesDarkMode
 
     # ---- Load XAML ----
     $xaml = Get-Content -Path $script:MainWindowSchema -Raw
+    $xaml = ConvertTo-LocalizedXaml -Xaml $xaml -DynamicResources
     $reader = [System.Xml.XmlReader]::Create([System.IO.StringReader]::new($xaml))
     try {
         $window = [System.Windows.Markup.XamlReader]::Load($reader)
@@ -19,6 +22,7 @@ function Show-MainWindow {
     }
 
     Set-WindowThemeResources -window $window -usesDarkMode $usesDarkMode
+    Update-WindowLanguageResources -Window $window
 
     $mainBorder = $window.FindName('MainBorder')
     $titleBarBackground = $window.FindName('TitleBarBackground')
@@ -45,12 +49,13 @@ function Show-MainWindow {
     $script:GuiWindow = $window
 
     # ---- Handle unhandled exceptions on the dispatcher thread ----
-    [System.Windows.Threading.Dispatcher]::CurrentDispatcher.Add_UnhandledException({
+    $dispatcherErrorHandler = [System.Windows.Threading.DispatcherUnhandledExceptionEventHandler]{
         param($sender, $e)
-        Write-Warning "图形界面中出现未处理的异常：$($e.Exception.Message)"
+        Write-Warning "图形界面发生未处理的异常：$($e.Exception.Message)"
         Write-Warning "堆栈跟踪：$($e.Exception.StackTrace)"
         $e.Handled = $true
-    })
+    }
+    [System.Windows.Threading.Dispatcher]::CurrentDispatcher.Add_UnhandledException($dispatcherErrorHandler)
 
     # ---- Window chrome helpers ----
     $updateWindowChrome = { Update-MainWindowChrome -Window $window -MainBorder $mainBorder -TitleBarBackground $titleBarBackground -NormalWindowShadow $normalWindowShadow }
@@ -79,8 +84,9 @@ function Show-MainWindow {
         }
     })
 
-    # ---- 菜单/按钮事件绑定 ----
+    # ---- Menu/button event wiring ----
     $kofiBtn.Add_Click({ Start-Process "https://ko-fi.com/raphire" })
+    $window.FindName('SettingsBtn').Add_Click({ Open-MainWindowSettings -Window $window })
 
     $menuBtn.Add_Click({
         $menuBtn.ContextMenu.PlacementTarget = $menuBtn
@@ -92,12 +98,12 @@ function Show-MainWindow {
     $menuReportBug.Add_Click({ Start-Process "https://github.com/Raphire/Win11Debloat/issues" })
 
     $menuLogs.Add_Click({
-        $logsFolder = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'Logs'
+        $logsFolder = Split-Path -Parent $script:DefaultLogPath
         if (Test-Path $logsFolder) {
             Start-Process "explorer.exe" -ArgumentList $logsFolder
         }
         else {
-            Show-MessageBox -Message "未找到日志文件夹：$logsFolder" -Title "日志" -Button 'OK' -Icon 'Information'
+            Show-MessageBox -Message (Get-Translation -Key 'LogsFolderNotFoundMessage' -FormatArgs @($logsFolder)) -Title (Get-Translation -Key 'LogsMenuTitle') -Button 'OK' -Icon 'Information'
         }
     })
 
@@ -166,27 +172,27 @@ function Show-MainWindow {
     # ---- Wire export/import ----
     $exportConfigBtn.Add_Click({
         try {
-            Export-Configuration -Owner $window -UsesDarkMode $usesDarkMode -AppsPanel $appsPanel -UiControlMappings $script:UiControlMappings -UserSelectionCombo $userSelectionCombo -OtherUsernameTextBox $otherUsernameTextBox
+            Export-Configuration -Owner $window -UsesDarkMode (Get-AppUsesDarkMode) -AppsPanel $appsPanel -UiControlMappings $script:UiControlMappings -UserSelectionCombo $userSelectionCombo -OtherUsernameTextBox $otherUsernameTextBox
         }
         catch {
             Write-Warning "导出配置失败：$($_.Exception.Message)"
-            Show-MessageBox -Owner $window -Message "无法打开导出配置对话框：$($_.Exception.Message)" -Title '导出配置失败' -Button 'OK' -Icon 'Error' | Out-Null
+            Show-MessageBox -Owner $window -Message (Get-Translation -Key 'ExportConfigFailedMessage' -FormatArgs @($_.Exception.Message)) -Title (Get-Translation -Key 'ExportConfigFailedTitle') -Button 'OK' -Icon 'Error' | Out-Null
         }
     })
 
     $importConfigBtn.Add_Click({
         try {
-            Import-Configuration -Owner $window -UsesDarkMode $usesDarkMode -AppsPanel $appsPanel -UiControlMappings $script:UiControlMappings -UserSelectionCombo $userSelectionCombo -OtherUsernameTextBox $otherUsernameTextBox -OnAppsImported { Update-AppSelectionStatus -AppsPanel $appsPanel -AppSelectionStatus $appSelectionStatus -AppRemovalScopeCombo $appRemovalScopeCombo -AppRemovalScopeSection $appRemovalScopeSection -AppRemovalScopeDescription $appRemovalScopeDescription -UserSelectionCombo $userSelectionCombo; Update-AppPresetStates -AppsPanel $appsPanel } -OnImportCompleted {
+            Import-Configuration -Owner $window -UsesDarkMode (Get-AppUsesDarkMode) -AppsPanel $appsPanel -UiControlMappings $script:UiControlMappings -UserSelectionCombo $userSelectionCombo -OtherUsernameTextBox $otherUsernameTextBox -OnAppsImported { Update-AppSelectionStatus -AppsPanel $appsPanel -AppSelectionStatus $appSelectionStatus -AppRemovalScopeCombo $appRemovalScopeCombo -AppRemovalScopeSection $appRemovalScopeSection -AppRemovalScopeDescription $appRemovalScopeDescription -UserSelectionCombo $userSelectionCombo; Update-AppPresetStates -AppsPanel $appsPanel } -OnImportCompleted {
                 $tabControl.SelectedIndex = 3
                 Update-NavigationButtons -Window $window -TabControl $tabControl
                 $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Loaded, [action]{
-                    Show-Bubble -TargetControl $reviewChangesBtn -Message '在此查看已选择的更改'
+                    Show-Bubble -TargetControl $reviewChangesBtn -Message (Get-Translation -Key 'BubbleViewChanges')
                 }) | Out-Null
             }
         }
         catch {
             Write-Warning "导入配置失败：$($_.Exception.Message)"
-            Show-MessageBox -Owner $window -Message "无法打开导入配置对话框：$($_.Exception.Message)" -Title '导入配置失败' -Button 'OK' -Icon 'Error' | Out-Null
+            Show-MessageBox -Owner $window -Message (Get-Translation -Key 'ImportConfigFailedMessage' -FormatArgs @($_.Exception.Message)) -Title (Get-Translation -Key 'ImportConfigFailedTitle') -Button 'OK' -Icon 'Error' | Out-Null
         }
     })
 
@@ -206,7 +212,7 @@ function Show-MainWindow {
             }
             catch {
                 Write-Warning "恢复备份操作失败：$($_.Exception.Message)"
-                Show-MessageBox -Owner $window -Message "无法打开恢复备份对话框：$($_.Exception.Message)" -Title '恢复备份失败' -Button 'OK' -Icon 'Error' | Out-Null
+                Show-MessageBox -Owner $window -Message (Get-Translation -Key 'RestoreBackupFailedMessage' -FormatArgs @($_.Exception.Message)) -Title (Get-Translation -Key 'RestoreBackupFailedTitle') -Button 'OK' -Icon 'Error' | Out-Null
             }
         })
     }
@@ -232,7 +238,7 @@ function Show-MainWindow {
         $checkbox.Content = $preset.Name
         $checkbox.IsThreeState = $true
         $checkbox.Style = $window.Resources['PresetCheckBoxStyle']
-        $checkbox.ToolTip = "选择 $($preset.Name)"
+        $checkbox.ToolTip = Get-Translation -Key 'AppPresetSelectTooltip' -FormatArgs @($preset.Name)
         $checkbox.SetValue([System.Windows.Automation.AutomationProperties]::NameProperty, $preset.Name)
         Add-TriStateClickBehavior -CheckBox $checkbox
         Add-Member -InputObject $checkbox -MemberType NoteProperty -Name 'PresetAppIds' -Value $preset.AppIds
@@ -381,16 +387,14 @@ function Show-MainWindow {
 
         if ([string]::IsNullOrWhiteSpace($searchText)) { return }
 
-        $highlightBrush = $window.Resources["SearchHighlightColor"]
-        $activeHighlightBrush = $window.Resources["SearchHighlightActiveColor"]
-
+        # Keep existing highlights in sync when Auto changes the window's theme resources.
         foreach ($child in $appsPanel.Children) {
             if ($child -is [System.Windows.Controls.CheckBox] -and $child.Visibility -eq 'Visible') {
                 $appName = if ($child.AppName) { $child.AppName } else { '' }
                 $appId = if ($child.Tag) { $child.Tag.ToString() } else { '' }
                 $appDesc = if ($child.AppDescription) { $child.AppDescription } else { '' }
                 if ($appName.ToLower().Contains($searchText) -or $appId.ToLower().Contains($searchText) -or $appDesc.ToLower().Contains($searchText)) {
-                    $child.Background = $highlightBrush
+                    $child.SetResourceReference([System.Windows.Controls.Control]::BackgroundProperty, 'SearchHighlightColor')
                     $script:AppSearchMatches += $child
                 }
             }
@@ -398,9 +402,9 @@ function Show-MainWindow {
 
         if ($script:AppSearchMatches.Count -gt 0) {
             $script:AppSearchMatchIndex = 0
-            $script:AppSearchMatches[0].Background = $activeHighlightBrush
+            $script:AppSearchMatches[0].SetResourceReference([System.Windows.Controls.Control]::BackgroundProperty, 'SearchHighlightActiveColor')
             $scrollViewer = Find-ParentScrollViewer -Element $appsPanel
-            if ($scrollViewer) {
+            if ($scrollViewer -and -not $script:UpdatingLanguage) {
                 Scroll-ToItemIfNotVisible -ScrollViewer $scrollViewer -Item $script:AppSearchMatches[0] -Container $appsPanel
             }
         }
@@ -409,9 +413,9 @@ function Show-MainWindow {
     $appSearchBox.Add_KeyDown({
         param($sourceControl, $e)
         if ($e.Key -eq [System.Windows.Input.Key]::Enter -and $script:AppSearchMatches.Count -gt 0) {
-            $script:AppSearchMatches[$script:AppSearchMatchIndex].Background = $window.Resources["SearchHighlightColor"]
+            $script:AppSearchMatches[$script:AppSearchMatchIndex].SetResourceReference([System.Windows.Controls.Control]::BackgroundProperty, 'SearchHighlightColor')
             $script:AppSearchMatchIndex = ($script:AppSearchMatchIndex + 1) % $script:AppSearchMatches.Count
-            $script:AppSearchMatches[$script:AppSearchMatchIndex].Background = $window.Resources["SearchHighlightActiveColor"]
+            $script:AppSearchMatches[$script:AppSearchMatchIndex].SetResourceReference([System.Windows.Controls.Control]::BackgroundProperty, 'SearchHighlightActiveColor')
             $scrollViewer = Find-ParentScrollViewer -Element $appsPanel
             if ($scrollViewer) {
                 Scroll-ToItemIfNotVisible -ScrollViewer $scrollViewer -Item $script:AppSearchMatches[$script:AppSearchMatchIndex] -Container $appsPanel
@@ -439,7 +443,6 @@ function Show-MainWindow {
         if ([string]::IsNullOrWhiteSpace($searchText)) { return }
 
         $firstMatch = $null
-        $highlightBrush = $window.Resources["SearchHighlightColor"]
         $col0 = $window.FindName('Column0Panel')
         $col1 = $window.FindName('Column1Panel')
         $col2 = $window.FindName('Column2Panel')
@@ -471,7 +474,13 @@ function Show-MainWindow {
                         }
 
                         if ($matchFound -and $controlToHighlight) {
-                            $controlToHighlight.Background = $highlightBrush
+                            $backgroundProperty = if ($controlToHighlight -is [System.Windows.Controls.Border]) {
+                                [System.Windows.Controls.Border]::BackgroundProperty
+                            }
+                            else {
+                                [System.Windows.Controls.Control]::BackgroundProperty
+                            }
+                            $controlToHighlight.SetResourceReference($backgroundProperty, 'SearchHighlightColor')
                             if ($null -eq $firstMatch) { $firstMatch = $controlToHighlight }
                         }
                     }
@@ -479,7 +488,7 @@ function Show-MainWindow {
             }
         }
 
-        if ($firstMatch -and $tweaksScrollViewer) {
+        if ($firstMatch -and $tweaksScrollViewer -and -not $script:UpdatingLanguage) {
             Scroll-ToItemIfNotVisible -ScrollViewer $tweaksScrollViewer -Item $firstMatch -Container $tweaksGrid
         }
     })
@@ -501,12 +510,11 @@ function Show-MainWindow {
         param($sourceControl, $e)
         if ($e.Key -eq [System.Windows.Input.Key]::F -and
             ([System.Windows.Input.Keyboard]::Modifiers -band [System.Windows.Input.ModifierKeys]::Control)) {
-            $currentTab = $tabControl.SelectedItem
-            if ($currentTab.Header -eq "App Removal" -and $appSearchBox) {
+            if ($tabControl.SelectedIndex -eq 1 -and $appSearchBox) {
                 $appSearchBox.Focus()
                 $e.Handled = $true
             }
-            elseif ($currentTab.Header -eq "Tweaks" -and $tweakSearchBox) {
+            elseif ($tabControl.SelectedIndex -eq 2 -and $tweakSearchBox) {
                 $tweakSearchBox.Focus()
                 $e.Handled = $true
             }
@@ -577,6 +585,7 @@ function Show-MainWindow {
     # ---- App removal scope combo ----
     $appRemovalScopeCombo.Add_SelectionChanged({
         Update-AppRemovalScopeDescription -AppRemovalScopeCombo $appRemovalScopeCombo -AppRemovalScopeDescription $appRemovalScopeDescription
+        Test-OtherUsername -Window $window -UserSelectionCombo $userSelectionCombo -OtherUsernameTextBox $otherUsernameTextBox -UsernameValidationMessage $usernameValidationMessage -AppRemovalScopeCombo $appRemovalScopeCombo | Out-Null
     })
 
     # ---- Other username text box ----
@@ -588,19 +597,19 @@ function Show-MainWindow {
             $usernameTextBoxPlaceholder.Visibility = 'Collapsed'
         }
         Update-UserSelectionDescription -Window $window -UserSelectionCombo $userSelectionCombo -OtherUsernameTextBox $otherUsernameTextBox -UserSelectionDescription $userSelectionDescription
-        Test-OtherUsername -Window $window -UserSelectionCombo $userSelectionCombo -OtherUsernameTextBox $otherUsernameTextBox -UsernameValidationMessage $usernameValidationMessage | Out-Null
+        Test-OtherUsername -Window $window -UserSelectionCombo $userSelectionCombo -OtherUsernameTextBox $otherUsernameTextBox -UsernameValidationMessage $usernameValidationMessage -AppRemovalScopeCombo $appRemovalScopeCombo | Out-Null
     })
 
     # ---- Validate target user helper ----
     $ensureValidTargetUserOrWarn = {
-        if (-not (Test-OtherUsername -Window $window -UserSelectionCombo $userSelectionCombo -OtherUsernameTextBox $otherUsernameTextBox -UsernameValidationMessage $usernameValidationMessage)) {
+        if (-not (Test-OtherUsername -Window $window -UserSelectionCombo $userSelectionCombo -OtherUsernameTextBox $otherUsernameTextBox -UsernameValidationMessage $usernameValidationMessage -AppRemovalScopeCombo $appRemovalScopeCombo)) {
             $validationMessage = if (-not [string]::IsNullOrWhiteSpace($usernameValidationMessage.Text)) {
                 $usernameValidationMessage.Text
             }
             else {
-                "请输入有效的用户名。"
+                Get-Translation -Key 'InvalidUsernameFallbackMessage'
             }
-            Show-MessageBox -Message $validationMessage -Title "无效的用户名" -Button 'OK' -Icon 'Warning' | Out-Null
+            Show-MessageBox -Message $validationMessage -Title (Get-Translation -Key 'InvalidUsernameTitle') -Button 'OK' -Icon 'Warning' | Out-Null
             return $false
         }
         return $true
@@ -637,7 +646,7 @@ function Show-MainWindow {
         Invoke-NavigationUpdate
 
         $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Loaded, [action]{
-            Show-Bubble -TargetControl $reviewChangesBtn -Message '在此查看已选择的更改'
+            Show-Bubble -TargetControl $reviewChangesBtn -Message (Get-Translation -Key 'BubbleViewChanges')
         }) | Out-Null
     })
 
@@ -669,17 +678,15 @@ function Show-MainWindow {
         if ($selectedApps.Count -gt 0) {
             if (-not (Confirm-UnsafeAppRemoval -SelectedApps $selectedApps -Owner $window)) { return }
 
+            $scopeTarget = Get-AppRemovalScopeTarget -AppRemovalScopeCombo $appRemovalScopeCombo -OtherUsernameTextBox $otherUsernameTextBox
+            if ([string]::IsNullOrWhiteSpace($scopeTarget)) {
+                Write-Warning '所选卸载范围无效，已取消应用卸载。'
+                return
+            }
+
             Add-Parameter 'RemoveApps'
             Add-Parameter 'Apps' ($selectedApps -join ',')
-
-            $selectedScopeItem = $appRemovalScopeCombo.SelectedItem
-            if ($selectedScopeItem) {
-                switch ($selectedScopeItem.Content) {
-                    "所有用户" { Add-Parameter 'AppRemovalTarget' 'AllUsers' }
-                    "仅当前用户" { Add-Parameter 'AppRemovalTarget' 'CurrentUser' }
-                    "仅目标用户" { Add-Parameter 'AppRemovalTarget' ($otherUsernameTextBox.Text.Trim()) }
-                }
-            }
+            Add-Parameter 'AppRemovalTarget' $scopeTarget
         }
 
         # Apply dynamic tweaks
@@ -693,7 +700,7 @@ function Show-MainWindow {
         }
 
         if (-not $hasAppSelection -and $selectedForwardFeatureIds.Count -eq 0 -and $script:UndoParams.Count -eq 0) {
-            Show-MessageBox -Message '未选择任何更改，请至少选择一个选项以继续。' -Title '未选择更改' -Button 'OK' -Icon 'Information'
+            Show-MessageBox -Message (Get-Translation -Key 'NoChangesSelectedMessage') -Title (Get-Translation -Key 'NoChangesSelectedTitle') -Button 'OK' -Icon 'Information'
             return
         }
 
@@ -708,13 +715,13 @@ function Show-MainWindow {
         }
 
         switch ($userSelectionCombo.SelectedIndex) {
-            0 { Write-Host "已选择用户模式：当前用户 ($(Get-UserName))" }
+            0 { Write-Host "所选用户模式：当前用户（$(Get-UserName)）" }
             1 {
-                Write-Host "已选择用户模式：$($otherUsernameTextBox.Text.Trim())"
+                Write-Host "所选用户模式：$($otherUsernameTextBox.Text.Trim())"
                 Add-Parameter User ($otherUsernameTextBox.Text.Trim())
             }
             2 {
-                Write-Host "已选择用户模式：默认用户配置文件 (Sysprep)"
+                Write-Host "所选用户模式：默认用户配置文件（Sysprep）"
                 Add-Parameter Sysprep
             }
         }
@@ -765,7 +772,7 @@ function Show-MainWindow {
             if ($userSelectionCombo -and $userSelectionCombo.Items.Count -gt 0) {
                 $currentUserItem = $userSelectionCombo.Items[0]
                 if ($currentUserItem -is [System.Windows.Controls.ComboBoxItem]) {
-                    $currentUserItem.Content = "当前用户 ($(Get-UserName))"
+                    $currentUserItem.Content = Get-Translation -Key 'HomeCurrentUserWithName' -FormatArgs @(Get-UserName)
                 }
             }
 
@@ -809,9 +816,9 @@ function Show-MainWindow {
             Invoke-NavigationUpdate
         }
         catch {
-            Write-Warning "图形界面初始化时出错：$($_.Exception.Message)"
+            Write-Warning "初始化图形界面时发生错误：$($_.Exception.Message)"
             Write-Warning "堆栈跟踪：$($_.Exception.StackTrace)"
-            Show-MessageBox -Message "初始化过程中发生错误：$($_.Exception.Message)" -Title "初始化错误" -Button 'OK' -Icon 'Error' | Out-Null
+            Show-MessageBox -Message (Get-Translation -Key 'InitializationErrorMessage' -FormatArgs @($_.Exception.Message)) -Title (Get-Translation -Key 'InitializationErrorTitle') -Button 'OK' -Icon 'Error' | Out-Null
         }
     })
 
@@ -897,14 +904,23 @@ function Show-MainWindow {
     })
 
     $window.Show() | Out-Null
+    $themeTimer = [System.Windows.Threading.DispatcherTimer]::new()
+    $themeTimer.Interval = [TimeSpan]::FromSeconds(2)
+    $themeTimer.Add_Tick({ Update-AutoThemeResources -Window $window })
+    $themeTimer.Start()
 
     # If WhatIf mode is enabled, notify the user that no changes will be made
     if ($script:Params.ContainsKey("WhatIf")) {
         $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Loaded, [action]{
-            Show-MessageBox -Message "WhatIf 模式已启用。脚本在此模式下不会对系统进行任何更改。`n`n您可以在控制台输出中查看脚本将要执行的操作。" -Title 'WhatIf 模式' -Button 'OK' -Icon 'Information' -Owner $window
+            Show-MessageBox -Message (Get-Translation -Key 'WhatIfModeMessage') -Title (Get-Translation -Key 'WhatIfModeTitle') -Button 'OK' -Icon 'Information' -Owner $window
         }) | Out-Null
     }
 
-    [System.Windows.Threading.Dispatcher]::PushFrame($frame)
+    try { [System.Windows.Threading.Dispatcher]::PushFrame($frame) }
+    finally {
+        $themeTimer.Stop()
+        [System.Windows.Threading.Dispatcher]::CurrentDispatcher.Remove_UnhandledException($dispatcherErrorHandler)
+        if ($script:BubblePopup) { $script:BubblePopup.IsOpen = $false }
+    }
     return $null
 }

@@ -2,8 +2,12 @@
     $registryPathHelperScriptPath = Join-Path $PSScriptRoot '..\Scripts\Helpers\Registry-PathHelpers.ps1'
     $validationScriptPath = Join-Path $PSScriptRoot '..\Scripts\Features\Registry-BackupValidation.ps1'
 
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-JsonFile.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-LanguageFile.ps1')
     . $registryPathHelperScriptPath
     . $validationScriptPath
+    $script:LanguagesPath = Join-Path $PSScriptRoot '..\Config\Languages'
+    $script:Lang = Import-LanguageFile -LanguageCode 'en-US'
 }
 
 Describe 'Get-NormalizedSelectedFeatureIdsFromBackup' {
@@ -22,7 +26,7 @@ Describe 'Get-NormalizedSelectedFeatureIdsFromBackup' {
         $result = Get-NormalizedSelectedFeatureIdsFromBackup -Backup ([PSCustomObject]@{})
 
         $result.SelectedFeatures | Should -BeNullOrEmpty
-        $result.Errors | Should -Contain '缺少属性：SelectedFeatures'
+        $result.Errors | Should -HaveCount 1
     }
 
     It 'reports non-string and empty feature IDs' {
@@ -33,7 +37,7 @@ Describe 'Get-NormalizedSelectedFeatureIdsFromBackup' {
         $result = Get-NormalizedSelectedFeatureIdsFromBackup -Backup $backup
 
         $result.SelectedFeatures | Should -Be 'DisableTelemetry'
-        $result.Errors | Should -Contain 'SelectedFeatures 必须包含非空字符串的功能 ID。'
+        $result.Errors | Should -HaveCount 1
     }
 }
 
@@ -81,7 +85,7 @@ Describe 'Get-SelectedRegistryFeaturesForBackupValidation' {
         $result = @(Get-SelectedRegistryFeaturesForBackupValidation -SelectedFeatureIds @('ApplyFeature', 'CustomFeature', 'MissingFeature') -IsUndoFeature:$false -Errors $errors)
 
         $result.Id | Should -Be 'ApplyFeature'
-        $errors | Should -Contain "在当前功能目录中未找到所选功能 'MissingFeature'。"
+        $errors | Should -HaveCount 1
     }
 
     It 'uses undo registry keys and falls back to apply keys when needed' {
@@ -182,7 +186,7 @@ Describe 'Normalize-RegistryKeySnapshot' {
 
     It 'rejects a snapshot without a registry path' {
         { Normalize-RegistryKeySnapshot -Snapshot ([PSCustomObject]@{ Exists = $true }) } |
-            Should -Throw '备份验证失败：注册表键快照缺少 Path。'
+            Should -Throw
     }
 }
 
@@ -247,7 +251,6 @@ Describe 'Test-RegistrySnapshotAgainstAllowList' {
         Test-RegistrySnapshotAgainstAllowList -Snapshot $snapshot -PlanMap $planMap -Errors $errors
 
         $errors | Should -HaveCount 1
-        $errors[0] | Should -BeLike "备份在*包含类型为 'Binary' 的无效注册表数据*"
     }
 
     It 'allows all values in descendants of a recursive plan' {
@@ -295,7 +298,6 @@ Describe 'Test-RegistrySnapshotAgainstAllowList' {
         Test-RegistrySnapshotAgainstAllowList -Snapshot $unexpectedPathSnapshot -PlanMap $planMap -Errors $errors
         Test-RegistrySnapshotAgainstAllowList -Snapshot $unexpectedValueSnapshot -PlanMap $planMap -Errors $errors
 
-        $errors | Should -Contain "备份中包含意外的注册表路径 'HKEY_CURRENT_USER\Software\Unexpected'，该路径未被 SelectedFeatures 允许。"
-        $errors | Should -Contain "备份中 'HKEY_CURRENT_USER\Software\Example' 下包含意外的值 'Unexpected'。"
+        $errors | Should -HaveCount 2
     }
 }

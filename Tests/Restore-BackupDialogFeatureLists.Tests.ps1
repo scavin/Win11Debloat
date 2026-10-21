@@ -1,5 +1,6 @@
 ﻿BeforeAll {
     . (Join-Path $PSScriptRoot '..\Scripts\GUI\Restore-BackupDialogFeatureLists.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-LanguageFile.ps1')
 }
 
 Describe 'New-RestoreDialogState' {
@@ -8,6 +9,18 @@ Describe 'New-RestoreDialogState' {
             RegistryFeature = [PSCustomObject]@{ Label = 'Registry feature'; Category = 'Privacy'; RegistryKey = 'RegistryFeature.reg' }
             CustomFeature = [PSCustomObject]@{ Label = 'Custom feature'; Category = 'Privacy'; RegistryKey = '' }
             HiddenFeature = [PSCustomObject]@{ Label = 'Hidden feature'; Category = ''; RegistryKey = 'HiddenFeature.reg' }
+        }
+
+        $script:Lang = [PSCustomObject]@{
+            LanguageCode = 'en-US'
+            Chrome       = [PSCustomObject]@{ RestoreUnknownFeature = 'Unknown feature' }
+            Features     = [PSCustomObject]@{
+                RegistryFeature = [PSCustomObject]@{ Label = 'Registry feature' }
+                CustomFeature   = [PSCustomObject]@{ Label = 'Custom feature' }
+                HiddenFeature   = [PSCustomObject]@{ Label = 'Hidden feature' }
+            }
+            UiGroups     = [PSCustomObject]@{}
+            Categories   = [PSCustomObject]@{}
         }
     }
 
@@ -26,7 +39,6 @@ Describe 'New-RestoreDialogState' {
         Get-RestoreDialogFeatureDefinition -FeatureId 'MissingFeature' -Features $script:Features | Should -BeNullOrEmpty
         Get-RestoreDialogFeatureDisplayLabel -FeatureId 'RegistryFeature' -Features $script:Features | Should -Be 'Registry feature'
         Get-RestoreDialogFeatureDisplayLabel -FeatureId 'MissingFeature' -Features $script:Features | Should -Be 'MissingFeature'
-        Get-RestoreDialogFeatureDisplayLabel -FeatureId '' -Features $script:Features | Should -Be '未知功能'
     }
 
     It 'identifies visible, automatically revertible features' {

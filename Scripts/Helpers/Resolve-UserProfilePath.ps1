@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
         Normalize a user-name string for lookup and comparison.
 

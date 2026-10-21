@@ -4,6 +4,7 @@ param (
     [switch]$Silent,
     [switch]$Sysprep,
     [string]$LogPath,
+    [string]$Language,
     [string]$User,
     [Alias('NoRestartExplorer')]
     [switch]$SkipExplorerRestart,
@@ -24,7 +25,6 @@ param (
     [switch]$EnableWindowsSandbox,
     [switch]$EnableWindowsSubsystemForLinux,
     [switch]$DisableTelemetry,
-    [switch]$DisableSearchHistory,
     [switch]$DisableFastStartup,
     [switch]$DisableBitlockerAutoEncryption,
     [switch]$DisableModernStandbyNetworking,
@@ -36,8 +36,9 @@ param (
     [switch]$DisableBing,
     [switch]$DisableNotifications,
     [switch]$DisableStoreSearchSuggestions,
-    [switch]$DisableSearchHighlights,
     [switch]$DisableDesktopSpotlight,
+    [switch]$HideDesktopSpotlightIcon,
+    [switch]$EnableDesktopSpotlight,
     [switch]$DisableLockscreenTips,
     [switch]$DisableSuggestions,
     [switch]$DisableLocationServices,
@@ -68,6 +69,7 @@ param (
     [switch]$DisablePaintAI,
     [switch]$DisableNotepadAI,
     [switch]$DisableEdgeAI,
+	[switch]$DisableChromeAI,
     [switch]$DisableWidgets,
     [switch]$HideChat,
     [switch]$EnableEndTask,
@@ -155,25 +157,38 @@ if (-not $isAdmin) {
             }
         }
 
-        Start-Process powershell -ArgumentList $elevatedArgs -Verb RunAs
+        try {
+            Start-Process powershell -ArgumentList $elevatedArgs -Verb RunAs -ErrorAction Stop
+        }
+        catch {
+            Write-Error "无法以管理员身份启动 Win11Debloat：$_"
+            Exit 1
+        }
+
+        Exit 0
     }
-    exit
+
+    Exit 1
 }
 
 # Define script-level variables & paths
-$script:Version = "2026.07.11"
+$script:Version = "2026.08.24"
 $configPath = Join-Path $PSScriptRoot 'Config'
-$logsPath = Join-Path $PSScriptRoot 'Logs'
+$script:UserDataPath = Join-Path $env:LOCALAPPDATA 'Win11Debloat'
+$script:LogsPath = Join-Path $script:UserDataPath 'Logs'
 $schemasPath = Join-Path $PSScriptRoot 'Schemas'
 $scriptsPath = Join-Path $PSScriptRoot 'Scripts'
 
 $script:AppsListFilePath = Join-Path $configPath 'Apps.json'
 $script:DefaultSettingsFilePath = Join-Path $configPath 'DefaultSettings.json'
 $script:FeaturesFilePath = Join-Path $configPath 'Features.json'
-$script:SavedSettingsFilePath = Join-Path $configPath 'LastUsedSettings.json'
-$script:DefaultLogPath = Join-Path $logsPath 'Win11Debloat.log'
+$script:SavedSettingsFilePath = Join-Path $script:UserDataPath 'LastUsedSettings.json'
+$script:UiPreferencesFilePath = Join-Path $script:UserDataPath 'Preferences.json'
+$script:LanguagesPath = Join-Path $configPath 'Languages'
+$script:DefaultLanguagePath = Join-Path $script:LanguagesPath 'en-US'
+$script:DefaultLogPath = Join-Path $script:LogsPath 'Win11Debloat.log'
 $script:RegfilesPath = Join-Path $PSScriptRoot 'Regfiles'
-$script:RegistryBackupsPath = Join-Path $PSScriptRoot 'Backups'
+$script:RegistryBackupsPath = Join-Path $script:UserDataPath 'Backups'
 $script:AssetsPath = Join-Path $PSScriptRoot 'Assets'
 $script:AppSelectionSchema = Join-Path $schemasPath 'AppSelectionWindow.xaml'
 $script:MainWindowSchema = Join-Path $schemasPath 'MainWindow.xaml'
@@ -186,21 +201,25 @@ $script:ImportExportConfigSchema = Join-Path $schemasPath 'ImportExportConfigWin
 $script:RestoreBackupWindowSchema = Join-Path $schemasPath 'RestoreBackupWindow.xaml'
 $script:LoadAppsDetailsScriptPath = Join-Path (Join-Path $scriptsPath 'FileIO') 'Import-AppDetailsFromJson.ps1'
 $script:TestAppInWingetListScriptPath = Join-Path (Join-Path $scriptsPath 'AppRemoval') 'Test-AppInWingetList.ps1'
+$script:ImportLanguageFileScriptPath = Join-Path (Join-Path $scriptsPath 'FileIO') 'Import-LanguageFile.ps1'
 
-$script:ControlParams = 'WhatIf', 'Confirm', 'Verbose', 'Debug', 'LogPath', 'Silent', 'Sysprep', 'User', 'SkipExplorerRestart', 'SkipRegistryBackup', 'RunDefaults', 'RunDefaultsLite', 'RunSavedSettings', 'Config', 'CLI', 'AppRemovalTarget'
+$script:ControlParams = 'WhatIf', 'Confirm', 'Verbose', 'Debug', 'LogPath', 'Language', 'Silent', 'Sysprep', 'User', 'SkipExplorerRestart', 'SkipRegistryBackup', 'RunDefaults', 'RunDefaultsLite', 'RunSavedSettings', 'Config', 'CLI', 'AppRemovalTarget'
 
 # Script-level variables for GUI elements
 $script:GuiWindow = $null
 $script:CancelRequested = $false
 $script:ApplyProgressCallback = $null
 $script:ApplySubStepCallback = $null
+$script:RegistryImportFailures = 0
+$script:AppRemovalFailures = 0
+$script:AppRemovalVerificationUnavailable = $false
 
-# Check if current powershell environment is limited by security policies
+# Check if current PowerShell environment is limited by security policies
 if ($ExecutionContext.SessionState.LanguageMode -ne "FullLanguage") {
     Write-Error "Win11Debloat 无法在您的系统上运行，PowerShell 执行受到安全策略限制"
     Write-Output "按任意键退出..."
     $null = [System.Console]::ReadKey()
-    Exit
+    Exit 1
 }
 
 Clear-Host
@@ -243,6 +262,37 @@ else {
     Start-Transcript -Path $script:DefaultLogPath -Append -IncludeInvocationHeader -Force | Out-Null
 }
 
+# When Group Policy overrides Run.bat's Process-scope Bypass, marked PowerShell source files
+# can prompt as they are dot-sourced. Outside -WhatIf, remove Mark-of-the-Web only from marked
+# .ps1, .psm1, and .psd1 files under Scripts; leave all other downloaded files untouched.
+# See issue #720.
+if (-not $WhatIfPreference) {
+    $gpoExecutionPolicySet = (Get-ExecutionPolicy -Scope MachinePolicy) -ne 'Undefined' -or
+        (Get-ExecutionPolicy -Scope UserPolicy) -ne 'Undefined'
+
+    if ($gpoExecutionPolicySet) {
+        $markedScriptFiles = @(Get-ChildItem -LiteralPath $scriptsPath -Recurse -File |
+            Where-Object { $_.Extension -in '.ps1', '.psm1', '.psd1' } |
+            Where-Object {
+                Get-Item -LiteralPath $_.FullName -Stream * -ErrorAction SilentlyContinue |
+                    Where-Object { $_.Stream -eq 'Zone.Identifier' }
+            })
+
+        if ($markedScriptFiles.Count -gt 0) {
+            Write-Host "正在解除 $($markedScriptFiles.Count) 个 PowerShell 文件的阻止状态..."
+            $unblockErrors = @()
+            $markedScriptFiles | Unblock-File -ErrorAction SilentlyContinue -ErrorVariable +unblockErrors
+
+            if ($unblockErrors.Count -gt 0) {
+                Write-Warning "无法解除 $($unblockErrors.Count) 个 PowerShell 文件的阻止状态。"
+            }
+            else {
+                Write-Host "已成功解除所有文件的阻止状态。"
+            }
+        }
+    }
+}
+
 # Check if the device is domain-joined and warn the user (Group Policy may override changes)
 try {
     $computerSystem = Get-CimInstance Win32_ComputerSystem -ErrorAction SilentlyContinue
@@ -253,12 +303,11 @@ try {
 catch { }
 
 # Check if script has all required files
-if (-not ((Test-Path $script:DefaultSettingsFilePath) -and (Test-Path $script:AppsListFilePath) -and (Test-Path $script:RegfilesPath) -and (Test-Path $script:AssetsPath) -and (Test-Path $script:AppSelectionSchema) -and (Test-Path $script:ApplyChangesWindowSchema) -and (Test-Path $script:SharedStylesSchema) -and (Test-Path $script:BubbleHintSchema) -and (Test-Path $script:RestoreBackupWindowSchema) -and (Test-Path $script:FeaturesFilePath))) {
+if (-not ((Test-Path $script:DefaultSettingsFilePath) -and (Test-Path $script:AppsListFilePath) -and (Test-Path $script:RegfilesPath) -and (Test-Path $script:AssetsPath) -and (Test-Path $script:AppSelectionSchema) -and (Test-Path $script:ApplyChangesWindowSchema) -and (Test-Path $script:SharedStylesSchema) -and (Test-Path $script:BubbleHintSchema) -and (Test-Path $script:RestoreBackupWindowSchema) -and (Test-Path $script:FeaturesFilePath) -and (Test-Path $script:DefaultLanguagePath))) {
     Write-Error "Win11Debloat 无法找到所需文件，请确保所有脚本文件都存在"
-    Write-Output ""
     Write-Output "按任意键退出..."
     $null = [System.Console]::ReadKey()
-    Exit
+    Exit 1
 }
 
 # Load feature info from file
@@ -278,7 +327,7 @@ catch {
     Write-Output ""
     Write-Output "按任意键退出..."
     $null = [System.Console]::ReadKey()
-    Exit
+    Exit 1
 }
 
 # Check if WinGet is installed & if it is, check if the version is at least v1.4
@@ -346,6 +395,7 @@ if (-not $script:WingetInstalled -and -not $Silent) {
 
 # File I/O functions
 . "$PSScriptRoot/Scripts/FileIO/Import-JsonFile.ps1"
+. "$PSScriptRoot/Scripts/FileIO/Import-LanguageFile.ps1"
 . "$PSScriptRoot/Scripts/FileIO/Save-ToFile.ps1"
 . "$PSScriptRoot/Scripts/FileIO/Save-Settings.ps1"
 . "$PSScriptRoot/Scripts/FileIO/Import-Settings.ps1"
@@ -356,6 +406,9 @@ if (-not $script:WingetInstalled -and -not $Silent) {
 
 # GUI functions
 . "$PSScriptRoot/Scripts/GUI/Get-SystemUsesDarkMode.ps1"
+. "$PSScriptRoot/Scripts/GUI/Ui-Preferences.ps1"
+. "$PSScriptRoot/Scripts/GUI/MainWindow-Localization.ps1"
+. "$PSScriptRoot/Scripts/GUI/Show-SettingsDialog.ps1"
 . "$PSScriptRoot/Scripts/GUI/Set-WindowThemeResources.ps1"
 . "$PSScriptRoot/Scripts/GUI/Attach-ShiftClickBehavior.ps1"
 . "$PSScriptRoot/Scripts/GUI/Apply-SettingsToUiControls.ps1"
@@ -385,7 +438,9 @@ if (-not $script:WingetInstalled -and -not $Silent) {
 . "$PSScriptRoot/Scripts/Helpers/Get-FriendlyRegistryBackupTarget.ps1"
 . "$PSScriptRoot/Scripts/Helpers/Get-FriendlyTargetUserName.ps1"
 . "$PSScriptRoot/Scripts/Helpers/Get-RebootFeatureLabels.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Windows-BuildHelpers.ps1"
 . "$PSScriptRoot/Scripts/Helpers/Import-ConfigToParams.ps1"
+. "$PSScriptRoot/Scripts/Helpers/Test-ConfigConsistency.ps1"
 . "$PSScriptRoot/Scripts/Helpers/Get-TargetUserForAppRemoval.ps1"
 . "$PSScriptRoot/Scripts/Helpers/Get-RegFileOperations.ps1"
 . "$PSScriptRoot/Scripts/Helpers/Test-TargetUserName.ps1"
@@ -414,6 +469,19 @@ $WinVersion = Get-ItemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows NT\Current
 
 # Check if the machine supports Modern Standby, this is used to determine if the DisableModernStandbyNetworking option can be used
 $script:ModernStandbySupported = Test-ModernStandbySupport
+
+# Explicit -Language takes precedence over saved UI preferences and the system culture.
+Initialize-UiPreferences -Language $Language
+
+# Keep console feature descriptions in Chinese without changing stable feature IDs or GUI language selection.
+$consoleLanguage = Import-LanguageFile -LanguageCode 'zh-CN'
+foreach ($feature in $script:Features.Values) {
+    foreach ($field in @('Label', 'ApplyText', 'UndoLabel', 'ApplyUndoText')) {
+        if ($feature.PSObject.Properties[$field] -and $consoleLanguage.Features.($feature.FeatureId).PSObject.Properties[$field]) {
+            $feature.$field = Get-Translation -Key $feature.FeatureId -Field $field -Section 'Features' -Lang $consoleLanguage
+        }
+    }
+}
 
 $script:Params = $PSBoundParameters
 $script:UndoParams = @{}
@@ -451,7 +519,7 @@ if ($script:Params.ContainsKey("Sysprep")) {
     # Exit script if run in Sysprep mode on Windows 10
     if ($WinVersion -lt 22000) {
         Write-Error "Win11Debloat 的 Sysprep 模式不支持 Windows 10"
-        Wait-ForKeyPress
+        Wait-ForKeyPress -ExitCode 1
     }
 }
 
@@ -469,11 +537,14 @@ if ($script:Params.ContainsKey("AppRemovalTarget")) {
 
 # Remove LastUsedSettings.json file if it exists and is empty
 if ((Test-Path $script:SavedSettingsFilePath) -and ([String]::IsNullOrWhiteSpace((Get-content $script:SavedSettingsFilePath)))) {
-    Remove-Item -Path $script:SavedSettingsFilePath -recurse
+    Remove-Item -Path $script:SavedSettingsFilePath -Force
 }
 
 # Default to CLI mode for deployment-targeted parameters.
 $launchInCLI = $CLI -or $script:Params.ContainsKey("User") -or $script:Params.ContainsKey("Sysprep") -or $script:Params.ContainsKey("AppRemovalTarget")
+if ($launchInCLI -or $RunDefaults -or $RunDefaultsLite -or $RunSavedSettings -or $Config) {
+    $script:Lang = $consoleLanguage
+}
 
 # Change script execution based on provided parameters or user input
 if ((-not $script:Params.Count) -or $RunDefaults -or $RunDefaultsLite -or $RunSavedSettings -or $Config -or ($controlParamsCount -eq $script:Params.Count)) {
@@ -484,7 +555,7 @@ if ((-not $script:Params.Count) -or $RunDefaults -or $RunDefaultsLite -or $RunSa
         if (-not (Test-Path $script:SavedSettingsFilePath)) {
             Write-CliHeader '自定义模式'
             Write-Error "无法找到 LastUsedSettings.json 文件，未做任何更改"
-            Wait-ForKeyPress
+            Wait-ForKeyPress -ExitCode 1
         }
 
         Show-CliLastUsedSettings
@@ -495,7 +566,7 @@ if ((-not $script:Params.Count) -or $RunDefaults -or $RunDefaultsLite -or $RunSa
         }
         catch {
             Write-Error "$_"
-            Wait-ForKeyPress
+            Wait-ForKeyPress -ExitCode 1
         }
 
         if (-not $Silent) {
@@ -520,13 +591,15 @@ if ((-not $script:Params.Count) -or $RunDefaults -or $RunDefaultsLite -or $RunSa
                 Exit
             }
             catch {
-                Write-Warning "无法加载 WPF 图形界面（此环境不支持），回退到命令行模式"
+                Write-Warning "无法启动图形界面：$($_.Exception.Message)"
+                Write-Verbose "图形界面错误详情：$($_.Exception.ToString())"
                 if (-not $Silent) {
                     Write-Host ""
-                    Write-Host "按任意键继续..."
+                    Write-Host "按任意键继续使用命令行模式..."
                     $null = [System.Console]::ReadKey()
                 }
 
+                $script:Lang = $consoleLanguage
                 $Mode = Show-CliMenuOptions
             }
         }
@@ -551,6 +624,7 @@ if ((-not $script:Params.Count) -or $RunDefaults -or $RunDefaultsLite -or $RunSa
     }
 }
 else {
+    $script:Lang = $consoleLanguage
     Write-CliHeader '配置'
 }
 

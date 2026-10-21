@@ -1,10 +1,25 @@
-﻿function Invoke-SystemRestorePoint {
-    $SysRestore = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "RPSessionInterval"
-    $failed = $false
+﻿<#
+    .SYNOPSIS
+    Creates a system restore point.
 
-    if ($SysRestore.RPSessionInterval -eq 0) {
+    .OUTPUTS
+    System.Boolean. $true when a restore point is created; otherwise $false.
+#>
+function Invoke-SystemRestorePoint {
+    $failed = $false
+    $isSilent = ($script:Params -and $script:Params.ContainsKey('Silent')) -or $script:Silent
+
+    try {
+        $SysRestore = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "RPSessionInterval" -ErrorAction Stop
+    }
+    catch {
+        Write-Host "错误：无法确定系统还原是否已启用：$($_.Exception.Message)" -ForegroundColor Red
+        $failed = $true
+    }
+
+    if (-not $failed -and $SysRestore.RPSessionInterval -eq 0) {
         # In GUI mode, skip the prompt and just try to enable it
-        if ($script:GuiWindow -or $Silent -or $( Read-Host -Prompt "系统还原已禁用，是否启用并创建还原点？(y/n)") -eq 'y') {
+        if ($script:GuiWindow -or $isSilent -or $( Read-Host -Prompt "系统还原已禁用，是否启用并创建还原点？(y/n)") -eq 'y') {
             try {
                 $enableResult = Invoke-NonBlocking -TimeoutSeconds 90 -ScriptBlock {
                     try {
@@ -26,7 +41,6 @@
             }
         }
         else {
-            Write-Host ""
             $failed = $true
         }
     }
@@ -75,21 +89,24 @@
     # Ensure that the user is aware if creating a restore point failed, and give them the option to continue without a restore point or cancel the script
     if ($failed) {
         if ($script:GuiWindow) {
-            $result = Show-MessageBox "创建系统还原点失败。是否在没有还原点的情况下继续？" "还原点创建失败" "YesNo" "Warning"
+            $result = Show-MessageBox (Get-Translation -Key 'RestorePointFailedMessage') (Get-Translation -Key 'RestorePointFailedTitle') "YesNo" "Warning"
 
             if ($result -ne "Yes") {
                 $script:CancelRequested = $true
-                return
+                return $false
             }
         }
-        elseif (-not $Silent) {
+        elseif (-not $isSilent) {
             Write-Host "创建系统还原点失败。是否在没有还原点的情况下继续？(y/n)" -ForegroundColor Yellow
             if ($( Read-Host ) -ne 'y') {
                 $script:CancelRequested = $true
-                return
+                return $false
             }
         }
 
         Write-Host "警告：将在没有还原点的情况下继续" -ForegroundColor Yellow
+        return $false
     }
+
+    return $true
 }

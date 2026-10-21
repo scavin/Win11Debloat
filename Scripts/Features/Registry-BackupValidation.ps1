@@ -1,4 +1,12 @@
-﻿function Get-NormalizedSelectedFeatureIdsFromBackup {
+﻿<#
+    .SYNOPSIS
+        Extracts and deduplicates the SelectedFeatures list from a backup, validating each entry.
+
+    .DESCRIPTION
+        Returns an empty SelectedFeatures array with an error when the property is missing
+        entirely, and flags (without stopping) any entry that isn't a non-empty string.
+#>
+function Get-NormalizedSelectedFeatureIdsFromBackup {
     param(
         [Parameter(Mandatory)]
         $Backup
@@ -10,7 +18,7 @@
     $hasInvalidSelectedFeatureId = $false
 
     if (-not $Backup.PSObject.Properties['SelectedFeatures']) {
-        $errors.Add('缺少属性：SelectedFeatures')
+        $errors.Add((Get-Translation -Key 'BackupMissingProperty' -FormatArgs @('SelectedFeatures')))
         return [PSCustomObject]@{
             SelectedFeatures = $selectedFeatures.ToArray()
             Errors = $errors.ToArray()
@@ -30,7 +38,7 @@
     }
 
     if ($hasInvalidSelectedFeatureId) {
-        $errors.Add('SelectedFeatures 必须包含非空字符串的功能 ID。')
+        $errors.Add((Get-Translation -Key 'BackupSelectedFeaturesMustBeStrings'))
     }
 
     return [PSCustomObject]@{
@@ -39,6 +47,14 @@
     }
 }
 
+<#
+    .SYNOPSIS
+        Extracts and deduplicates the SelectedUndoFeatures list from a backup, validating each entry.
+
+    .DESCRIPTION
+        Unlike SelectedFeatures, this property is optional: a missing property returns an
+        empty array with no error, since not every backup has undone features to restore.
+#>
 function Get-NormalizedSelectedUndoFeatureIdsFromBackup {
     param(
         [Parameter(Mandatory)]
@@ -71,7 +87,7 @@ function Get-NormalizedSelectedUndoFeatureIdsFromBackup {
     }
 
     if ($hasInvalidSelectedUndoFeatureId) {
-        $errors.Add('SelectedUndoFeatures 必须包含非空字符串的功能 ID。')
+        $errors.Add((Get-Translation -Key 'BackupSelectedUndoFeaturesMustBeStrings'))
     }
 
     return [PSCustomObject]@{
@@ -80,6 +96,15 @@ function Get-NormalizedSelectedUndoFeatureIdsFromBackup {
     }
 }
 
+<#
+    .SYNOPSIS
+        Normalizes a raw registry key snapshot into a consistent shape, recursing into sub-keys.
+
+    .DESCRIPTION
+        Fills in defaults for optional properties (Exists, Values, SubKeys) so downstream
+        validation can read a predictable shape regardless of what the backup file omitted.
+        Throws if Path is missing, since every snapshot must be anchored to a real key.
+#>
 function Normalize-RegistryKeySnapshot {
     param(
         [Parameter(Mandatory)]
@@ -87,7 +112,7 @@ function Normalize-RegistryKeySnapshot {
     )
 
     if (-not $Snapshot.PSObject.Properties['Path'] -or [string]::IsNullOrWhiteSpace([string]$Snapshot.Path)) {
-        throw '备份验证失败：注册表键快照缺少 Path。'
+        throw (Get-Translation -Key 'BackupSnapshotMissingPath')
     }
 
     $exists = $false
@@ -127,6 +152,16 @@ function Normalize-RegistryKeySnapshot {
     }
 }
 
+<#
+    .SYNOPSIS
+        Validates that a backup's registry snapshots only contain paths and values the
+        selected (and undo) features are actually allowed to touch.
+
+    .DESCRIPTION
+        Builds an allow-list from the capture plans of the selected features, then checks
+        every snapshot against it. Returns an array of translated error strings; an empty
+        array means the backup is valid.
+#>
 function Test-RegistryBackupMatchesSelectedFeatures {
     param(
         [Parameter(Mandatory)]
@@ -145,7 +180,7 @@ function Test-RegistryBackupMatchesSelectedFeatures {
     $errors = New-Object System.Collections.Generic.List[string]
 
     if (-not $script:Features -or $script:Features.Count -eq 0) {
-        $errors.Add('无法验证注册表备份允许列表，因为功能定义未加载。')
+        $errors.Add((Get-Translation -Key 'BackupFeatureCatalogNotLoaded'))
         return $errors.ToArray()
     }
 
@@ -161,7 +196,7 @@ function Test-RegistryBackupMatchesSelectedFeatures {
     $planMap = New-RegistryBackupAllowListPlanMap -CapturePlans @($capturePlans)
 
     if ($planMap.Count -eq 0 -and @($RegistryKeys).Count -gt 0) {
-        $errors.Add('备份包含注册表快照，但未从所选功能中派生出允许的注册表路径。')
+        $errors.Add((Get-Translation -Key 'BackupNoAllowedRegistryPaths'))
     }
 
     foreach ($rootSnapshot in @($RegistryKeys)) {
@@ -171,6 +206,15 @@ function Test-RegistryBackupMatchesSelectedFeatures {
     return $errors.ToArray()
 }
 
+<#
+    .SYNOPSIS
+        Resolves selected feature IDs to their catalog entries, keeping only the ones with a
+        registry-backed apply or undo key relevant to the requested direction.
+
+    .DESCRIPTION
+        Appends a translated error to the caller-supplied Errors list for any feature ID that
+        isn't in the current catalog, rather than failing the whole validation outright.
+#>
 function Get-SelectedRegistryFeaturesForBackupValidation {
     param(
         [Parameter(Mandatory)]
@@ -184,13 +228,15 @@ function Get-SelectedRegistryFeaturesForBackupValidation {
     )
 
     if ($null -eq $Errors -or -not ($Errors -is [System.Collections.IList])) {
-        throw 'Get-SelectedRegistryFeaturesForBackupValidation requires Errors to be a mutable list collection.'
+        throw 'Get-SelectedRegistryFeaturesForBackupValidation 的 Errors 参数必须是可变列表集合。'
     }
+    # Intentionally not localized: this throw signals a programming error (a caller passing the
+    # wrong collection type), not a condition a user's backup file can trigger.
 
     $selectedRegistryFeatures = New-Object System.Collections.Generic.List[object]
     foreach ($featureId in @($SelectedFeatureIds)) {
         if (-not $script:Features.ContainsKey($featureId)) {
-            $Errors.Add("在当前功能目录中未找到所选功能 '$featureId'。")
+            $Errors.Add((Get-Translation -Key 'BackupFeatureNotInCatalog' -FormatArgs @($featureId)))
             continue
         }
 
@@ -293,13 +339,13 @@ function Test-RegistrySnapshotAgainstAllowList {
     $snapshotPath = [string]$Snapshot.Path
     $normalizedPath = Get-NormalizedRegistryPathKey -Path $snapshotPath
     if ([string]::IsNullOrWhiteSpace($normalizedPath)) {
-        $Errors.Add("备份中包含不支持的注册表路径 '$snapshotPath'。")
+        $Errors.Add((Get-Translation -Key 'BackupUnsupportedRegistryPath' -FormatArgs @($snapshotPath)))
         return
     }
 
     $planMatch = Find-RegistryAllowListPlanMatch -NormalizedPath $normalizedPath -PlanMap $PlanMap
     if ($null -eq $planMatch) {
-        $Errors.Add("备份中包含意外的注册表路径 '$snapshotPath'，该路径未被 SelectedFeatures 允许。")
+        $Errors.Add((Get-Translation -Key 'BackupUnexpectedRegistryPath' -FormatArgs @($snapshotPath)))
         return
     }
 
@@ -308,21 +354,21 @@ function Test-RegistrySnapshotAgainstAllowList {
         $valueExists = [bool]$valueSnapshot.Exists
 
         if (-not (Test-RegistryValueAllowedByPlan -PlanMatch $planMatch -ValueName $valueName)) {
-            $Errors.Add("备份中 '$snapshotPath' 下包含意外的值 '$valueName'。")
+            $Errors.Add((Get-Translation -Key 'BackupUnexpectedValue' -FormatArgs @($valueName, $snapshotPath)))
         }
 
         $kindName = if ($valueSnapshot.PSObject.Properties['Kind']) { [string]$valueSnapshot.Kind } else { '' }
         $valueReference = Get-RegistryValueReferenceForError -SnapshotPath $snapshotPath -ValueName $valueName
         if ($valueExists) {
             if (-not (Test-RegistryValueKindNameSupported -KindName $kindName)) {
-                $Errors.Add("备份中 '$valueReference' 包含不支持的注册表值类型 '$kindName'。")
+                $Errors.Add((Get-Translation -Key 'BackupUnsupportedValueKind' -FormatArgs @($kindName, $valueReference)))
             }
             elseif (-not (Test-RegistryValueDataMatchesKind -KindName $kindName -Data $valueSnapshot.Data)) {
-                $Errors.Add("备份在 '$valueReference' 包含类型为 '$kindName' 的无效注册表数据。")
+                $Errors.Add((Get-Translation -Key 'BackupInvalidValueData' -FormatArgs @($kindName, $valueReference)))
             }
         }
         elseif (-not [string]::IsNullOrWhiteSpace($kindName)) {
-            $Errors.Add("备份值 '$valueReference' 在 Exists 为 false 时不得定义 Kind。")
+            $Errors.Add((Get-Translation -Key 'BackupValueMustNotDefineKind' -FormatArgs @($valueReference)))
         }
     }
 
@@ -531,3 +577,4 @@ function Test-RegistryValueKindNameSupported {
         return $false
     }
 }
+

@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
         Builds the validated application-removal list from the Apps parameter.
 #>

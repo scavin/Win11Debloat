@@ -48,7 +48,7 @@ You can launch the prerelease version of Win11Debloat by running this command:
 2. Enable script execution if necessary:
 
    ```powershell
-   Set-ExecutionPolicy Unrestricted -Scope Process -Force
+   Set-ExecutionPolicy Bypass -Scope Process -Force
    ```
 
 3. Navigate to your Win11Debloat directory
@@ -60,38 +60,74 @@ You can launch the prerelease version of Win11Debloat by running this command:
 
 ### Running Automated Tests
 
-The automated test cases use Pester 5 and do not modify the registry or other
-system state. The optional bootstrap step installs Pester for your user account
-when needed. To run the complete suite:
+The automated tests use Pester 5 and are found in the `Tests` directory. They cover registry operations, app removal, CLI/GUI logic, and config handling. Some Windows behavior is mocked so the tests can run safely, but they do not replace manual testing on a Windows test environment.
+
+The bootstrap option can be used to automatically install Pester on your machine and run the full suite of tests:
 
 ```powershell
 .\Scripts\Run-Tests.ps1 -Bootstrap
 ```
 
-After the initial setup, run the suite with:
+After the initial setup, you can simply run the full suite with:
 
 ```powershell
 .\Scripts\Run-Tests.ps1
 ```
 
-GitHub Actions runs the same test command with Windows PowerShell 5.1 for pull
-requests and pushes to `master`.
+For a focused test run during development, you can also call Pester directly:
 
-## Implementation Guidelines
+```powershell
+Invoke-Pester -Path .\Tests\Invoke-Changes.Tests.ps1 -Output Detailed
+```
+
+GitHub Actions runs the same suite with Windows
+PowerShell 5.1 for pull requests and pushes to `master`.
+
+## Architecture & Design
+
+Win11Debloat is a PowerShell script with a WPF (Windows Presentation Foundation)-based GUI and command-line interface. The CLI provides an alternative to the GUI, allowing most features to be invoked directly through command-line parameters. The project uses a data-driven architecture, separating feature and application definitions from the logic that applies them.
+
+### Entry Points
+
+`Win11Debloat.ps1` is the main entry point and can be launched directly or through one of the provided launchers:
+
+* `Run.bat` launches a locally downloaded copy of `Win11Debloat.ps1`.
+* `Get.ps1` downloads Win11Debloat and launches `Win11Debloat.ps1`.
+
+Both `Get.ps1` and `Win11Debloat.ps1` support [command-line parameters](https://github.com/Raphire/Win11Debloat/wiki/Command-Line-Interface), allowing Win11Debloat to be configured and run without using the GUI.
+
+### High-Level Architecture
+
+`Win11Debloat.ps1` loads the configuration and shared functions, then routes execution through either the WPF GUI or CLI. Both interfaces use the same underlying feature and app-removal engine.
+
+```mermaid
+flowchart TB
+    Main[Win11Debloat.ps1] --> GUI[WPF GUI]
+    Main --> CLI[CLI]
+
+    Config["Config Files (JSON)"] --> GUI
+    Config --> CLI
+
+    GUI --> Changes[Apply Selected Changes]
+    CLI --> Changes
+    Config --> Changes
+
+    Changes --> Regfiles[Regfiles]
+    Changes --> Tools[Appx / WinGet]
+```
 
 ### Project Structure
-
-Understanding the project structure is essential for contributing effectively:
 
 ```text
 Win11Debloat/
 ├── Win11Debloat.ps1             # Main PowerShell script
-├── Run.bat                      # Batch launcher for the quick launch method
+├── Run.bat                      # Local launcher
 ├── Scripts/                     # Additional PowerShell scripts and functions
-│   ├── Get.ps1                  # Script used for the quick launch method to automatically download and run Win11debloat
+│   ├── Get.ps1                  # Download-and-launch script
+│   ├── Run-Tests.ps1            # Pester test runner (optionally bootstraps Pester)
 │   ├── AppRemoval/              # App package removal logic
 │   ├── CLI/                     # Command-line interface helpers
-│   ├── Features/                # Feature apply/undo logic (e.g. Invoke-Changes.ps1, Replace-StartMenu.ps1)
+│   ├── Features/                # Feature apply, undo, backup, and restore logic
 │   ├── FileIO/                  # File input/output helpers
 │   ├── GUI/                     # GUI window definitions and logic
 │   ├── Helpers/                 # Shared helper functions
@@ -100,20 +136,24 @@ Win11Debloat/
 │   ├── Apps.json                # List of supported apps for removal
 │   ├── DefaultSettings.json     # Default configuration preset
 │   ├── Features.json            # All features with metadata
-│   └── LastUsedSettings.json    # Last used configuration (generated during use)
+│   ├── LastUsedSettings.json    # Last used configuration (generated during use)
+│   └── Languages/               # GUI translation files, one folder per culture code (e.g. en-US/)
 ├── Regfiles/                    # Registry files for all features
 │   ├── Undo/                    # Registry files for reverting features
 │   └── Sysprep/                 # Registry files for Sysprep mode
-├── Schemas/                     # XAML Schemas for GUI elements
+├── Schemas/                     # XAML views and shared GUI resources
 ├── Assets/                      # Static assets (icons, start menu templates)
+├── Tests/                       # Pester tests for script and XAML contracts
 ├── Backups/                     # Registry backups (generated during use)
 └── Logs/                        # Script logs (generated during use)
 ```
 
+## Implementation Guidelines
+
 ### Best Practices
 
 1. **Test Thoroughly**: Always test your changes on a Windows test environment before submitting. This includes undoing tweaks and running script as another user and in Sysprep mode.
-2. **Document Changes**: Update the `README.md` and other relevant documentation. Wiki documentation will be generated/updated based on the `Features.json` and `Apps.json` files.
+2. **Document Changes**: Update the `README.md`, wiki, and other relevant documentation.
 3. **Follow Existing Patterns**: Look at existing implementations for guidance.
 4. **Use Clear Naming**: Choose descriptive names for features, IDs, and registry files.
 5. **Minimal Changes**: Registry files should only modify what's necessary. Avoid using policies where possible.
@@ -137,7 +177,7 @@ Avoid these common mistakes when contributing:
 
 1. **Forgetting Get.ps1**: When adding a new command-line parameter, contributors often remember to add it to `Win11Debloat.ps1` but forget to add the same parameter to `Scripts/Get.ps1`. Both files **must** have matching parameters.
 
-2. **Missing Registry Files**: Always create an `Undo` registry file for reversibility, aswell as a `Sysprep` registry file for applying changes to other users and Sysprep mode.
+2. **Missing Registry Files**: For registry-backed features, create an `Undo` registry file for reversibility and a `Sysprep` registry file for applying changes to other users and Sysprep mode.
 
 3. **Incorrect Registry Hives for Sysprep**: Sysprep registry files are meant to apply changes to a different user. Registry keys in the `HKEY_CURRENT_USER` hive must use `hkey_users\default` instead. Ensure you update **all** registry keys in the file.
 
@@ -156,6 +196,8 @@ Avoid these common mistakes when contributing:
 
 8. **Hardcoded Paths**: When writing PowerShell logic, use `$PSScriptRoot` and script variables instead of hardcoded paths. This ensures the script works regardless of where it's installed.
 
+9. **Missing Translation Entry**: A new Feature, Category, UI Group, or App needs a matching entry in `Config/Languages/en-US/` (see [Localizing UI Text](#localizing-ui-text)). Without one, the GUI silently falls back to displaying the raw `FeatureId`/`CategoryId`/`GroupId`/`AppId` instead of your `Label`/`ToolTip`/`FriendlyName`/`Description` text.
+
 ## Implementing New Features
 
 ### Adding Support for a New App
@@ -165,11 +207,13 @@ Avoid these common mistakes when contributing:
 
 To add a new app that can be removed via Win11Debloat:
 
-1. **Find the AppId**: To find the correct AppId for an app:
+1. **Find the AppId**: For an Appx app, find the package name with:
 
    ```powershell
    Get-AppxPackage | Select-Object Name, PackageFullName
    ```
+
+   For a WinGet app, use `winget list` and use its `Id` value.
 
 2. **Edit `Config/Apps.json`**: Add a new entry to the `"Apps"` array:
 
@@ -187,7 +231,10 @@ To add a new app that can be removed via Win11Debloat:
    **Field Descriptions**:
 
    - `FriendlyName`: Display name shown in the GUI.
-   - `AppId`: The `AppPackageIdentifier` from `Get-AppxPackage` or the `Id` from `winget list`, depending on removal method.
+   - `AppId`: The package name from `Get-AppxPackage` or the `Id` from
+     `winget list`, depending on removal method. Use an array when one app
+     requires multiple identifiers. The GUI looks up the translation entry by
+     the first ID in the array, key `Apps.json` by that one.
    - `Description`: Brief description of the app shown in the GUI.
    - `SelectedByDefault`: Set to `true` only for apps that are largely considered bloatware, otherwise set to `false`.
    - `Recommendation`: Indicates how strongly the app is recommended for removal. One of:
@@ -198,10 +245,11 @@ To add a new app that can be removed via Win11Debloat:
      - `Appx` — remove as a standard Appx package via `Remove-AppxPackage` (most apps)
      - `WinGet` — remove via WinGet (`winget uninstall`). Use for non-Appx apps such as Microsoft Copilot.
 
-3. **Follow the Guidelines**:
+3. **Add the English Translation Entry**: Add a matching entry for your `AppId` to `Config/Languages/en-US/Apps.json` (see [Localizing UI Text](#localizing-ui-text)) with `FriendlyName` and `Description` matching what you set above, so the GUI shows them instead of the raw `AppId`.
+
+4. **Follow the Guidelines**:
 
    - Use clear, user-friendly names for `FriendlyName`
-   - Set `SelectedByDefault` to `true` only for apps that are largely considered bloatware, otherwise set to `false`
    - Provide a concise description explaining what the app does
 
 ### Adding a New Feature
@@ -289,6 +337,14 @@ Add a corresponding parameter to both `Win11Debloat.ps1` AND `Scripts/Get.ps1`, 
 [switch]$YourFeatureId,
 ```
 
+#### 4. Add the English Translation Entry
+
+Add a matching entry for your `FeatureId` to `Config/Languages/en-US/Features.json` (see [Localizing UI Text](#localizing-ui-text)) so the GUI shows your `Label`/`ToolTip`/etc. instead of the raw `FeatureId`.
+
+#### 5. Add or Update Tests
+
+Add or update Pester coverage for the new behavior, then run the full suite.
+
 ### Adding a Feature to the Default Preset
 
 > [!IMPORTANT]
@@ -354,17 +410,22 @@ To add a new category for organizing features:
 
   ```json
   {
+    "CategoryId": "YourCategoryId",
     "Name": "Your Category Name",
-    "Icon": "&#xE#### ;"
+    "Icon": "&#xE####;"
   }
   ```
+
+  `CategoryId` is the stable identifier used for tweak presets, app-removal scope, and localization lookups. `Name` stays as the English display fallback. Skip `CategoryId` and the category falls back to using its `Name` as the ID, which breaks translation lookups, so always set one.
 
 > [!TIP]
 > Use [Segoe Fluent Icon Assets](https://learn.microsoft.com/en-us/windows/apps/design/iconography/segoe-fluent-icons-font) for icon codes.
 
 ### Adding UI Groups
 
-UI Groups allow features to be grouped together in the GUI with a combobox (dropdown) selection:
+UI Groups allow features to be grouped together in the GUI with a combobox
+(dropdown) selection. Add the group to the top-level `"UiGroups"` array in
+`Config/Features.json` and use a unique `GroupId`:
 
 ```json
 {
@@ -386,6 +447,39 @@ UI Groups allow features to be grouped together in the GUI with a combobox (drop
 }
 ```
 
+>[!IMPORTANT]
+> Define the referenced features before adding a group. Each `FeatureId` in a group's `Values` list must already be defined in the `"Features"` array in `Features.json`. Features referenced by a group are shown through that group rather than as standalone controls.
+
+Add a matching entry for your `GroupId` to `Config/Languages/en-US/Features.json` (see [Localizing UI Text](#localizing-ui-text)) so the GUI shows your `Label`/`ToolTip`/option text instead of the raw `GroupId`.
+
+### Localizing UI Text
+
+GUI text lives in `Config/Languages/en-US/`, not hardcoded in `Schemas/*.xaml` or `Scripts/GUI/*.ps1`. Adding or changing a Feature, Category, UI Group, or App means updating the matching English entry, or the GUI falls back to showing the raw ID.
+
+- `Config/Languages/en-US/Features.json`, under `"Features"`, keyed by `FeatureId`. Add `Label`, `ToolTip`, `ApplyText`, `UndoLabel`, and `ApplyUndoText` to match whatever fields you set in `Config/Features.json`.
+- `Config/Languages/en-US/Features.json`, under `"UiGroups"`, keyed by `GroupId`. Add `Label`, `ToolTip`, and a `Values` map of `FeatureId: "Option label"` matching the group's `Values` array.
+- `Config/Languages/en-US/Categories.json`, keyed by `CategoryId`. Add a `Label` for every new category.
+- `Config/Languages/en-US/Apps.json`, keyed by `AppId`. Add `FriendlyName` and `Description` for every new app.
+- `Config/Languages/en-US/Chrome.json`, a flat key/value map for static GUI chrome: buttons, dialog titles, tooltips not tied to a specific Feature/Category/UiGroup. Add a key here only for new static text, and reference it from XAML with a `%LANG:YourKey%` marker or from PowerShell with `Get-Translation -Key 'YourKey'`.
+
+Check for an existing `Chrome.json` key with the same English text before adding a new one. Two keys holding identical strings is duplication waiting to drift.
+
+Not everything needs a translation key. A `throw` guarding against a caller passing the wrong argument type, or any other error that signals a bug in the code rather than something the user did, stays as a plain English string. No user will ever see it.
+
+A new language is its own pull request, not something bundled with unrelated changes.
+
+### Adding a New Language
+
+1. **Create the language folder**: copy `Config/Languages/en-US/` to `Config/Languages/<culture-code>/`, using the .NET culture code the GUI should match (`nl-NL`, `es-ES`). This is also the folder matched against the user's Windows display language: exact match first, then a language-only prefix match (`nl-BE` falls back to `nl-NL` if that's the only Dutch folder present), then `en-US` if nothing matches.
+
+2. **Translate the four files** (`Chrome.json`, `Features.json`, `Categories.json`, `Apps.json`), keeping every key name exactly as it is in `en-US`. Only the values change. Leave a key untranslated and the GUI shows the `en-US` text for it instead of a blank or a crash, so a translation can land incrementally.
+
+3. **Add the language's plural rule**. Strings using the `_one`/`_other` suffix convention (see `AppsSelectedCount_one` in `en-US/Chrome.json`) need a matching `case` in `Get-PluralCategory` (`Scripts/FileIO/Import-LanguageFile.ps1`), keyed by language prefix (`'nl'`). Several languages share English's rule, singular at exactly 1, plural otherwise, and can reuse it as-is. Others need more categories: CLDR defines `zero`/`one`/`two`/`few`/`many`/`other`. Match your key suffixes to whatever categories your language's rule actually uses.
+
+4. **Check your coverage**. Dot-source `Scripts/FileIO/Import-LanguageFile.ps1` and run `Test-LanguageKeyCoverage -LanguageCode '<culture-code>'` to diff your key set against `en-US`. Check `ResolvedLanguageCode` matches the folder you meant to test, `MissingKeys` is the same fallback-eligible gap from step 2, fine to leave for later, and `ExtraKeys` usually means a typo'd key name that nothing will ever look up.
+
+5. **Test it**. Run `.\Win11Debloat.ps1 -Language '<culture-code>'` to launch the GUI in that language regardless of your Windows display language, and click through every tab, dialog, and tooltip.
+
 ## Submitting a Pull Request
 
 1. **Commit your changes** with clear, descriptive commit messages:
@@ -406,7 +500,7 @@ UI Groups allow features to be grouped together in the GUI with a combobox (drop
    - Go to the original Win11Debloat repository
    - Click "New Pull Request"
    - Select your fork and branch
-   - Provide a clear description of your changes, include references to the registry keys used
+   - Provide a clear description of your changes. For registry changes, include the registry keys used
    - Reference any related issues
 
 4. **Respond to feedback**: Be prepared to make adjustments based on code review feedback.

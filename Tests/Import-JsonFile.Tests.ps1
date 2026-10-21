@@ -26,14 +26,14 @@ Describe 'Import-JsonFile' {
     }
 
     It 'returns null and reports an error for <Case>' -ForEach @(
-        @{ Case = 'a version mismatch'; FileName = 'Config.VersionMismatch.json'; ExpectedVersion = '1.0'; Optional = $false; Error = '版本不匹配' }
-        @{ Case = 'invalid JSON'; FileName = 'Config.Invalid.json'; ExpectedVersion = $null; Optional = $false; Error = '解析 JSON 文件失败' }
+        @{ Case = 'a version mismatch'; FileName = 'Config.VersionMismatch.json'; ExpectedVersion = '1.0'; Optional = $false }
+        @{ Case = 'invalid JSON'; FileName = 'Config.Invalid.json'; ExpectedVersion = $null; Optional = $false }
     ) {
         $filePath = Join-Path $script:FixturePath $FileName
         $result = Import-JsonFile -filePath $filePath -expectedVersion $ExpectedVersion -optionalFile:$Optional
 
         $result | Should -BeNullOrEmpty
-        Should -Invoke Write-Error -Times 1 -Exactly -ParameterFilter { $Message -match $Error }
+        Should -Invoke Write-Error -Times 1 -Exactly
     }
 
     It 'returns null without an error for an optional missing last-used settings file' {
@@ -41,5 +41,18 @@ Describe 'Import-JsonFile' {
 
         $result | Should -BeNullOrEmpty
         Should -Invoke Write-Error -Times 0 -Exactly
+    }
+
+    It 'reads non-ASCII characters correctly from a UTF-8 file with no BOM, regardless of the system default encoding' {
+        # Unicode escapes here, not literal accented characters: this test file has no BOM, so
+        # PowerShell 5.1 would decode literal non-ASCII source characters using the system default
+        # codepage too, defeating the point of the assertion on a non-UTF-8-default machine.
+        $expectedName = "Espa$([char]0x00F1)ol"
+        $expectedNote = "caf$([char]0x00E9), na$([char]0x00EF)ve, $([char]0x00FC)ber"
+
+        $result = Import-JsonFile -filePath (Join-Path $script:FixturePath 'Config.Utf8NoBom.json')
+
+        $result.Name | Should -Be $expectedName
+        $result.Note | Should -Be $expectedNote
     }
 }

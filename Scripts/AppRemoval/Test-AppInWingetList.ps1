@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
     Checks whether an app ID appears in a parsed winget installed list.
 

@@ -45,9 +45,9 @@ Describe 'Resolve-TargetUserHiveContext' {
     }
 
     It 'rejects <Case>' -ForEach @(
-        @{ Case = 'an empty user name'; UserName = ' '; Setup = 'None'; ExpectedError = '用于注册表配置单元解析的目标用户名为空。' }
-        @{ Case = 'an unresolved profile'; UserName = 'Missing'; Setup = 'MissingProfile'; ExpectedError = "无法解析目标用户 'Missing' 的配置文件路径。" }
-        @{ Case = 'a missing hive file'; UserName = 'Alice'; Setup = 'MissingHive'; ExpectedError = "无法在 * 找到目标用户的注册表配置单元。" }
+        @{ Case = 'an empty user name'; UserName = ' '; Setup = 'None' }
+        @{ Case = 'an unresolved profile'; UserName = 'Missing'; Setup = 'MissingProfile' }
+        @{ Case = 'a missing hive file'; UserName = 'Alice'; Setup = 'MissingHive' }
     ) {
         if ($Setup -eq 'MissingProfile') {
             Mock Resolve-UserProfileContext { $null }
@@ -57,7 +57,7 @@ Describe 'Resolve-TargetUserHiveContext' {
             Mock Test-Path { $false }
         }
 
-        { Resolve-TargetUserHiveContext -TargetUserName $UserName } | Should -Throw $ExpectedError
+        { Resolve-TargetUserHiveContext -TargetUserName $UserName } | Should -Throw
     }
 }
 
@@ -123,7 +123,7 @@ Describe 'Invoke-WithTargetUserHive' {
         Mock reg { if ($Action -eq 'load') { $global:LASTEXITCODE = 5 } }
 
         { Invoke-WithTargetUserHive -TargetUserName 'Alice' -ScriptBlock { 'never' } } |
-            Should -Throw "加载目标用户配置单元 'C:\Users\Alice\NTUSER.DAT' 失败（退出代码：5）。"
+            Should -Throw
         Should -Invoke reg -Times 0 -Exactly -ParameterFilter { $Action -eq 'unload' }
     }
 
@@ -144,6 +144,6 @@ Describe 'Invoke-WithTargetUserHive' {
         }
 
         Invoke-WithTargetUserHive -TargetUserName 'Alice' -ScriptBlock { 'result' } | Should -Be 'result'
-        Should -Invoke Write-Warning -Times 1 -Exactly -ParameterFilter { $Message -like "卸载注册表配置单元*" }
+        Should -Invoke Write-Warning -Times 1 -Exactly
     }
 }

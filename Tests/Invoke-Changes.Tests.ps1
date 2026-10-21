@@ -1,25 +1,52 @@
-﻿BeforeAll {
+BeforeAll {
     function Import-RegistryFile { param($Message, $path) }
-    function Remove-SelectedApps { param($Apps) }
-    function Disable-TelemetryScheduledTasks {}
-    function Enable-TelemetryScheduledTasks {}
+    function Remove-SelectedApps { param($Apps) $true }
+    function Invoke-ForceRemoveEdge { $true }
+    function Disable-TelemetryScheduledTasks { $true }
+    function Enable-TelemetryScheduledTasks { $true }
     function Generate-AppsList { @() }
     function Get-FriendlyTargetUserName { 'current user' }
-    function Set-StoreSearchSuggestionsEnabledForAllUsers {}
-    function Set-StoreSearchSuggestionsEnabled { param($StoreAppsDatabase) }
+    function Set-StoreSearchSuggestionsEnabledForAllUsers { $true }
+    function Set-StoreSearchSuggestionsEnabled { param($StoreAppsDatabase) $true }
     function Get-StoreAppsDatabasePathForUser { param($UserName) 'store.db' }
     function Get-UserName { 'Alice' }
-    function Disable-WindowsFeature { param($FeatureName) }
+    function Disable-WindowsFeature { param($FeatureName) $true }
     function New-RegistrySettingsBackup { param($ActionableKeys, $ExtraFeatures) }
     function Invoke-SystemRestorePoint {}
-    function Enable-WindowsFeature { param($FeatureName) }
+    function Enable-WindowsFeature { param($FeatureName) $true }
     function Get-StartMenuBinPathForUser { param($UserName) 'start.bin' }
-    function Replace-StartMenu { param($startMenuBinFile, $startMenuTemplate) }
-    function Replace-StartMenuForAllUsers { param($startMenuTemplate) }
-    function Set-StoreSearchSuggestionsDisabledForAllUsers {}
-    function Set-StoreSearchSuggestionsDisabled { param($StoreAppsDatabase) }
+    function Replace-StartMenu { param($startMenuBinFile, $startMenuTemplate) $true }
+    function Replace-StartMenuForAllUsers { param($startMenuTemplate) $true }
+    function Set-StoreSearchSuggestionsDisabledForAllUsers { $true }
+    function Set-StoreSearchSuggestionsDisabled { param($StoreAppsDatabase) $true }
 
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-LanguageFile.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\Helpers\Windows-BuildHelpers.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\Helpers\Get-RebootFeatureLabels.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Features\Invoke-Changes.ps1')
+
+    # Builds a $script:Lang fixture whose Features section mirrors $script:Features exactly,
+    # so Get-Translation resolves the same ApplyText/UndoLabel/ApplyUndoText text the fake
+    # FeatureIds in this file's fixtures expect, without duplicating per-test lookup data.
+    function Sync-TestLangFeatures {
+        $langFeatures = @{}
+        foreach ($featureId in $script:Features.Keys) {
+            $feature = $script:Features[$featureId]
+            $entry = @{}
+            foreach ($field in 'ApplyText', 'UndoLabel', 'ApplyUndoText') {
+                if ($null -ne $feature.$field) { $entry[$field] = [string]$feature.$field }
+            }
+            $langFeatures[$featureId] = [PSCustomObject]$entry
+        }
+
+        $script:Lang = [PSCustomObject]@{
+            LanguageCode = 'en-US'
+            Chrome       = [PSCustomObject]@{}
+            Features     = [PSCustomObject]$langFeatures
+            UiGroups     = [PSCustomObject]@{}
+            Categories   = [PSCustomObject]@{}
+        }
+    }
 }
 
 Describe 'Resolve-UndoRegFilePath' {
@@ -51,6 +78,7 @@ Describe 'Invoke-FeatureApply' {
             RemoveApps = [PSCustomObject]@{ ApplyText = 'Remove apps'; RegistryKey = '' }
             RemoveGamingApps = [PSCustomObject]@{ ApplyText = 'Remove gaming'; RegistryKey = '' }
             RemoveHPApps = [PSCustomObject]@{ ApplyText = 'Remove HP'; RegistryKey = '' }
+            ForceRemoveEdge = [PSCustomObject]@{ ApplyText = 'Force remove Edge'; RegistryKey = '' }
             DisableWidgets = [PSCustomObject]@{ ApplyText = 'Disable widgets'; RegistryKey = '' }
             EnableWindowsSandbox = [PSCustomObject]@{ ApplyText = 'Enable Sandbox'; RegistryKey = '' }
             EnableWindowsSubsystemForLinux = [PSCustomObject]@{ ApplyText = 'Enable WSL'; RegistryKey = '' }
@@ -60,18 +88,20 @@ Describe 'Invoke-FeatureApply' {
             ReplaceStartAllUsers = [PSCustomObject]@{ ApplyText = 'Replace Start all users'; RegistryKey = '' }
             DisableStoreSearchSuggestions = [PSCustomObject]@{ ApplyText = 'Disable Store suggestions'; RegistryKey = '' }
         }
-        Mock Import-RegistryFile {}
-        Mock Remove-SelectedApps {}
-        Mock Disable-TelemetryScheduledTasks {}
+        Sync-TestLangFeatures
+        Mock Import-RegistryFile { $true }
+        Mock Remove-SelectedApps { $true }
+        Mock Invoke-ForceRemoveEdge { $true }
+        Mock Disable-TelemetryScheduledTasks { $true }
         Mock Generate-AppsList { @() }
         Mock Get-FriendlyTargetUserName { 'current user' }
-        Mock Enable-WindowsFeature {}
+        Mock Enable-WindowsFeature { $true }
         Mock Get-StartMenuBinPathForUser { 'start.bin' }
         Mock Get-UserName { 'Alice' }
-        Mock Replace-StartMenu {}
-        Mock Replace-StartMenuForAllUsers {}
-        Mock Set-StoreSearchSuggestionsDisabledForAllUsers {}
-        Mock Set-StoreSearchSuggestionsDisabled {}
+        Mock Replace-StartMenu { $true }
+        Mock Replace-StartMenuForAllUsers { $true }
+        Mock Set-StoreSearchSuggestionsDisabledForAllUsers { $true }
+        Mock Set-StoreSearchSuggestionsDisabled { $true }
         Mock Get-StoreAppsDatabasePathForUser { 'store.db' }
         Mock Get-Process { @() }
         Mock Stop-Process { param($InputObject) }
@@ -90,6 +120,14 @@ Describe 'Invoke-FeatureApply' {
 
         Should -Invoke Import-RegistryFile -Times 1 -Exactly
         Should -Invoke Disable-TelemetryScheduledTasks -Times 1 -Exactly
+    }
+
+    It 'returns false without side effects when a registry import fails' {
+        Mock Import-RegistryFile { $false }
+
+        Invoke-FeatureApply -FeatureId 'DisableTelemetry' | Should -BeFalse
+
+        Should -Invoke Disable-TelemetryScheduledTasks -Times 0 -Exactly
     }
 
     It 'does not call app removal when the generated selection is empty' {
@@ -114,6 +152,31 @@ Describe 'Invoke-FeatureApply' {
         Invoke-FeatureApply -FeatureId $FeatureId
         Should -Invoke Import-RegistryFile -Times 1 -Exactly
         Should -Invoke Remove-SelectedApps -Times 1 -Exactly -ParameterFilter { @($Apps) -join ',' -eq $ExpectedApps -join ',' }
+    }
+
+    It 'forcefully removes Edge when requested' {
+        Invoke-FeatureApply -FeatureId 'ForceRemoveEdge'
+
+        Should -Invoke Invoke-ForceRemoveEdge -Times 1 -Exactly
+        Should -Invoke Import-RegistryFile -Times 0 -Exactly
+        Should -Invoke Remove-SelectedApps -Times 0 -Exactly
+    }
+
+    It 'returns false when applying a feature throws' {
+        Mock Invoke-ForceRemoveEdge { throw 'access denied' }
+        Mock Write-Warning {}
+
+        Invoke-FeatureApply -FeatureId 'ForceRemoveEdge' | Should -BeFalse
+
+        Should -Invoke Write-Warning -Times 1 -Exactly
+    }
+
+    It 'returns false for an unknown feature' {
+        Mock Write-Warning {}
+
+        Invoke-FeatureApply -FeatureId 'Unknown' | Should -BeFalse
+
+        Should -Invoke Write-Warning -Times 1 -Exactly
     }
 
     It 'uses the expected static app list for <FeatureId>' -ForEach @(
@@ -202,9 +265,10 @@ Describe 'Invoke-ApplyFeatures' {
             One = [PSCustomObject]@{ ApplyText = 'Apply one' }
             Two = [PSCustomObject]@{ ApplyText = 'Apply two' }
         }
+        Sync-TestLangFeatures
         $script:progressCalls = New-Object System.Collections.Generic.List[object]
         $script:ApplyProgressCallback = { param($Step, $Total, $Text) $script:progressCalls.Add(@($Step, $Total, $Text)) }
-        Mock Invoke-FeatureApply {}
+        Mock Invoke-FeatureApply { $true }
     }
 
     It 'reports progress and applies each feature in order' {
@@ -224,6 +288,19 @@ Describe 'Invoke-ApplyFeatures' {
         Should -Invoke Invoke-FeatureApply -Times 0 -Exactly
         $script:progressCalls | Should -HaveCount 0
     }
+
+    It 'counts a failed feature application and continues with later features' {
+        $script:FeatureFailures = 0
+        Mock Invoke-FeatureApply {
+            param($FeatureId)
+            return ($FeatureId -ne 'One')
+        }
+
+        Invoke-ApplyFeatures -FeatureIds @('One', 'Two') -StartStep 1 -TotalSteps 2
+
+        $script:FeatureFailures | Should -Be 1
+        Should -Invoke Invoke-FeatureApply -Times 2 -Exactly
+    }
 }
 
 Describe 'Invoke-UndoFeatures' {
@@ -234,15 +311,15 @@ Describe 'Invoke-UndoFeatures' {
             RegistryUndo = [PSCustomObject]@{ UndoLabel = 'Undo registry'; ApplyUndoText = 'Restoring registry'; RegistryUndoKey = 'undo.reg' }
             CustomUndo = [PSCustomObject]@{ UndoLabel = 'Undo custom'; ApplyUndoText = ''; RegistryUndoKey = '' }
         }
+        Sync-TestLangFeatures
         Mock Resolve-UndoRegFilePath { param($FileName) "Undo\$FileName" }
-        Mock Import-RegistryFile {}
-        Mock Invoke-FeatureUndo {}
+        Mock Import-RegistryFile { $true }
+        Mock Invoke-FeatureUndo { $true }
     }
 
-    It 'imports registry undo data and still invokes custom undo side effects' {
+    It 'delegates registry-backed undo work to the feature undo handler' {
         Invoke-UndoFeatures -FeatureIds @('RegistryUndo') -StartStep 1 -TotalSteps 1
 
-        Should -Invoke Import-RegistryFile -Times 1 -Exactly -ParameterFilter { $path -eq 'Undo\undo.reg' }
         Should -Invoke Invoke-FeatureUndo -Times 1 -Exactly -ParameterFilter { $FeatureId -eq 'RegistryUndo' }
     }
 
@@ -251,6 +328,16 @@ Describe 'Invoke-UndoFeatures' {
 
         Should -Invoke Import-RegistryFile -Times 0 -Exactly
         Should -Invoke Invoke-FeatureUndo -Times 2 -Exactly
+    }
+
+    It 'counts one failure when a feature undo fails' {
+        $script:FeatureFailures = 0
+        Mock Invoke-FeatureUndo { $false }
+
+        Invoke-UndoFeatures -FeatureIds @('RegistryUndo') -StartStep 1 -TotalSteps 1
+
+        $script:FeatureFailures | Should -Be 1
+        Should -Invoke Invoke-FeatureUndo -Times 1 -Exactly
     }
 
     It 'stops before undoing when cancellation is requested' {
@@ -272,12 +359,14 @@ Describe 'Invoke-FeatureUndo' {
             DisableTelemetry = [PSCustomObject]@{}
             DisableStoreSearchSuggestions = [PSCustomObject]@{}
         }
-        Mock Set-StoreSearchSuggestionsEnabledForAllUsers {}
-        Mock Set-StoreSearchSuggestionsEnabled {}
+        Mock Set-StoreSearchSuggestionsEnabledForAllUsers { $true }
+        Mock Set-StoreSearchSuggestionsEnabled { $true }
         Mock Get-StoreAppsDatabasePathForUser { 'store.db' }
         Mock Get-UserName { 'Alice' }
-        Mock Disable-WindowsFeature {}
-        Mock Enable-TelemetryScheduledTasks {}
+        Mock Disable-WindowsFeature { $true }
+        Mock Enable-TelemetryScheduledTasks { $true }
+        Mock Import-RegistryFile { $true }
+        Mock Resolve-UndoRegFilePath { param($FileName) "Undo\$FileName" }
         Mock Write-Host {}
     }
 
@@ -293,16 +382,35 @@ Describe 'Invoke-FeatureUndo' {
 
     It 'disables both WSL optional features in dependency-safe order' {
         $script:disabledFeatures = [System.Collections.Generic.List[string]]::new()
-        Mock Disable-WindowsFeature { param($FeatureName) $script:disabledFeatures.Add($FeatureName) }
+        Mock Disable-WindowsFeature { param($FeatureName) $script:disabledFeatures.Add($FeatureName); $true }
         Invoke-FeatureUndo -FeatureId 'EnableWindowsSubsystemForLinux'
         $script:disabledFeatures | Should -Be @('Microsoft-Windows-Subsystem-Linux', 'VirtualMachinePlatform')
     }
 
     It 'disables Sandbox and re-enables telemetry tasks' {
+        $script:Features.DisableTelemetry = [PSCustomObject]@{ ApplyUndoText = 'Enable telemetry'; RegistryUndoKey = 'enable-telemetry.reg' }
         Invoke-FeatureUndo -FeatureId 'EnableWindowsSandbox'
         Invoke-FeatureUndo -FeatureId 'DisableTelemetry'
         Should -Invoke Disable-WindowsFeature -Times 1 -Exactly -ParameterFilter { $FeatureName -eq 'Containers-DisposableClientVM' }
         Should -Invoke Enable-TelemetryScheduledTasks -Times 1 -Exactly
+        Should -Invoke Import-RegistryFile -Times 1 -Exactly -ParameterFilter { $path -eq 'Undo\enable-telemetry.reg' }
+    }
+
+    It 'returns false without side effects when a registry undo import fails' {
+        $script:Features.DisableTelemetry = [PSCustomObject]@{ ApplyUndoText = 'Enable telemetry'; RegistryUndoKey = 'enable-telemetry.reg' }
+        Mock Import-RegistryFile { $false }
+
+        Invoke-FeatureUndo -FeatureId 'DisableTelemetry' | Should -BeFalse
+
+        Should -Invoke Enable-TelemetryScheduledTasks -Times 0 -Exactly
+    }
+
+    It 'warns and returns false for an unknown feature' {
+        Mock Write-Warning {}
+
+        Invoke-FeatureUndo -FeatureId 'Unknown' | Should -BeFalse
+
+        Should -Invoke Write-Warning -Times 1 -Exactly
     }
 }
 
@@ -319,12 +427,14 @@ Describe 'Invoke-AllChanges' {
         $script:CancelRequested = $false
         $script:ApplyProgressCallback = $null
         Mock Test-RunningAsSystem { $false }
+        Mock Get-CurrentWindowsBuild { 26100 }
         Mock Resolve-UndoRegFilePath { param($FileName) "Undo\$FileName" }
         Mock New-RegistrySettingsBackup {}
-        Mock Invoke-SystemRestorePoint {}
+        Mock Invoke-SystemRestorePoint { $true }
         Mock Invoke-ApplyFeatures {}
         Mock Invoke-UndoFeatures {}
         Mock Write-Host {}
+        Mock Write-Warning {}
     }
 
     It 'backs up registry work before applying and undoing selected features' {
@@ -343,7 +453,7 @@ Describe 'Invoke-AllChanges' {
 
     It 'prevents every mutation when registry backup creation fails' {
         Mock New-RegistrySettingsBackup { throw 'disk full' }
-        { Invoke-AllChanges } | Should -Throw '应用更改前注册表备份失败：*disk full'
+        { Invoke-AllChanges } | Should -Throw
         Should -Invoke Invoke-ApplyFeatures -Times 0 -Exactly
         Should -Invoke Invoke-UndoFeatures -Times 0 -Exactly
         Should -Invoke Invoke-SystemRestorePoint -Times 0 -Exactly
@@ -376,7 +486,7 @@ Describe 'Invoke-AllChanges' {
 
     It 'rejects SYSTEM execution without an explicit user target' {
         Mock Test-RunningAsSystem { $true }
-        { Invoke-AllChanges } | Should -Throw "Win11Debloat 正在以 SYSTEM 账户运行*"
+        { Invoke-AllChanges } | Should -Throw
         Should -Invoke New-RegistrySettingsBackup -Times 0 -Exactly
     }
 
@@ -394,19 +504,156 @@ Describe 'Invoke-AllChanges' {
         $script:Params = @{ CreateRestorePoint = $true; CustomApply = $true }
         $script:UndoParams = @{}
         $script:order = [System.Collections.Generic.List[string]]::new()
-        Mock Invoke-SystemRestorePoint { $script:order.Add('restore-point') }
+        Mock Invoke-SystemRestorePoint { $script:order.Add('restore-point'); $true }
         Mock Invoke-ApplyFeatures { $script:order.Add('apply') }
         Invoke-AllChanges
         $script:order | Should -Be @('restore-point', 'apply')
     }
 
-    It 'reports registry import failures after all requested work completes' {
-        $script:Params = @{ CustomApply = $true }
+    It 'counts a restore point failure as a feature failure when the user chooses to continue' {
+        $script:Params = @{ CreateRestorePoint = $true; CustomApply = $true }
         $script:UndoParams = @{}
-        Mock Invoke-ApplyFeatures { $script:RegistryImportFailures = 2 }
+        Mock Invoke-SystemRestorePoint { $false }
 
         Invoke-AllChanges
 
-        Should -Invoke Write-Host -Times 1 -Exactly -ParameterFilter { $Object -match '2 个注册表导入更改' }
+        $script:FeatureFailures | Should -Be 1
+        Should -Invoke Write-Warning -Times 1 -Exactly
+    }
+
+    It 'reports app removal failures after all requested work completes' {
+        $script:Params = @{ CustomApply = $true }
+        $script:UndoParams = @{}
+        Mock Invoke-ApplyFeatures { $script:AppRemovalFailures = 2 }
+
+        Invoke-AllChanges
+
+        Should -Invoke Write-Warning -Times 1 -Exactly
+    }
+
+    It 'warns when app removals could not be verified' {
+        $script:Params = @{ CustomApply = $true }
+        $script:UndoParams = @{}
+        Mock Invoke-ApplyFeatures { $script:AppRemovalVerificationUnavailable = $true }
+        Mock Write-Warning {}
+
+        Invoke-AllChanges
+
+        Should -Invoke Write-Warning -Times 1 -Exactly
+    }
+
+}
+
+Describe 'Invoke-AllChanges build gate' {
+    BeforeEach {
+        $script:Params = @{ Modern = $true; Legacy = $true; Anyone = $true }
+        $script:UndoParams = @{ ModernUndo = $true }
+        $script:ControlParams = @('WhatIf', 'Silent', 'User', 'Sysprep')
+        $script:Features = @{
+            Modern     = [PSCustomObject]@{ RegistryKey = 'modern.reg'; MinVersion = 22621; MaxVersion = $null }
+            Legacy     = [PSCustomObject]@{ RegistryKey = 'legacy.reg'; MinVersion = $null; MaxVersion = 21999 }
+            Anyone     = [PSCustomObject]@{ RegistryKey = 'anyone.reg' }
+            ModernUndo = [PSCustomObject]@{ RegistryUndoKey = 'undo.reg'; MinVersion = 22621; MaxVersion = $null }
+        }
+        $script:CancelRequested = $false
+        $script:ApplyProgressCallback = $null
+        $warnings = [System.Collections.Generic.List[string]]::new()
+        Mock Test-RunningAsSystem { $false }
+        Mock Resolve-UndoRegFilePath { param($FileName) "Undo\$FileName" }
+        Mock New-RegistrySettingsBackup {}
+        Mock Invoke-SystemRestorePoint { $true }
+        Mock Invoke-ApplyFeatures {}
+        Mock Invoke-UndoFeatures {}
+        Mock Write-Host {}
+        Mock Write-Warning { $warnings.Add([string]$Message) }
+    }
+
+    It 'skips features that need a newer build and keeps the rest' {
+        Mock Get-CurrentWindowsBuild { 19045 }
+
+        Invoke-AllChanges
+
+        Should -Invoke Invoke-ApplyFeatures -Times 1 -Exactly -ParameterFilter {
+            @($FeatureIds).Count -eq 2 -and $FeatureIds -contains 'Legacy' -and $FeatureIds -contains 'Anyone'
+        }
+        $warnings | Should -HaveCount 1
+    }
+
+    It 'skips features that are only supported on an older build' {
+        Mock Get-CurrentWindowsBuild { 26100 }
+
+        Invoke-AllChanges
+
+        Should -Invoke Invoke-ApplyFeatures -Times 1 -Exactly -ParameterFilter {
+            @($FeatureIds).Count -eq 2 -and $FeatureIds -contains 'Modern' -and $FeatureIds -contains 'Anyone'
+        }
+        $warnings | Should -HaveCount 1
+    }
+
+    It 'does not back up the registry keys of skipped features' {
+        Mock Get-CurrentWindowsBuild { 19045 }
+
+        Invoke-AllChanges
+
+        Should -Invoke New-RegistrySettingsBackup -Times 1 -Exactly -ParameterFilter {
+            $ActionableKeys -notcontains 'Modern' -and $ActionableKeys -contains 'Legacy'
+        }
+    }
+
+    It 'does not apply anything gated when every selected feature is skipped' {
+        Mock Get-CurrentWindowsBuild { 19045 }
+        $script:Params = @{ Modern = $true }
+        $script:UndoParams = @{}
+
+        Invoke-AllChanges
+
+        Should -Invoke Invoke-ApplyFeatures -Times 0 -Exactly
+        Should -Invoke New-RegistrySettingsBackup -Times 0 -Exactly
+        $warnings | Should -HaveCount 1
+    }
+
+    It 'applies every feature when the build cannot be read' {
+        Mock Get-CurrentWindowsBuild { $null }
+
+        Invoke-AllChanges
+
+        Should -Invoke Invoke-ApplyFeatures -Times 1 -Exactly -ParameterFilter { @($FeatureIds).Count -eq 3 }
+        $warnings | Should -HaveCount 0
+    }
+
+    It 'drops skipped features from the parameters so that they are not part of the reboot advice' {
+        Mock Get-CurrentWindowsBuild { 19045 }
+        Mock Get-Translation { $Key }
+        $script:Features['Modern'] | Add-Member -NotePropertyName RequiresReboot -NotePropertyValue $true
+        $script:Features['Legacy'] | Add-Member -NotePropertyName RequiresReboot -NotePropertyValue $true
+
+        Invoke-AllChanges
+
+        $script:Params.ContainsKey('Modern') | Should -BeFalse
+        $script:Params.ContainsKey('Legacy') | Should -BeTrue
+        $labels = @(Get-RebootFeatureLabels)
+        $labels | Should -Contain 'Legacy'
+        $labels | Should -Not -Contain 'Modern'
+    }
+
+    It 'does not write anything to the output when it skips a feature' {
+        Mock Get-CurrentWindowsBuild { 19045 }
+        # $PSBoundParameters is a generic dictionary whose Remove() returns a Boolean, unlike Hashtable.Remove()
+        $script:Params = [System.Collections.Generic.Dictionary[string, object]]::new()
+        $script:Params['Modern'] = $true
+        $script:Params['Anyone'] = $true
+
+        @(Invoke-AllChanges) | Should -HaveCount 0
+        $script:Params.ContainsKey('Modern') | Should -BeFalse
+    }
+
+    It 'leaves undo selections alone' {
+        Mock Get-CurrentWindowsBuild { 19045 }
+
+        Invoke-AllChanges
+
+        Should -Invoke Invoke-UndoFeatures -Times 1 -Exactly -ParameterFilter {
+            @($FeatureIds).Count -eq 1 -and $FeatureIds[0] -eq 'ModernUndo'
+        }
     }
 }

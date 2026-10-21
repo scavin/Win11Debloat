@@ -1,4 +1,16 @@
-﻿function Test-TargetUserName {
+﻿<#
+    .SYNOPSIS
+        Validates a username for the "apply changes to another user" deployment target.
+
+    .DESCRIPTION
+        Rejects an empty name, the current user's own name (that's the "Current User" option
+        instead), and a name with no matching local profile, in that order.
+
+    .OUTPUTS
+        PSCustomObject with IsValid (bool), UserName (the trimmed input), and Message (a
+        translated string describing the validation result, success or failure alike).
+#>
+function Test-TargetUserName {
     param(
         [AllowNull()]
         [AllowEmptyString()]
@@ -11,7 +23,7 @@
         return [PSCustomObject]@{
             IsValid = $false
             UserName = $normalizedUserName
-            Message = '请输入用户名'
+            Message = Get-Translation -Key 'UsernameValidationEmpty'
         }
     }
 
@@ -19,7 +31,7 @@
         return [PSCustomObject]@{
             IsValid = $false
             UserName = $normalizedUserName
-            Message = "不能输入自己的用户名，请使用「当前用户」选项"
+            Message = Get-Translation -Key 'UsernameValidationOwnUsername'
         }
     }
 
@@ -27,13 +39,13 @@
         return [PSCustomObject]@{
             IsValid = $false
             UserName = $normalizedUserName
-            Message = '未找到用户，请输入有效的用户名'
+            Message = Get-Translation -Key 'UsernameValidationNotFound'
         }
     }
 
     return [PSCustomObject]@{
         IsValid = $true
         UserName = $normalizedUserName
-        Message = "已找到用户：$normalizedUserName"
+        Message = Get-Translation -Key 'UsernameValidationFound' -FormatArgs @($normalizedUserName)
     }
 }

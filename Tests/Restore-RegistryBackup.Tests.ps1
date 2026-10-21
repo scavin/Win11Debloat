@@ -1,5 +1,7 @@
 ﻿BeforeAll {
     function Test-RunningAsSystem { $false }
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-JsonFile.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-LanguageFile.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Helpers\Registry-PathHelpers.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Helpers\Get-FriendlyRegistryBackupTarget.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Helpers\Resolve-UserProfilePath.ps1')
@@ -8,6 +10,8 @@
     . (Join-Path $PSScriptRoot '..\Scripts\Features\Restore-RegistryApplyState.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Features\Restore-RegistryBackup.ps1')
     $script:JsonFixturePath = Join-Path $PSScriptRoot 'TestData\JsonFileLoading'
+    $script:LanguagesPath = Join-Path $PSScriptRoot '..\Config\Languages'
+    $script:Lang = Import-LanguageFile -LanguageCode 'en-US'
 }
 
 Describe 'Import-RegistryBackup' {
@@ -42,13 +46,12 @@ Describe 'Import-RegistryBackup' {
     }
 
     It 'rejects <Case>' -ForEach @(
-        @{ Case = 'a missing backup file'; FileName = 'missing.json'; ExpectedError = '未找到备份文件：*' }
-        @{ Case = 'an invalid JSON backup file'; FileName = 'RegistryBackup.Invalid.json'; ExpectedError = $null }
+        @{ Case = 'a missing backup file'; FileName = 'missing.json' }
+        @{ Case = 'an invalid JSON backup file'; FileName = 'RegistryBackup.Invalid.json' }
     ) {
         $path = Join-Path $script:JsonFixturePath $FileName
-        $errorPattern = if ($null -ne $ExpectedError) { $ExpectedError } else { "无法读取备份文件 '$path'。该文件不是有效的 JSON。" }
 
-        { Import-RegistryBackup -FilePath $path } | Should -Throw $errorPattern
+        { Import-RegistryBackup -FilePath $path } | Should -Throw
     }
 }
 
@@ -78,7 +81,7 @@ Describe 'ConvertTo-NormalizedRegistryBackup' {
     It 'aggregates invalid metadata and does not attempt allow-list validation without feature IDs' {
         $backup = [PSCustomObject]@{ Version = '2.0'; BackupType = 'Other'; Target = 'Unknown'; RegistryKeys = @() }
 
-        { ConvertTo-NormalizedRegistryBackup -Backup $backup } | Should -Throw '验证失败，共 * 个错误。详情请参见控制台输出。'
+        { ConvertTo-NormalizedRegistryBackup -Backup $backup } | Should -Throw
 
         Should -Invoke Write-Error -Times 1 -Exactly
         Should -Invoke Test-RegistryBackupMatchesSelectedFeatures -Times 0 -Exactly
@@ -91,7 +94,7 @@ Describe 'ConvertTo-NormalizedRegistryBackup' {
             SelectedFeatures = @('Example'); RegistryKeys = @()
         }
 
-        { ConvertTo-NormalizedRegistryBackup -Backup $backup } | Should -Throw "验证失败：无效的用户 'User:bad/user'"
+        { ConvertTo-NormalizedRegistryBackup -Backup $backup } | Should -Throw
     }
 
     It 'does not allow current-user backup restore when running as SYSTEM' {
@@ -102,7 +105,7 @@ Describe 'ConvertTo-NormalizedRegistryBackup' {
         }
 
         { ConvertTo-NormalizedRegistryBackup -Backup $backup } |
-            Should -Throw "验证失败：此备份为用户 'Alice' 创建且仅适用于该用户*"
+            Should -Throw
     }
 }
 

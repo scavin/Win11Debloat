@@ -7,10 +7,10 @@
 #>
 function Get-SystemUsesDarkMode {
     try {
-        $personalizeKey = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+        $personalizeKey = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -ErrorAction Stop
 
         if ($null -eq $personalizeKey) {
-            Write-Host "警告：无法读取个性化设置。" -ForegroundColor Yellow
+            Write-Host "警告：无法获取个性化设置。" -ForegroundColor Yellow
             return $false
         }
 

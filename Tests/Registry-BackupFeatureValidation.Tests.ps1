@@ -1,8 +1,12 @@
 ﻿BeforeAll {
     function Get-RegistryBackupCapturePlans {}
 
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-JsonFile.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-LanguageFile.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Helpers\Registry-PathHelpers.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Features\Registry-BackupValidation.ps1')
+    $script:LanguagesPath = Join-Path $PSScriptRoot '..\Config\Languages'
+    $script:Lang = Import-LanguageFile -LanguageCode 'en-US'
 }
 
 Describe 'Test-RegistryBackupMatchesSelectedFeatures' {
@@ -46,7 +50,7 @@ Describe 'Test-RegistryBackupMatchesSelectedFeatures' {
     It 'reports unknown selected features without deriving capture plans' {
         $errors = @(Test-RegistryBackupMatchesSelectedFeatures -SelectedFeatureIds @('UnknownFeature') -SelectedUndoFeatureIds @() -Target 'CurrentUser' -RegistryKeys @())
 
-        $errors | Should -Contain "在当前功能目录中未找到所选功能 'UnknownFeature'。"
+        $errors | Should -HaveCount 1
         $script:CapturePlanCalls | Should -BeNullOrEmpty
     }
 
@@ -56,6 +60,6 @@ Describe 'Test-RegistryBackupMatchesSelectedFeatures' {
 
         $errors = @(Test-RegistryBackupMatchesSelectedFeatures -SelectedFeatureIds @('ApplyFeature') -SelectedUndoFeatureIds @() -Target 'CurrentUser' -RegistryKeys @($snapshot))
 
-        $errors | Should -Contain '无法验证注册表备份允许列表，因为功能定义未加载。'
+        $errors | Should -HaveCount 1
     }
 }

@@ -1,4 +1,4 @@
-﻿# Win11Debloat
+# Win11Debloat
 
 [![GitHub Release](https://img.shields.io/github/v/release/Raphire/Win11Debloat?style=for-the-badge&label=Latest%20release)](https://github.com/Raphire/Win11Debloat/releases/latest)
 [![Join the Discussion](https://img.shields.io/badge/Join-the%20Discussion-2D9F2D?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Raphire/Win11Debloat/discussions)
@@ -27,13 +27,23 @@ Win11Debloat 是一款轻量级、易于使用的 PowerShell 脚本，让您可�
 2. 将以下命令复制并粘贴到 PowerShell 中：
 
 ```PowerShell
-irm https://raw.githubusercontent.com/scavin/Win11Debloat/master/Get_CN.ps1 | iex
+& ([scriptblock]::Create((irm "https://raw.githubusercontent.com/scavin/Win11Debloat/master/Get_CN.ps1")))
 ```
 
 3. 等待脚本自动下载并启动 Win11Debloat。
 4. 仔细阅读并按照屏幕上的说明操作。
 
 此方式支持命令行参数来自定义脚本行为。更多信息请点击[此处](https://github.com/Raphire/Win11Debloat/wiki/Command%E2%80%90line-Interface#parameters)。
+
+图形界面支持简体中文，可在设置中切换语言与主题。也可以在本地运行时指定语言：
+
+```PowerShell
+.\Win11Debloat.ps1 -Language zh-CN
+```
+
+显式指定的 `-Language` 优先于已保存的界面偏好和系统语言；本分支的命令行提示保持简体中文。请使用 **Windows PowerShell 5.1**，不支持 PowerShell 7（`pwsh`）。
+
+日志、备份、上次使用的设置及界面偏好现保存在 `%LOCALAPPDATA%\Win11Debloat` 下，分别使用 `Logs`、`Backups`、`LastUsedSettings.json` 和 `Preferences.json`。`Run.bat` 的启动日志为 `Logs\Win11Debloat-Run.log`。
 
 ### 传统方式
 
@@ -57,7 +67,7 @@ irm https://raw.githubusercontent.com/scavin/Win11Debloat/master/Get_CN.ps1 | ie
   3. 输入以下命令临时启用 PowerShell 执行策略：
 
   ```PowerShell
-  Set-ExecutionPolicy Unrestricted -Scope Process -Force
+  Set-ExecutionPolicy Bypass -Scope Process -Force
   ```
 
   4. 在 PowerShell 中，导航到文件解压的目录。例如：`cd c:\Win11Debloat`
@@ -83,6 +93,10 @@ irm https://raw.githubusercontent.com/scavin/Win11Debloat/master/Get_CN.ps1 | ie
 
 - 移除各种预装应用。点击[此处](https://github.com/Raphire/Win11Debloat/wiki/App-Removal)了解更多信息。
 
+部分仅为用户安装的应用无法由管理员模式下的 WinGet 直接卸载。脚本会安排在目标用户下次登录时完成卸载，并显示相应提示；请按提示注销或重启后重新登录。
+
+前台 WinGet 卸载默认最多等待 120 秒。超时会报告错误；指定目标用户或使用 Sysprep 模式时，脚本仍会尝试安排下次登录卸载。
+
 #### 隐私与建议内容
 
 - 禁用遥测、诊断数据、活动历史记录、应用启动跟踪和定向广告。
@@ -94,7 +108,7 @@ irm https://raw.githubusercontent.com/scavin/Win11Debloat/master/Get_CN.ps1 | ie
 
 - 禁用并移除 Microsoft Copilot、Windows Recall 和 Click To Do。
 - 阻止 AI 服务（WSAIFabricSvc）自动启动。
-- 禁用 Edge、画图和记事本中的 AI 功能。
+- 禁用 Edge、Chrome、画图和记事本中的 AI 功能。
 
 #### 系统
 
@@ -118,6 +132,7 @@ irm https://raw.githubusercontent.com/scavin/Win11Debloat/master/Get_CN.ps1 | ie
 
 - 为系统和应用启用深色模式。
 - 禁用透明效果、动画和视觉效果。
+- 隐藏 Windows 聚焦的「了解此图片」桌面快捷方式并保留壁纸轮换，或完全禁用 Windows 聚焦桌面背景。
 
 #### 开始菜单与搜索
 

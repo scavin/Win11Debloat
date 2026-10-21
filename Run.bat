@@ -5,10 +5,11 @@ setlocal
 :: Set Windows Terminal installation paths. (Default and Scoop installation)
 set "wtDefaultPath=%LOCALAPPDATA%\Microsoft\WindowsApps\wt.exe"
 set "wtScoopPath=%USERPROFILE%\scoop\apps\windows-terminal\current\wt.exe"
-set "logFile=%~dp0Logs\Win11Debloat-Run.log"
+set "logDir=%LOCALAPPDATA%\Win11Debloat\Logs"
+set "logFile=%logDir%\Win11Debloat-Run.log"
 
 :: Ensure Logs folder exists
-if not exist "%~dp0Logs" mkdir "%~dp0Logs"
+if not exist "%logDir%" mkdir "%logDir%"
 
 :: Determine which terminal exists
 if exist "%wtDefaultPath%" (
@@ -24,7 +25,7 @@ if exist "%wtDefaultPath%" (
 set "SCRIPT_PATH=%~dp0Win11Debloat.ps1"
 
 if defined wtPath (
-    call :Log Launching Win11Debloat.ps1 with Windows Terminal...
+    call :Log 正在使用 Windows 终端启动 Win11Debloat.ps1...
     PowerShell -NoProfile -ExecutionPolicy Bypass -Command "$p='%SCRIPT_PATH:'=''%'; $w='%wtPath:'=''%'; $q=[char]34; Start-Process -FilePath $w -ArgumentList ('PowerShell -NoProfile -ExecutionPolicy Bypass -File ' + $q + $p + $q) -Verb RunAs" >> "%logFile%" || call :Error "PowerShell 命令失败"
 ) else (
     echo 未找到 Windows 终端，正在使用默认 PowerShell...

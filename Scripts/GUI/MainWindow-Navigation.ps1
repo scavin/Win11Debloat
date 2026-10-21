@@ -1,4 +1,4 @@
-# MainWindow-Navigation.ps1
+﻿# MainWindow-Navigation.ps1
 # Wizard navigation helpers: tab navigation buttons and progress indicators.
 
 function Update-NavigationButtons {

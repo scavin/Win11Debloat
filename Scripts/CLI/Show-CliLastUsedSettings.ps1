@@ -7,7 +7,7 @@ function Show-CliLastUsedSettings {
     }
     catch {
         Write-Error "从 LastUsedSettings.json 文件加载设置失败：$_"
-        Wait-ForKeyPress
+        Wait-ForKeyPress -ExitCode 1
     }
 
     if ($Silent) {

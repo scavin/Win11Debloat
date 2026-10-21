@@ -1,10 +1,19 @@
 BeforeAll {
     function Get-UserDirectory { param($userName, $fileName, $exitIfPathNotFound) }
 
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-JsonFile.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-LanguageFile.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Features\Replace-StartMenu.ps1')
+    $script:LanguagesPath = Join-Path $PSScriptRoot '..\Config\Languages'
+    $script:Lang = Import-LanguageFile -LanguageCode 'en-US'
 }
 
 Describe 'Get-StartMenuUserNameFromPath' {
+    BeforeEach {
+        # Restore copies are named to the second; clear them so tests sharing $TestDrive cannot see each other's copy
+        Get-ChildItem -LiteralPath $TestDrive -Filter 'Win11Debloat-StartRestore-*.bak' | Remove-Item -Force
+    }
+
     It 'extracts a user name from a start-menu path and falls back for unknown paths' {
         Get-StartMenuUserNameFromPath -StartMenuBinFile 'C:\Users\Alice\AppData\Local\Packages\Start\start2.bin' | Should -Be 'Alice'
         Get-StartMenuUserNameFromPath -StartMenuBinFile 'C:\Temp\start2.bin' | Should -Be 'unknown'

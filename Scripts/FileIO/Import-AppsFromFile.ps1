@@ -41,6 +41,6 @@ function Import-AppsFromFile {
     } 
     catch {
         Write-Error "无法从文件读取应用列表：$appsFilePath"
-        Wait-ForKeyPress
+        Wait-ForKeyPress -ExitCode 1
     }
 }

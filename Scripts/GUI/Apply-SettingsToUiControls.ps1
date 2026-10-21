@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
         Applies enabled settings from JSON to mapped checkbox and combo-box controls.
 

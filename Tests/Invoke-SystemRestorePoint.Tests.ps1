@@ -4,7 +4,11 @@ BeforeAll {
     function Enable-ComputerRestore { param($Drive) }
     function Get-ComputerRestorePoint {}
     function Checkpoint-Computer { param($Description, $RestorePointType) }
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-JsonFile.ps1')
+    . (Join-Path $PSScriptRoot '..\Scripts\FileIO\Import-LanguageFile.ps1')
     . (Join-Path $PSScriptRoot '..\Scripts\Features\Invoke-SystemRestorePoint.ps1')
+    $script:LanguagesPath = Join-Path $PSScriptRoot '..\Config\Languages'
+    $script:Lang = Import-LanguageFile -LanguageCode 'en-US'
 }
 
 Describe 'Invoke-SystemRestorePoint' {
@@ -25,6 +29,26 @@ Describe 'Invoke-SystemRestorePoint' {
         Should -Invoke Invoke-NonBlocking -Times 1 -Exactly -ParameterFilter { $TimeoutSeconds -eq 90 }
         Should -Invoke Read-Host -Times 0 -Exactly
         $script:CancelRequested | Should -BeFalse
+    }
+
+    It 'returns false through the continuation flow when the System Restore state cannot be read' {
+        Mock Get-ItemProperty { throw 'registry access denied' }
+        Mock Read-Host { 'y' }
+
+        Invoke-SystemRestorePoint | Should -BeFalse
+
+        $script:CancelRequested | Should -BeFalse
+        Should -Invoke Invoke-NonBlocking -Times 0 -Exactly
+    }
+
+    It 'returns false without prompting when the System Restore state cannot be read in silent mode' {
+        $script:Silent = $true
+        Mock Get-ItemProperty { throw 'registry access denied' }
+
+        Invoke-SystemRestorePoint | Should -BeFalse
+
+        $script:CancelRequested | Should -BeFalse
+        Should -Invoke Read-Host -Times 0 -Exactly
     }
 
     It 'is loaded by the main entry point' {

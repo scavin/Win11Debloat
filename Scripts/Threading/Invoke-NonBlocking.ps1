@@ -29,7 +29,7 @@ function Invoke-NonBlocking {
             while (-not $handle.IsCompleted) {
                 if ($stopwatch -and $stopwatch.Elapsed.TotalSeconds -ge $TimeoutSeconds) {
                     $ps.Stop()
-                    throw "操作在 $TimeoutSeconds 秒后超时"
+                    throw [System.TimeoutException]::new("操作在 $TimeoutSeconds 秒后超时")
                 }
                 Invoke-DoEvents
                 Start-Sleep -Milliseconds 16
@@ -39,7 +39,7 @@ function Invoke-NonBlocking {
             # CLI mode with timeout: block until completion or timeout
             if (-not $handle.AsyncWaitHandle.WaitOne($TimeoutSeconds * 1000)) {
                 $ps.Stop()
-                throw "操作在 $TimeoutSeconds 秒后超时"
+                throw [System.TimeoutException]::new("操作在 $TimeoutSeconds 秒后超时")
             }
         }
 
